@@ -200,7 +200,7 @@ std::string newOrderRndCreate(Integer w_id)
    {
       Integer supware = w_id;
 
-      if (urand(1, 100) == 1 && FLAGS_distribution)
+      if (FLAGS_distribution && urand(1, 100) <= float(FLAGS_distribution_rate)/10)
       { // remote transaction
         supware = urandexcept(1, warehouseCount, w_id);
         remote_new_order++;
@@ -305,7 +305,7 @@ std::string paymentRndCreate(Integer w_id)
    Integer c_w_id = w_id;
    Integer c_d_id = d_id;
 
-   if (urand(1, 100) > 85 && FLAGS_distribution)
+   if (FLAGS_distribution && urand(1, 100) < (float(FLAGS_distribution_rate)/2 * 3))
    {
       c_w_id = urandexcept(1, warehouseCount, w_id);
       c_d_id = urand(1, 10);

@@ -16,7 +16,6 @@ struct TPCC_workloadInfo : public scalestore::profiling::WorkloadInfo
    {
       return {experiment, std::to_string(warehouses), configuration};
    }
-
    virtual std::vector<std::string> getHeader()
    {
       return {"experiment", "warehouses", "configuration"};
@@ -300,6 +299,7 @@ void origin_tpcc_run(ScaleStore &db)
    u64 txn_profile[FLAGS_worker][transaction_types::MAX];
    u64 txn_lat[FLAGS_worker][transaction_types::MAX];
    u64 txn_pay_lat[FLAGS_worker][10];
+   bool change_line[FLAGS_worker];
    std::string configuration;
    if (FLAGS_tpcc_warehouse_affinity)
    {
@@ -357,12 +357,11 @@ void origin_tpcc_run(ScaleStore &db)
                */
                auto end = utils::getTimePoint();
                output << (end - start) << " ";
-               if(tx_acc > 10000){
+               if(change_line[t_i]){
                   output << std::endl;
-                  tx_acc = 0;
+                  change_line[t_i] = false;
                }
-               tx_acc++;
-               txn_per_thread[t_i] = tx_acc;
+               txn_per_thread[t_i]++;
                threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
             }
          sleep(5 * int(db.getNodeID() + 1));
@@ -490,6 +489,15 @@ void origin_tpcc_run(ScaleStore &db)
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
                            } });
    data_consume.detach();
+   std::thread start_txn_count([&]()
+                               {
+                           while(keep_running){
+  sleep(10);
+  for(int i = 0; i< int(FLAGS_worker); i++){
+   change_line[i] = true;
+  }
+                           } });
+   start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
    // keep_getting_sql = false;
@@ -575,14 +583,12 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    auto &catalog = db.getCatalog();
    // bool keep_getting_sql = true;
    std::atomic<u64> running_threads_counter = 0;
-   u64 tx_per_thread[FLAGS_worker];
-   u64 remote_new_order_per_thread[FLAGS_worker]; // per specification
-   u64 remote_tx_per_thread[FLAGS_worker];
-   u64 delivery_aborts_per_thread[FLAGS_worker];
-   u64 txn_profile[FLAGS_worker][transaction_types::MAX];
-   u64 txn_lat[FLAGS_worker][transaction_types::MAX];
-   u64 txn_pay_lat[FLAGS_worker][10];
    std::string configuration;
+   bool change_line[FLAGS_worker];
+   for (int i = 0; i < int(FLAGS_worker); i++)
+   {
+      change_line[i] = false;
+   }
    if (FLAGS_tpcc_warehouse_affinity)
    {
       configuration = "warehouse_affinity";
@@ -614,7 +620,6 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                                           {                           
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
-         volatile u64 tx_acc = 0;
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
          while (keep_running) {
@@ -628,15 +633,10 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
 
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
-               if(db.warehouse_created()){
-                  outputs[t_i] << (end - start) << " ";
-                  tx_acc++;
-               }
-               // outputs[t_i] << (end - start) << " ";
-               // tx_acc++;
-               if(tx_acc > 10000){
+               outputs[t_i] << (end - start) << " ";
+               if(change_line[t_i]){
                   outputs[t_i] << std::endl;
-                  tx_acc = 0;
+                  change_line[t_i] = false;
                }
                if (db.getNodeID() == 0)
                {
@@ -657,6 +657,23 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                         customer.update_partitioner();
                         db.set_customer_update_ready(false);
                         db.customer_clear();
+                     }
+                     if (!warehouse.created && db.stock_created())
+                     {
+                        time_logger->info(fmt::format("start create warehouse partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        warehouse.partition_map = db.get_warehouse_map();
+                        warehouse.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("warehouse partitioner created"));
+                        time_logger->info(fmt::format("warehouse partition cost {}ms", float(time_end - time_start)/1000));
+                     }
+                     if (db.warehouse_update_ready())
+                     {
+                        warehouse.update_map = db.get_warehouse_update_map();
+                        warehouse.update_partitioner();
+                        db.set_warehouse_update_ready(false);
+                        db.warehouse_clear();
                      }
                      // if(customer.created && !customer.traversed){
                      //    std::cout << "start traverse customer tree" << std::endl;
@@ -715,31 +732,6 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                   }
                   if (t_i == 3)
                   {
-                     if (!warehouse.created && db.stock_created())
-                     {
-                        time_logger->info(fmt::format("start create warehouse partitioner"));
-                        auto time_start = utils::getTimePoint();
-                        warehouse.partition_map = db.get_warehouse_map();
-                        warehouse.create_partitioner();
-                        auto time_end = utils::getTimePoint();
-                        time_logger->info(fmt::format("warehouse partitioner created"));
-                        time_logger->info(fmt::format("warehouse partition cost {}ms", float(time_end - time_start)/1000));
-                     }
-                     if (db.warehouse_update_ready())
-                     {
-                        warehouse.update_map = db.get_warehouse_update_map();
-                        warehouse.update_partitioner();
-                        db.set_warehouse_update_ready(false);
-                        db.warehouse_clear();
-                     }
-                     // if(warehouse.created && !warehouse.traversed){
-                     //    std::cout << "start traverse warehouse tree" << std::endl;
-                     //    warehouse.traverse_tree();
-                     //    std::cout << "warehouse tree traversed" << std::endl;
-                     // }
-                  }
-                  if (t_i == 4)
-                  {
                      if (!district.created && db.district_created())
                      {
                         time_logger->info(fmt::format("start create district partitioner"));
@@ -757,14 +749,6 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                         db.set_district_update_ready(false);
                         db.district_clear();
                      }
-                     // if(district.created && !district.traversed){
-                     //    std::cout << "start traverse district tree" << std::endl;
-                     //    district.traverse_tree();
-                     //    std::cout << "district tree traversed" << std::endl;
-                     // }
-                  }
-                  if (t_i == 5)
-                  {
                      if (!neworder.created && db.neworder_created())
                      {
                         time_logger->info(fmt::format("start create neworder partitioner"));
@@ -773,7 +757,7 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                         neworder.create_partitioner();
                         auto time_end = utils::getTimePoint();
                         time_logger->info(fmt::format("neworder partitioner created"));
-                        time_logger->info(fmt::format("neworder partition cost {}ms", float(time_end - time_start)/1000));
+                        time_logger->info(fmt::format("neworder partition cost {}ms", float(time_end - time_start) / 1000));
                      }
                      if (db.neworder_update_ready())
                      {
@@ -782,11 +766,6 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                         db.set_neworder_update_ready(false);
                         db.neworder_clear();
                      }
-                     // if(stock.created && !stock.traversed){
-                     //    std::cout << "start traverse stock tree" << std::endl;
-                     //    stock.traverse_tree();
-                     //    std::cout << "stock tree traversed" << std::endl;
-                     // }
                   }
                   // if (t_i == 6)
                   // {
@@ -822,83 +801,65 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
          switch (t_i)
          {
          case 0:
-            if(!warehouse.traversed && FLAGS_nodes < 3){
+            if (!warehouse.traversed && FLAGS_nodes < 3)
+            {
                warehouse.traverse_page();
                std::cout << "warehouse page traversed" << std::endl;
             }
-            if(!district.traversed && FLAGS_nodes < 3){
+            if (!district.traversed && FLAGS_nodes < 3)
+            {
                district.traverse_page();
                std::cout << "district page traversed" << std::endl;
             }
-            break;
-         case 1:
-            if(!customer.traversed && FLAGS_nodes < 3){
-               customer.traverse_page();
-               std::cout << "customer page traversed" << std::endl;
-            }
-            if(!customerwdl.traversed && FLAGS_nodes < 3){
-               customerwdl.traverse_page();
-               std::cout << "customerwdl page traversed" << std::endl;
-            }
-            break;
-         case 2:
-            if(!history.traversed && FLAGS_nodes < 3){
+            if (!history.traversed && FLAGS_nodes < 3)
+            {
                history.traverse_page();
                std::cout << "history page traversed" << std::endl;
             }
-            break;
-         case 3:
-            if(!neworder.traversed && FLAGS_nodes < 3){
-               neworder.traverse_page();
-               std::cout << "neworder page traversed" << std::endl;
-            }
-            break;
-         case 4:
-            if(!order.traversed && FLAGS_nodes < 3){
-               order.traverse_page();
-               std::cout << "order page traversed" << std::endl;
-            }
-            if(!order_wdc.traversed && FLAGS_nodes < 3){
-               order_wdc.traverse_page();
-               std::cout << "orderwdc page traversed" << std::endl;
-            }
-            break;
-         case 5:
-            if(!orderline.traversed && FLAGS_nodes < 3){
-               //orderline.traverse_page();
-               //std::cout << "orderline page traversed" << std::endl;
-            }
-            break;
-         case 6:
-            if(!item.traversed && FLAGS_nodes < 3){
+            if (!item.traversed && FLAGS_nodes < 3)
+            {
                item.traverse_page();
                std::cout << "item page traversed" << std::endl;
             }
             break;
-         default:
-            if(!stock.traversed && FLAGS_nodes < 3){
+         case 1:
+            if (!customer.traversed && FLAGS_nodes < 3)
+            {
+               customer.traverse_page();
+               std::cout << "customer page traversed" << std::endl;
+            }
+            if (!customerwdl.traversed && FLAGS_nodes < 3)
+            {
+               customerwdl.traverse_page();
+               std::cout << "customerwdl page traversed" << std::endl;
+            }
+            if (!stock.traversed && FLAGS_nodes < 3)
+            {
                stock.traverse_page();
                std::cout << "stock page traversed" << std::endl;
             }
             break;
-         }
-         tx_per_thread[t_i] = tx_acc;
-         remote_new_order_per_thread[t_i] = remote_new_order;
-         remote_tx_per_thread[t_i] = remote_node_new_order;
-         delivery_aborts_per_thread[t_i] = delivery_aborts;
-         int idx = 0;
-         for (auto& tx_count : txns)
-            txn_profile[t_i][idx++] = tx_count;
-         idx = 0;
-         for (auto& tx_l : txn_latencies) {
-            txn_lat[t_i][idx] = (tx_l / (double)txn_profile[t_i][idx]);
-            idx++;
-         }
+            break;
+         case 2:
+            if (!neworder.traversed && FLAGS_nodes < 3)
+            {
+               neworder.traverse_page();
+               std::cout << "neworder page traversed" << std::endl;
+            }
 
-         idx = 0;
-         for (auto& tx_l : txn_paymentbyname_latencies) {
-            txn_pay_lat[t_i][idx] = ((tx_l) / (double)txn_profile[t_i][transaction_types::STOCK_LEVEL]);
-            idx++;
+            break;
+         case 3:
+            if (!order.traversed && FLAGS_nodes < 3)
+            {
+               order.traverse_page();
+               std::cout << "order page traversed" << std::endl;
+            }
+            if (!order_wdc.traversed && FLAGS_nodes < 3)
+            {
+               order_wdc.traverse_page();
+               std::cout << "orderwdc page traversed" << std::endl;
+            }
+            break;
          }
          running_threads_counter--; });
    }
@@ -944,7 +905,15 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
                            } });
    data_consume.detach();
-
+   std::thread start_txn_count([&]()
+                               {
+                           while(keep_running){
+  sleep(10);
+  for(int i = 0; i< int(FLAGS_worker); i++){
+   change_line[i] = true;
+  }
+                           } });
+   start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
    sleep(5 * int(db.getNodeID() + 1));
@@ -957,65 +926,6 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    // db.stopProfiler();
-
-   std::cout << "tx per thread " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << tx_per_thread[t_i] << ",";
-   }
-   std::cout << "\n";
-
-   std::cout << "remote node txn " << std::endl;
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << remote_tx_per_thread[t_i] << ",";
-   }
-   std::cout << "\n";
-   std::cout << "remote new order per specification " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << remote_new_order_per_thread[t_i] << ",";
-   }
-   std::cout << std::endl;
-
-   std::cout << "aborts " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << delivery_aborts_per_thread[t_i] << ",";
-   }
-   std::cout << std::endl;
-   std::cout << "txn profile "
-             << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < transaction_types::MAX; i++)
-      {
-         std::cout << txn_profile[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
-   std::cout << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < transaction_types::MAX; i++)
-      {
-         std::cout << txn_lat[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
-   std::cout << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < 10; i++)
-      {
-         std::cout << txn_pay_lat[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
    std::cout << "\n";
    double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
@@ -1030,13 +940,11 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    std::atomic<bool> keep_running = true;
    auto &catalog = db.getCatalog();
    std::atomic<u64> running_threads_counter = 0;
-   u64 tx_per_thread[FLAGS_worker];
-   u64 remote_new_order_per_thread[FLAGS_worker]; // per specification
-   u64 remote_tx_per_thread[FLAGS_worker];
-   u64 delivery_aborts_per_thread[FLAGS_worker];
-   u64 txn_profile[FLAGS_worker][transaction_types::MAX];
-   u64 txn_lat[FLAGS_worker][transaction_types::MAX];
-   u64 txn_pay_lat[FLAGS_worker][10];
+   bool change_line[FLAGS_worker];
+   for (int i = 0; i < int(FLAGS_worker); i++)
+   {
+      change_line[i] = false;
+   }
    std::string configuration;
    if (FLAGS_tpcc_warehouse_affinity)
    {
@@ -1064,7 +972,6 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                                           {                                                
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
-         volatile u64 tx_acc = 0;
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
          while (keep_running) {
@@ -1079,13 +986,10 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
 
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
-               if(db.warehouse_created()){
-                  outputs[t_i] << (end - start) << " ";
-                  tx_acc++;
-               }
-               if(tx_acc > 10000){
+               outputs[t_i] << (end - start) << " ";
+               if(change_line[t_i]){
                   outputs[t_i] << std::endl;
-                  tx_acc = 0;
+                  change_line[t_i] = false;
                }
                threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
 
@@ -1103,6 +1007,14 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                district.traverse_page();
                std::cout << "district page traversed" << std::endl;
             }
+            if(!history.traversed && FLAGS_nodes < 3){
+               history.traverse_page();
+               std::cout << "history page traversed" << std::endl;
+            }
+            if(!item.traversed && FLAGS_nodes < 3){
+               item.traverse_page();
+               std::cout << "item page traversed" << std::endl;
+            }
             break;
          case 1:
             if(!customer.traversed && FLAGS_nodes < 3){
@@ -1113,20 +1025,20 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                customerwdl.traverse_page();
                std::cout << "customerwdl page traversed" << std::endl;
             }
-            break;
-         case 2:
-            if(!history.traversed && FLAGS_nodes < 3){
-               history.traverse_page();
-               std::cout << "history page traversed" << std::endl;
+            if(!stock.traversed && FLAGS_nodes < 3){
+               stock.traverse_page();
+               std::cout << "stock page traversed" << std::endl;
             }
             break;
-         case 3:
+            break;
+         case 2:
             if(!neworder.traversed && FLAGS_nodes < 3){
                neworder.traverse_page();
                std::cout << "neworder page traversed" << std::endl;
             }
+
             break;
-         case 4:
+         case 3:
             if(!order.traversed && FLAGS_nodes < 3){
                order.traverse_page();
                std::cout << "order page traversed" << std::endl;
@@ -1136,42 +1048,6 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                std::cout << "orderwdc page traversed" << std::endl;
             }
             break;
-         case 5:
-            if(!orderline.traversed && FLAGS_nodes < 3){
-               // orderline.traverse_page();
-               // std::cout << "orderline page traversed" << std::endl;
-            }
-            break;
-         case 6:
-            if(!item.traversed && FLAGS_nodes < 3){
-               item.traverse_page();
-               std::cout << "item page traversed" << std::endl;
-            }
-            break;
-         default:
-            if(!stock.traversed && FLAGS_nodes < 3){
-               stock.traverse_page();
-               std::cout << "stock page traversed" << std::endl;
-            }
-            break;
-         }
-         tx_per_thread[t_i] = tx_acc;
-         remote_new_order_per_thread[t_i] = remote_new_order;
-         remote_tx_per_thread[t_i] = remote_node_new_order;
-         delivery_aborts_per_thread[t_i] = delivery_aborts;
-         int idx = 0;
-         for (auto& tx_count : txns)
-            txn_profile[t_i][idx++] = tx_count;
-         idx = 0;
-         for (auto& tx_l : txn_latencies) {
-            txn_lat[t_i][idx] = (tx_l / (double)txn_profile[t_i][idx]);
-            idx++;
-         }
-
-         idx = 0;
-         for (auto& tx_l : txn_paymentbyname_latencies) {
-            txn_pay_lat[t_i][idx] = ((tx_l) / (double)txn_profile[t_i][transaction_types::STOCK_LEVEL]);
-            idx++;
          }
          running_threads_counter--; });
    }
@@ -1217,6 +1093,15 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
                            } });
    data_consume.detach();
+   std::thread start_txn_count([&]()
+                               {
+                           while(keep_running){
+  sleep(10);
+  for(int i = 0; i< int(FLAGS_worker); i++){
+   change_line[i] = true;
+  }
+                           } });
+   start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
    // keep_getting_sql = false;
@@ -1229,66 +1114,6 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    db.stopProfiler();
-
-   std::cout << "tx per thread " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << tx_per_thread[t_i] << ",";
-   }
-   std::cout << "\n";
-
-   std::cout << "remote node txn " << std::endl;
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << remote_tx_per_thread[t_i] << ",";
-   }
-   std::cout << "\n";
-   std::cout << "remote new order per specification " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << remote_new_order_per_thread[t_i] << ",";
-   }
-   std::cout << std::endl;
-
-   std::cout << "aborts " << std::endl;
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      std::cout << delivery_aborts_per_thread[t_i] << ",";
-   }
-   std::cout << std::endl;
-   std::cout << "txn profile "
-             << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < transaction_types::MAX; i++)
-      {
-         std::cout << txn_profile[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
-   std::cout << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < transaction_types::MAX; i++)
-      {
-         std::cout << txn_lat[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
-   std::cout << "\n";
-
-   for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
-   {
-      for (u64 i = 0; i < 10; i++)
-      {
-         std::cout << txn_pay_lat[t_i][i] << ",";
-      }
-      std::cout << "\n";
-   }
-   std::cout << "\n";
    double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
    std::cout << "Starting hash table report "

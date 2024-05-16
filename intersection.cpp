@@ -111,41 +111,72 @@ void handle_page(std::string path)
 
 void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)
 {
-    // 要合并的文件名列表
-    std::ofstream outputFile(outputFilename, std::ios::app); // 打开输出文件，以追加模式
-    if (!outputFile.is_open())
-    {
-        std::cerr << "Failed to open output file." << std::endl;
-        return;
-    }
-
+    // 打开所有输入文件
+    std::vector<std::ifstream> inputFiles;
     for (const auto &filename : filenames)
     {
         std::ifstream inputFile(filename);
         if (!inputFile.is_open())
         {
             std::cerr << "Failed to open input file: " << filename << std::endl;
-            continue; // 继续处理下一个文件
+            return;
         }
-
-        // 从输入文件读取内容，并写入输出文件
-        outputFile << inputFile.rdbuf();
-        inputFile.close(); // 关闭输入文件
+        inputFiles.push_back(std::move(inputFile));
     }
 
-    outputFile.close(); // 关闭输出文件
+    std::ofstream outputFile(outputFilename);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "Failed to open output file." << std::endl;
+        return;
+    }
+
+    bool allFilesHaveData = true;
+
+    while (allFilesHaveData)
+    {
+        allFilesHaveData = false;
+        std::string mergedLine;
+
+        for (auto &inputFile : inputFiles)
+        {
+            std::string line;
+            if (std::getline(inputFile, line))
+            {
+                if (!mergedLine.empty())
+                {
+                    mergedLine += " "; // 可以根据需要更改分隔符
+                }
+                mergedLine += line;
+                allFilesHaveData = true;
+            }
+        }
+
+        if (allFilesHaveData)
+        {
+            outputFile << mergedLine << std::endl;
+        }
+    }
+
+    for (auto &inputFile : inputFiles)
+    {
+        inputFile.close();
+    }
+
+    outputFile.close();
 }
 
 void handle_txn(std::string &path)
 {
     std::vector<std::string> filenames;
+    std::vector<std::string> ssd_filenames;
     std::vector<std::string> proxy_file;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 4; i++)
     {
         filenames.push_back(path + "node1/TXN_LOG/worker_" + std::to_string(i));
         filenames.push_back(path + "node2/TXN_LOG/worker_" + std::to_string(i));
     }
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 8; i++)
     {
         proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
     }
@@ -159,13 +190,13 @@ void handle_3_txn(std::string &path)
 {
     std::vector<std::string> filenames;
     std::vector<std::string> proxy_file;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 4; i++)
     {
         filenames.push_back(path + "node1/TXN_LOG/worker_" + std::to_string(i));
         filenames.push_back(path + "node2/TXN_LOG/worker_" + std::to_string(i));
         filenames.push_back(path + "node3/TXN_LOG/worker_" + std::to_string(i));
     }
-    for (int i = 0; i < 24; i++)
+    for (int i = 0; i < 12; i++)
     {
         proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
     }
@@ -215,7 +246,7 @@ int main()
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "data/";
+    std::string start = "new_data/";
     std::string subpath1 = "";
     std::string subpath2 = "";
     std::string subpath3 = "";
@@ -234,17 +265,17 @@ int main()
     {
         if (params2["route_mode"] == "1")
         {
-            subpath1 = "page交并/";
+            subpath1 = "无图划分路由/";
             subpath2 = "随机路由/";
         }
         else if (params2["route_mode"] == "2")
         {
-            subpath1 = "page交并/";
+            subpath1 = "无图划分路由/";
             subpath2 = "哈希路由/";
         }
         else
         {
-            subpath1 = "page交并/";
+            subpath1 = "图划分路由/";
             if (params2["partition_mode"] == "1")
             {
                 subpath2 = "静态/";
@@ -269,20 +300,29 @@ int main()
     }
     else
     {
-        if (params["distribution"] == "false")
+        if (params2["distribution"] == "false")
         {
             subpath4 = "无分布式/";
         }
         else
         {
-            if (params["distribution_rate"] == "10")
+            if (params2["distribution_rate"] == "10")
             {
                 subpath4 = "原版tpcc/";
             }
-            else
+            else if(params2["distribution_rate"] == "30")
             {
                 subpath4 = "分布式30/";
             }
+            else if (params2["distribution_rate"] == "50")
+            {
+                subpath4 = "分布式50/";
+            }
+            else
+            {
+                subpath4 = "分布式70/";
+            }
+            
         }
     }
     path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5;

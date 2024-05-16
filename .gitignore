@@ -8,3 +8,4 @@ Proxy/backend/Proxy/TXN_LOG/
 Proxy/backend/Proxy/Logs/
 spdlog
 data/
+new_data/
