@@ -1,0 +1,10 @@
+Proxy/build/
+ScaleStore/build/
+ScaleStore/tpcc_data
+pages/
+ScaleStore/Logs/
+ScaleStore/TXN_LOG/
+Proxy/backend/Proxy/TXN_LOG/
+Proxy/backend/Proxy/Logs/
+spdlog
+data/
