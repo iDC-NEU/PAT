@@ -88,6 +88,7 @@ struct BTreeLeaf : public BTreeLeafBase {
 
    Key keys[maxEntries];
    Payload payloads[maxEntries];
+   int partition_id = -1;
 
    BTreeLeaf() {
       count=0;
