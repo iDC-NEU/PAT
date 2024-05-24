@@ -15,6 +15,7 @@
 #include "scalestore/utils/Parallelize.hpp"
 #include "scalestore/utils/FNVHash.hpp"
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
 // -------------------------------------------------------------------------------------
 #include <cstdint>
 #include <mutex>

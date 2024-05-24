@@ -206,6 +206,49 @@ void handle_3_txn(std::string &path)
     mergeFiles(proxy_file, outputproxy);
 }
 
+void handle_4_txn(std::string &path)
+{
+    std::vector<std::string> filenames;
+    std::vector<std::string> proxy_file;
+    for (int i = 0; i < 4; i++)
+    {
+        filenames.push_back(path + "node1/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node2/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node3/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node4/TXN_LOG/worker_" + std::to_string(i));
+    }
+    for (int i = 0; i < 16; i++)
+    {
+        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
+    }
+    std::string outputFilename = path + "txn_lantency";
+    mergeFiles(filenames, outputFilename);
+    std::string outputproxy = path + "route_lantency";
+    mergeFiles(proxy_file, outputproxy);
+}
+
+void handle_5_txn(std::string &path)
+{
+    std::vector<std::string> filenames;
+    std::vector<std::string> proxy_file;
+    for (int i = 0; i < 4; i++)
+    {
+        filenames.push_back(path + "node1/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node2/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node3/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node4/TXN_LOG/worker_" + std::to_string(i));
+        filenames.push_back(path + "node5/TXN_LOG/worker_" + std::to_string(i));
+    }
+    for (int i = 0; i < 20; i++)
+    {
+        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
+    }
+    std::string outputFilename = path + "txn_lantency";
+    mergeFiles(filenames, outputFilename);
+    std::string outputproxy = path + "route_lantency";
+    mergeFiles(proxy_file, outputproxy);
+}
+
 std::unordered_map<std::string, std::string> readINIFile(const std::string &filename)
 {
     std::unordered_map<std::string, std::string> params;
@@ -255,14 +298,23 @@ int main()
     // 读取INI文件并存储到字典中
     std::unordered_map<std::string, std::string> params = readINIFile(filename1);
     std::unordered_map<std::string, std::string> params2 = readINIFile(filename2);
-    if (params["nodes"] == "2"){
+
+    // 要获取的参数
+    if (params["nodes"] == "2")
+    {
         subpath1 = "2nodes/";
     }
-    else if(params["nodes"] == "3"){
+    else if (params["nodes"] == "3")
+    {
         subpath1 = "3nodes/";
     }
-    else{
+    else if (params["nodes"] == "4")
+    {
         subpath1 = "4nodes/";
+    }
+    else
+    {
+        subpath1 = "5nodes/";
     }
     // 要获取的参数
     if (params2["route_mode"] == "1")
@@ -319,7 +371,6 @@ int main()
             subpath5 = "分布式70/";
         }
     }
-
     path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5;
     std::string scpfile_1 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/";
     std::string scpfile_2 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/";
@@ -327,6 +378,10 @@ int main()
     std::string scpfile_4 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.89:/root/home/AffinityDB/Proxy/backend/Proxy/TXN_LOG " + path + "proxy/";
     std::string scpfile_5 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.90:/root/home/AffinityDB/ScaleStore/Logs " + path + "node3/";
     std::string scpfile_6 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/";
+    std::string scpfile_7 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.91:/root/home/AffinityDB/ScaleStore/Logs " + path + "node4/";
+    std::string scpfile_8 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/";
+    std::string scpfile_9 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.92:/root/home/AffinityDB/ScaleStore/Logs " + path + "node5/";
+    std::string scpfile_10 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/";
     std::string cpfile_1 = "cp -r ScaleStore/Logs " + path + "node1/";
     std::string cpfile_2 = "cp -r ScaleStore/TXN_LOG " + path + "node1/";
     int result_1 = system(scpfile_1.c_str());
@@ -412,7 +467,7 @@ int main()
         }
     }
 
-    if (params["nodes"] == "3" || params["nodes"] == "4")
+    if (params["nodes"] == "3")
     {
         int result_7 = system(scpfile_5.c_str());
         // 检查是否成功执行 cp 命令
@@ -450,7 +505,163 @@ int main()
         system(rm_file4.c_str());
         return 0;
     }
+    if (params["nodes"] == "4")
+    {
+        int result_7 = system(scpfile_5.c_str());
+        // 检查是否成功执行 cp 命令
+        if (result_7 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_8 = system(scpfile_6.c_str());
 
+        // 检查是否成功执行 cp 命令
+        if (result_8 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_9 = system(scpfile_7.c_str());
+        // 检查是否成功执行 cp 命令
+        if (result_9 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_10 = system(scpfile_8.c_str());
+
+        // 检查是否成功执行 cp 命令
+        if (result_10 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        handle_4_txn(path);
+        std::string rm_file1 = "rm -rf " + path + "node1/TXN_LOG";
+        system(rm_file1.c_str());
+        std::string rm_file2 = "rm -rf " + path + "node2/TXN_LOG";
+        system(rm_file2.c_str());
+        std::string rm_file3 = "rm -rf " + path + "node3/TXN_LOG";
+        system(rm_file3.c_str());
+        std::string rm_file4 = "rm -rf " + path + "proxy/TXN_LOG";
+        system(rm_file4.c_str());
+        std::string rm_file5 = "rm -rf " + path + "node4/TXN_LOG";
+        system(rm_file5.c_str());
+        return 0;
+    }
+    if (params["nodes"] == "5")
+    {
+        int result_7 = system(scpfile_5.c_str());
+        // 检查是否成功执行 cp 命令
+        if (result_7 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_8 = system(scpfile_6.c_str());
+
+        // 检查是否成功执行 cp 命令
+        if (result_8 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_9 = system(scpfile_7.c_str());
+        // 检查是否成功执行 cp 命令
+        if (result_9 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_10 = system(scpfile_8.c_str());
+
+        // 检查是否成功执行 cp 命令
+        if (result_10 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_11 = system(scpfile_9.c_str());
+        // 检查是否成功执行 cp 命令
+        if (result_11 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        int result_12 = system(scpfile_10.c_str());
+
+        // 检查是否成功执行 cp 命令
+        if (result_12 == 0)
+        {
+            // 成功执行
+            std::cout << "File copied successfully." << std::endl;
+        }
+        else
+        {
+            // 执行失败
+            std::cerr << "Error copying file." << std::endl;
+        }
+        handle_5_txn(path);
+        std::string rm_file1 = "rm -rf " + path + "node1/TXN_LOG";
+        system(rm_file1.c_str());
+        std::string rm_file2 = "rm -rf " + path + "node2/TXN_LOG";
+        system(rm_file2.c_str());
+        std::string rm_file3 = "rm -rf " + path + "node3/TXN_LOG";
+        system(rm_file3.c_str());
+        std::string rm_file4 = "rm -rf " + path + "proxy/TXN_LOG";
+        system(rm_file4.c_str());
+        std::string rm_file5 = "rm -rf " + path + "node4/TXN_LOG";
+        system(rm_file5.c_str());
+        std::string rm_file6 = "rm -rf " + path + "node5/TXN_LOG";
+        system(rm_file6.c_str());
+        return 0;
+    }
     handle_txn(path);
     handle_page(path);
     std::string rm_file1 = "rm -rf " + path + "node1/TXN_LOG";

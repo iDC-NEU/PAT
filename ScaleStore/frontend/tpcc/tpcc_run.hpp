@@ -16,6 +16,7 @@ struct TPCC_workloadInfo : public scalestore::profiling::WorkloadInfo
    {
       return {experiment, std::to_string(warehouses), configuration};
    }
+
    virtual std::vector<std::string> getHeader()
    {
       return {"experiment", "warehouses", "configuration"};
@@ -364,69 +365,61 @@ void origin_tpcc_run(ScaleStore &db)
                txn_per_thread[t_i]++;
                threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
             }
+         if(FLAGS_nodes < 3){
          sleep(5 * int(db.getNodeID() + 1));
          switch (t_i)
          {
          case 0:
-            if(!warehouse.traversed && FLAGS_nodes < 3){
+            if(!warehouse.traversed){
                warehouse.traverse_page();
                std::cout << "warehouse page traversed" << std::endl;
             }
-            if(!district.traversed && FLAGS_nodes < 3){
+            if(!district.traversed){
                district.traverse_page();
                std::cout << "district page traversed" << std::endl;
             }
-            break;
-         case 1:
-            if(!customer.traversed && FLAGS_nodes < 3){
-               customer.traverse_page();
-               std::cout << "customer page traversed" << std::endl;
-            }
-            if(!customerwdl.traversed && FLAGS_nodes < 3){
-               customerwdl.traverse_page();
-               std::cout << "customerwdl page traversed" << std::endl;
-            }
-            break;
-         case 2:
-            if(!history.traversed && FLAGS_nodes < 3){
+            if(!history.traversed){
                history.traverse_page();
                std::cout << "history page traversed" << std::endl;
             }
-            break;
-         case 3:
-            if(!neworder.traversed && FLAGS_nodes < 3){
-               neworder.traverse_page();
-               std::cout << "neworder page traversed" << std::endl;
-            }
-            break;
-         case 4:
-            if(!order.traversed && FLAGS_nodes < 3){
-               order.traverse_page();
-               std::cout << "order page traversed" << std::endl;
-            }
-            if(!order_wdc.traversed && FLAGS_nodes < 3){
-               order_wdc.traverse_page();
-               std::cout << "orderwdc page traversed" << std::endl;
-            }
-            break;
-         case 5:
-            if(!orderline.traversed && FLAGS_nodes < 3){
-               orderline.traverse_page();
-               std::cout << "orderline page traversed" << std::endl;
-            }
-            break;
-         case 6:
-            if(!item.traversed && FLAGS_nodes < 3){
+            if(!item.traversed){
                item.traverse_page();
                std::cout << "item page traversed" << std::endl;
             }
             break;
-         default:
-            if(!stock.traversed && FLAGS_nodes < 3){
+         case 1:
+            if(!customer.traversed){
+               customer.traverse_page();
+               std::cout << "customer page traversed" << std::endl;
+            }
+            if(!customerwdl.traversed){
+               customerwdl.traverse_page();
+               std::cout << "customerwdl page traversed" << std::endl;
+            }
+            if(!stock.traversed){
                stock.traverse_page();
                std::cout << "stock page traversed" << std::endl;
             }
             break;
+            break;
+         case 2:
+            if(!neworder.traversed){
+               neworder.traverse_page();
+               std::cout << "neworder page traversed" << std::endl;
+            }
+
+            break;
+         case 3:
+            if(!order.traversed){
+               order.traverse_page();
+               std::cout << "order page traversed" << std::endl;
+            }
+            if(!order_wdc.traversed){
+               order_wdc.traverse_page();
+               std::cout << "orderwdc page traversed" << std::endl;
+            }
+            break;
+         }
          }
             tx_per_thread[t_i] = tx_acc;
             remote_new_order_per_thread[t_i] = remote_new_order;
@@ -501,12 +494,11 @@ void origin_tpcc_run(ScaleStore &db)
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
    // keep_getting_sql = false;
-   sleep(5 * int(db.getNodeID() + 1));
    while (running_threads_counter)
    {
       _mm_pause();
    }
-   sleep(5 * int(db.getNodeID() + 1));
+   sleep(5);
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    db.stopProfiler();
@@ -797,69 +789,61 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
 
             }
          }
+                  if(FLAGS_nodes < 2){
          sleep(5 * int(db.getNodeID() + 1));
          switch (t_i)
          {
          case 0:
-            if (!warehouse.traversed && FLAGS_nodes < 3)
-            {
+            if(!warehouse.traversed){
                warehouse.traverse_page();
                std::cout << "warehouse page traversed" << std::endl;
             }
-            if (!district.traversed && FLAGS_nodes < 3)
-            {
+            if(!district.traversed){
                district.traverse_page();
                std::cout << "district page traversed" << std::endl;
             }
-            if (!history.traversed && FLAGS_nodes < 3)
-            {
+            if(!history.traversed){
                history.traverse_page();
                std::cout << "history page traversed" << std::endl;
             }
-            if (!item.traversed && FLAGS_nodes < 3)
-            {
+            if(!item.traversed){
                item.traverse_page();
                std::cout << "item page traversed" << std::endl;
             }
             break;
          case 1:
-            if (!customer.traversed && FLAGS_nodes < 3)
-            {
+            if(!customer.traversed){
                customer.traverse_page();
                std::cout << "customer page traversed" << std::endl;
             }
-            if (!customerwdl.traversed && FLAGS_nodes < 3)
-            {
+            if(!customerwdl.traversed){
                customerwdl.traverse_page();
                std::cout << "customerwdl page traversed" << std::endl;
             }
-            if (!stock.traversed && FLAGS_nodes < 3)
-            {
+            if(!stock.traversed){
                stock.traverse_page();
                std::cout << "stock page traversed" << std::endl;
             }
             break;
             break;
          case 2:
-            if (!neworder.traversed && FLAGS_nodes < 3)
-            {
+            if(!neworder.traversed){
                neworder.traverse_page();
                std::cout << "neworder page traversed" << std::endl;
             }
 
             break;
          case 3:
-            if (!order.traversed && FLAGS_nodes < 3)
-            {
+            if(!order.traversed){
                order.traverse_page();
                std::cout << "order page traversed" << std::endl;
             }
-            if (!order_wdc.traversed && FLAGS_nodes < 3)
-            {
+            if(!order_wdc.traversed){
                order_wdc.traverse_page();
                std::cout << "orderwdc page traversed" << std::endl;
             }
             break;
+         }
          }
          running_threads_counter--; });
    }
@@ -916,13 +900,12 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
-   sleep(5 * int(db.getNodeID() + 1));
    // keep_getting_sql = false;
    while (running_threads_counter)
    {
       _mm_pause();
    }
-   sleep(5 * int(db.getNodeID() + 1));
+   sleep(5);
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    // db.stopProfiler();
@@ -995,59 +978,61 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
 
             }
          }
+         if(FLAGS_nodes < 2){
          sleep(5 * int(db.getNodeID() + 1));
          switch (t_i)
          {
          case 0:
-            if(!warehouse.traversed && FLAGS_nodes < 3){
+            if(!warehouse.traversed){
                warehouse.traverse_page();
                std::cout << "warehouse page traversed" << std::endl;
             }
-            if(!district.traversed && FLAGS_nodes < 3){
+            if(!district.traversed){
                district.traverse_page();
                std::cout << "district page traversed" << std::endl;
             }
-            if(!history.traversed && FLAGS_nodes < 3){
+            if(!history.traversed){
                history.traverse_page();
                std::cout << "history page traversed" << std::endl;
             }
-            if(!item.traversed && FLAGS_nodes < 3){
+            if(!item.traversed){
                item.traverse_page();
                std::cout << "item page traversed" << std::endl;
             }
             break;
          case 1:
-            if(!customer.traversed && FLAGS_nodes < 3){
+            if(!customer.traversed){
                customer.traverse_page();
                std::cout << "customer page traversed" << std::endl;
             }
-            if(!customerwdl.traversed && FLAGS_nodes < 3){
+            if(!customerwdl.traversed){
                customerwdl.traverse_page();
                std::cout << "customerwdl page traversed" << std::endl;
             }
-            if(!stock.traversed && FLAGS_nodes < 3){
+            if(!stock.traversed){
                stock.traverse_page();
                std::cout << "stock page traversed" << std::endl;
             }
             break;
             break;
          case 2:
-            if(!neworder.traversed && FLAGS_nodes < 3){
+            if(!neworder.traversed){
                neworder.traverse_page();
                std::cout << "neworder page traversed" << std::endl;
             }
 
             break;
          case 3:
-            if(!order.traversed && FLAGS_nodes < 3){
+            if(!order.traversed){
                order.traverse_page();
                std::cout << "order page traversed" << std::endl;
             }
-            if(!order_wdc.traversed && FLAGS_nodes < 3){
+            if(!order_wdc.traversed){
                order_wdc.traverse_page();
                std::cout << "orderwdc page traversed" << std::endl;
             }
             break;
+         }
          }
          running_threads_counter--; });
    }
@@ -1105,12 +1090,11 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
    // keep_getting_sql = false;
-   sleep(5 * int(db.getNodeID() + 1));
    while (running_threads_counter)
    {
       _mm_pause();
    }
-   sleep(5 * int(db.getNodeID() + 1));
+   sleep(5);
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    db.stopProfiler();

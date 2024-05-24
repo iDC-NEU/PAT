@@ -156,27 +156,27 @@ struct ScaleStoreAdapter
       std::string filename;
       if (Record::id == 2)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_info";
       }
       else if (Record::id == 0)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_info";
       }
       else if (Record::id == 1)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_info";
       }
       else if (Record::id == 5)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_info";
       }
       else if (Record::id == 6)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_info";
       }
       else if (Record::id == 10)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_info";
       }
       else
       {
@@ -239,27 +239,27 @@ struct ScaleStoreAdapter
       std::string filename;
       if (Record::id == 2)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_info";
       }
       else if (Record::id == 0)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_info";
       }
       else if (Record::id == 1)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_info";
       }
       else if (Record::id == 5)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_info";
       }
       else if (Record::id == 6)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_info";
       }
       else if (Record::id == 10)
       {
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_info";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_info";
       }
       else
       {
@@ -277,37 +277,37 @@ struct ScaleStoreAdapter
       switch (Record::id)
       {
       case 0:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_page";
          break;
       case 1:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_page";
          break;
       case 2:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_page";
          break;
       case 3:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_wdl_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_wdl_page";
          break;
       case 4:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/history_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/history_page";
          break;
       case 5:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_page";
          break;
       case 6:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_page";
          break;
       case 7:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_wdc_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_wdc_page";
          break;
       case 8:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/orderline_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/orderline_page";
          break;
       case 9:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/item_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/item_page";
          break;
       default:
-         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_page";
+         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_page";
          break;
       }
       BTree tree(tree_pid);

@@ -1,0 +1,1 @@
+cmd='/usr/bin/cmake;-DCMAKE_INSTALL_PREFIX=/root/home/AffinityDB/build/vendor/gflags;-DCMAKE_C_COMPILER=/usr/bin/gcc-12;-DCMAKE_CXX_COMPILER=/usr/bin/c++;-DCMAKE_CXX_FLAGS= -pthread -g;-GUnix Makefiles;<SOURCE_DIR><SOURCE_SUBDIR>'

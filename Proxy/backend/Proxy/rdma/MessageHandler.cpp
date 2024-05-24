@@ -259,40 +259,32 @@ namespace Proxy
             uint64_t graph_numbers=0;
             float all_count=0;
             uint64_t random_numbers=0;
-            float trigger_count = 0;
             uint64_t last_all_numbers=0;
-            sleep(1);
-            auto now_router_statistics = std::chrono::high_resolution_clock::now();
+            sleep(10);
             while(true){
                auto start = std::chrono::high_resolution_clock::now();
+
                for (uint64_t i = 0; i < FLAGS_messageHandlerThreads; i++)
                {
                   all_numbers += router_number_per_thread[i];
-                  graph_numbers+=graph_number_per_thread[i];
-                  random_numbers+=random_number_per_thread[i];
-                  graph_number_per_thread[i]=0;
-                  random_number_per_thread[i]=0;
+                  graph_numbers += graph_number_per_thread[i];
+                  random_numbers += random_number_per_thread[i];
+                  graph_number_per_thread[i] = 0;
+                  random_number_per_thread[i] = 0;
                   router_number_per_thread[i] = 0;
                }
-               now_router_statistics = std::chrono::high_resolution_clock::now();
-               [[maybe_unused]] auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now_router_statistics - last_router_statistics);
-               trigger_count += 1.0*duration.count()/1000000;
-               router_logger.info(fmt::format("all_router_number:{};increase_number:{};time:{}s;increase_number/time={}/s",all_numbers,all_numbers-last_all_numbers,1.0*duration.count()/1000000,(all_numbers-last_all_numbers)/(1.0*duration.count()/1000000)));
-               if(trigger_count > 10){
-                  all_count +=trigger_count;
-                  router_logger.info(fmt::format("time:{}s; throughput = {}/s",all_count, all_numbers/all_count));
-                  router_logger.info(fmt::format("random_route_number:{}; graph_route_number:{}; time:{}s", random_numbers, graph_numbers , all_count));
-                  router_logger.info(fmt::format("transfer_count: {}", router.DyPartitioner.transfer_count));
-                  router_logger.info(fmt::format("transfer_node: {}", router.DyPartitioner.transfer_node.size()));
-                  //txn_logger.info(fmt::format("avg_route_time:{}/ms", all_numbers/FLAGS_messageHandlerThreads));
-                  trigger_count = 0;
-               }
-               last_all_numbers=all_numbers;
-               auto end = std::chrono::high_resolution_clock::now();
-               last_router_statistics=now_router_statistics;
-               duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+               all_count += 10;
+               router_logger.info(fmt::format("time:{}s; avg_throughput = {}/s; all_route_number= {}", all_count, (all_numbers - last_all_numbers) / float(10), all_numbers));
+               router_logger.info(fmt::format("random_route_number:{}; graph_route_number:{}", random_numbers, graph_numbers));
+               router_logger.info(fmt::format("transfer_count: {}", router.DyPartitioner.transfer_count));
+               router_logger.info(fmt::format("transfer_node: {}", router.DyPartitioner.transfer_node.size()));
+               // txn_logger.info(fmt::format("avg_route_time:{}/ms", all_numbers/FLAGS_messageHandlerThreads));
+               last_all_numbers = all_numbers;
 
-               std::this_thread::sleep_for(std::chrono::microseconds(1000000) - duration);
+               auto end = std::chrono::high_resolution_clock::now();
+               auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+               std::this_thread::sleep_for(std::chrono::seconds(10) - duration);
             } });
          statistics.detach();
          // -------------------------------------------------------------------------------------
