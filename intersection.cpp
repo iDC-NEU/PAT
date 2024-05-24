@@ -255,76 +255,71 @@ int main()
     // 读取INI文件并存储到字典中
     std::unordered_map<std::string, std::string> params = readINIFile(filename1);
     std::unordered_map<std::string, std::string> params2 = readINIFile(filename2);
-
+    if (params["nodes"] == "2"){
+        subpath1 = "2nodes/";
+    }
+    else if(params["nodes"] == "3"){
+        subpath1 = "3nodes/";
+    }
+    else{
+        subpath1 = "4nodes/";
+    }
     // 要获取的参数
-    if (params["use_proxy"] == "false")
+    if (params2["route_mode"] == "1")
     {
-        subpath1 = "原版scalestore/";
+        subpath2 = "无图划分路由/";
+        subpath3 = "随机路由/";
+    }
+    else if (params2["route_mode"] == "2")
+    {
+        subpath2 = "无图划分路由/";
+        subpath3 = "哈希路由/";
     }
     else
     {
-        if (params2["route_mode"] == "1")
+        subpath2 = "图划分路由/";
+        if (params2["partition_mode"] == "1")
         {
-            subpath1 = "无图划分路由/";
-            subpath2 = "随机路由/";
-        }
-        else if (params2["route_mode"] == "2")
-        {
-            subpath1 = "无图划分路由/";
-            subpath2 = "哈希路由/";
+            subpath3 = "静态/";
         }
         else
         {
-            subpath1 = "图划分路由/";
-            if (params2["partition_mode"] == "1")
-            {
-                subpath2 = "静态/";
-            }
-            else
-            {
-                subpath2 = "动态/";
-            }
-            if (params["use-codesign"] == "false")
-            {
-                subpath3 = "无codesign/";
-            }
-            else
-            {
-                subpath3 = "有codesign/";
-            }
+            subpath3 = "动态/";
+        }
+        if (params["use-codesign"] == "false")
+        {
+            subpath4 = "无codesign/";
+        }
+        else
+        {
+            subpath4 = "有codesign/";
         }
     }
-    if (params["nodes"] == "3" || params["nodes"] == "4")
+
+    if (params2["distribution"] == "false")
     {
-        subpath4 = "扩展性/";
+        subpath5 = "无分布式/";
     }
     else
     {
-        if (params2["distribution"] == "false")
+        if (params2["distribution_rate"] == "10")
         {
-            subpath4 = "无分布式/";
+            subpath5 = "原版tpcc/";
+        }
+        else if (params2["distribution_rate"] == "30")
+        {
+            subpath5 = "分布式30/";
+        }
+        else if (params2["distribution_rate"] == "50")
+        {
+            subpath5 = "分布式50/";
         }
         else
         {
-            if (params2["distribution_rate"] == "10")
-            {
-                subpath4 = "原版tpcc/";
-            }
-            else if(params2["distribution_rate"] == "30")
-            {
-                subpath4 = "分布式30/";
-            }
-            else if (params2["distribution_rate"] == "50")
-            {
-                subpath4 = "分布式50/";
-            }
-            else
-            {
-                subpath4 = "分布式70/";
-            }
-            
+            subpath5 = "分布式70/";
         }
     }
+
     path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5;
     std::string scpfile_1 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/";
     std::string scpfile_2 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/";

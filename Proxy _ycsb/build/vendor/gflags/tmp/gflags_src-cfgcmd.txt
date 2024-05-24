@@ -1,0 +1,1 @@
+cmd='/snap/cmake/1384/bin/cmake;-DCMAKE_INSTALL_PREFIX=/home/user/project/database/demo/Proxy/build/vendor/gflags;-DCMAKE_C_COMPILER=/usr/bin/cc;-DCMAKE_CXX_COMPILER=/usr/bin/c++;-DCMAKE_CXX_FLAGS= -pthread -g;-GUnix Makefiles;-S;<SOURCE_DIR><SOURCE_SUBDIR>;-B;<BINARY_DIR>'

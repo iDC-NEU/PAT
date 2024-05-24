@@ -1,0 +1,13 @@
+# Target labels
+ gflags_src
+# Source files and their labels
+/home/user/project/database/demo/Proxy/build/CMakeFiles/gflags_src
+/home/user/project/database/demo/Proxy/build/CMakeFiles/gflags_src.rule
+/home/user/project/database/demo/Proxy/build/CMakeFiles/gflags_src-complete.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-build.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-configure.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-download.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-install.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-mkdir.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-patch.rule
+/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-stamp/gflags_src-update.rule

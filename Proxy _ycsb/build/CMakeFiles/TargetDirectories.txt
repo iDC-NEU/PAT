@@ -1,0 +1,9 @@
+/home/user/project/database/demo/Proxy/build/CMakeFiles/gflags_src.dir
+/home/user/project/database/demo/Proxy/build/CMakeFiles/edit_cache.dir
+/home/user/project/database/demo/Proxy/build/CMakeFiles/rebuild_cache.dir
+/home/user/project/database/demo/Proxy/build/backend/CMakeFiles/Proxy.dir
+/home/user/project/database/demo/Proxy/build/backend/CMakeFiles/edit_cache.dir
+/home/user/project/database/demo/Proxy/build/backend/CMakeFiles/rebuild_cache.dir
+/home/user/project/database/demo/Proxy/build/frontend/CMakeFiles/tpcc.dir
+/home/user/project/database/demo/Proxy/build/frontend/CMakeFiles/edit_cache.dir
+/home/user/project/database/demo/Proxy/build/frontend/CMakeFiles/rebuild_cache.dir

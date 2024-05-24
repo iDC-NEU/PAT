@@ -28,9 +28,9 @@ IF(SANI)
 ENDIF(SANI)
 
 target_link_libraries(Proxy  
-                                  gflags Threads::Threads atomic numa rdmacm ibverbs aio /root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a
-                                  /root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/tools/lib/libGKlib.a
-                                  /root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a) 
+                                  gflags Threads::Threads atomic numa rdmacm ibverbs aio /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a
+                                  /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libGKlib.a
+                                  /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a) 
 target_include_directories(Proxy PUBLIC ${SHARED_INCLUDE_DIRECTORY})
 target_include_directories(Proxy PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 # ---------------------------------------------------------------------------

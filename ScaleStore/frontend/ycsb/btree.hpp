@@ -13,13 +13,13 @@ enum class PageType : uint8_t { BTreeInner=1, BTreeLeaf=2 };
 static const uint64_t pageSize=4*1024;
 
 struct OptLock {
-   std::atomic<uint64_t> typeVersionLockObsolete{0b100};
+   std::atomic<uint64_t> typeVersionLockObsolete{0b100}; // 4
 
    bool isLocked(uint64_t version) {
-      return ((version & 0b10) == 0b10);
+      return ((version & 0b10) == 0b10); // version = 10/11 均表示locked
    }
 
-   uint64_t readLockOrRestart(bool &needRestart) {
+   uint64_t readLockOrRestart(bool &needRestart) {  // 尝试读锁
       uint64_t version;
       version = typeVersionLockObsolete.load();
       if (isLocked(version) || isObsolete(version)) {
@@ -29,7 +29,7 @@ struct OptLock {
       return version;
    }
 
-   void writeLockOrRestart(bool &needRestart) {
+   void writeLockOrRestart(bool &needRestart) { // 尝试写锁
       uint64_t version;
       version = readLockOrRestart(needRestart);
       if (needRestart) return;
@@ -38,8 +38,8 @@ struct OptLock {
       if (needRestart) return;
    }
 
-   void upgradeToWriteLockOrRestart(uint64_t &version, bool &needRestart) {
-      if (typeVersionLockObsolete.compare_exchange_strong(version, version + 0b10)) {
+   void upgradeToWriteLockOrRestart(uint64_t &version, bool &needRestart) { // 升级到写锁
+      if (typeVersionLockObsolete.compare_exchange_strong(version, version + 0b10)) { // 若typeVersion == version,则typeVersion更新为version+0b10,否则更新为version
          version = version + 0b10;
       } else {
          _mm_pause();
@@ -47,11 +47,11 @@ struct OptLock {
       }
    }
 
-   void writeUnlock() {
+   void writeUnlock() { // 解写锁，version+2
       typeVersionLockObsolete.fetch_add(0b10);
    }
 
-   bool isObsolete(uint64_t version) {
+   bool isObsolete(uint64_t version) { // 过时的version
       return (version & 1) == 1;
    }
 
@@ -62,8 +62,8 @@ struct OptLock {
    void readUnlockOrRestart(uint64_t startRead, bool &needRestart) const {
       needRestart = (startRead != typeVersionLockObsolete.load());
    }
-
-   void writeUnlockObsolete() {
+ 
+   void writeUnlockObsolete() { // 解写锁，过时的version，version+3
       typeVersionLockObsolete.fetch_add(0b11);
    }
 };

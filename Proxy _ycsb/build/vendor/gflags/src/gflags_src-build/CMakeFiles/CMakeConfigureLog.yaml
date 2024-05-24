@@ -1,0 +1,653 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "CMakeLists.txt:101 (project)"
+    message: |
+      The system is: Linux - 5.4.0-150-generic - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:101 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/bin/c++ 
+      Build flags: -pthread;-g
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is GNU, found in:
+        /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/3.29.3/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:67 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:101 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a848e/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR'
+        /usr/bin/make  -f CMakeFiles/cmTC_a848e.dir/build.make CMakeFiles/cmTC_a848e.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR'
+        Building CXX object CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -pthread -g    -v -o CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -c /snap/cmake/1384/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
+        OFFLOAD_TARGET_DEFAULT=1
+        Target: x86_64-linux-gnu
+        Configured with: ../src/configure -v --with-pkgversion='Ubuntu 11.1.0-1ubuntu1~18.04.1' --with-bugurl=file:///usr/share/doc/gcc-11/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-11 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --disable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-nvptx/usr,amdgcn-amdhsa=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-gcn/usr --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.1.0 (Ubuntu 11.1.0-1ubuntu1~18.04.1) 
+        COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/'
+         /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE -D_REENTRANT /snap/cmake/1384/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_a848e.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -g -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -o /tmp/ccXqzc3Y.s
+        GNU C++17 (Ubuntu 11.1.0-1ubuntu1~18.04.1) version 11.1.0 (x86_64-linux-gnu)
+        	compiled by GNU C version 11.1.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.19-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring duplicate directory "/usr/include/x86_64-linux-gnu/c++/11"
+        ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
+        ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/include-fixed"
+        ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/include/c++/11
+         /usr/include/x86_64-linux-gnu/c++/11
+         /usr/include/c++/11/backward
+         /usr/lib/gcc/x86_64-linux-gnu/11/include
+         /usr/local/include
+         /usr/include/x86_64-linux-gnu
+         /usr/include
+        End of search list.
+        GNU C++17 (Ubuntu 11.1.0-1ubuntu1~18.04.1) version 11.1.0 (x86_64-linux-gnu)
+        	compiled by GNU C version 11.1.0, GMP version 6.1.2, MPFR version 4.0.1, MPC version 1.1.0, isl version isl-0.19-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        Compiler executable checksum: fa8709337e38341bd283d8a4fb935104
+        COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/'
+         as -v --64 -o CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccXqzc3Y.s
+        GNU assembler version 2.30 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.30
+        COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_a848e
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a848e.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g   -v -Wl,-v -rdynamic CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_a848e
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper
+        OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
+        OFFLOAD_TARGET_DEFAULT=1
+        Target: x86_64-linux-gnu
+        Configured with: ../src/configure -v --with-pkgversion='Ubuntu 11.1.0-1ubuntu1~18.04.1' --with-bugurl=file:///usr/share/doc/gcc-11/README.Bugs --enable-languages=c,ada,c++,go,brig,d,fortran,objc,obj-c++,m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-11 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --disable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-nvptx/usr,amdgcn-amdhsa=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-gcn/usr --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 11.1.0 (Ubuntu 11.1.0-1ubuntu1~18.04.1) 
+        COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-rdynamic' '-o' 'cmTC_a848e' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a848e.'
+         /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbSuUk4.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a848e /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lpthread -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        collect2 version 11.1.0
+        /usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbSuUk4.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a848e /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lpthread -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        GNU ld (GNU Binutils for Ubuntu) 2.30
+        COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-rdynamic' '-o' 'cmTC_a848e' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a848e.'
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:137 (message)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:101 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/include/c++/11]
+          add: [/usr/include/x86_64-linux-gnu/c++/11]
+          add: [/usr/include/c++/11/backward]
+          add: [/usr/lib/gcc/x86_64-linux-gnu/11/include]
+          add: [/usr/local/include]
+          add: [/usr/include/x86_64-linux-gnu]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/usr/include/c++/11] ==> [/usr/include/c++/11]
+        collapse include dir [/usr/include/x86_64-linux-gnu/c++/11] ==> [/usr/include/x86_64-linux-gnu/c++/11]
+        collapse include dir [/usr/include/c++/11/backward] ==> [/usr/include/c++/11/backward]
+        collapse include dir [/usr/lib/gcc/x86_64-linux-gnu/11/include] ==> [/usr/lib/gcc/x86_64-linux-gnu/11/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/usr/include/x86_64-linux-gnu] ==> [/usr/include/x86_64-linux-gnu]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/usr/include/c++/11;/usr/include/x86_64-linux-gnu/c++/11;/usr/include/c++/11/backward;/usr/lib/gcc/x86_64-linux-gnu/11/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:173 (message)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:101 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR']
+        ignore line: []
+        ignore line: [Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a848e/fast]
+        ignore line: [make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR']
+        ignore line: [/usr/bin/make  -f CMakeFiles/cmTC_a848e.dir/build.make CMakeFiles/cmTC_a848e.dir/build]
+        ignore line: [make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-SmdLeR']
+        ignore line: [Building CXX object CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -pthread -g    -v -o CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -c /snap/cmake/1384/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
+        ignore line: [OFFLOAD_TARGET_DEFAULT=1]
+        ignore line: [Target: x86_64-linux-gnu]
+        ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 11.1.0-1ubuntu1~18.04.1' --with-bugurl=file:///usr/share/doc/gcc-11/README.Bugs --enable-languages=c ada c++ go brig d fortran objc obj-c++ m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-11 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --disable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32 m64 mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-nvptx/usr amdgcn-amdhsa=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-gcn/usr --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.1.0 (Ubuntu 11.1.0-1ubuntu1~18.04.1) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/']
+        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE -D_REENTRANT /snap/cmake/1384/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_a848e.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -g -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -o /tmp/ccXqzc3Y.s]
+        ignore line: [GNU C++17 (Ubuntu 11.1.0-1ubuntu1~18.04.1) version 11.1.0 (x86_64-linux-gnu)]
+        ignore line: [	compiled by GNU C version 11.1.0  GMP version 6.1.2  MPFR version 4.0.1  MPC version 1.1.0  isl version isl-0.19-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring duplicate directory "/usr/include/x86_64-linux-gnu/c++/11"]
+        ignore line: [ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"]
+        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/include-fixed"]
+        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/include/c++/11]
+        ignore line: [ /usr/include/x86_64-linux-gnu/c++/11]
+        ignore line: [ /usr/include/c++/11/backward]
+        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /usr/include/x86_64-linux-gnu]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [GNU C++17 (Ubuntu 11.1.0-1ubuntu1~18.04.1) version 11.1.0 (x86_64-linux-gnu)]
+        ignore line: [	compiled by GNU C version 11.1.0  GMP version 6.1.2  MPFR version 4.0.1  MPC version 1.1.0  isl version isl-0.19-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [Compiler executable checksum: fa8709337e38341bd283d8a4fb935104]
+        ignore line: [COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/']
+        ignore line: [ as -v --64 -o CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccXqzc3Y.s]
+        ignore line: [GNU assembler version 2.30 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.30]
+        ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-o' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.']
+        ignore line: [Linking CXX executable cmTC_a848e]
+        ignore line: [/snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a848e.dir/link.txt --verbose=1]
+        ignore line: [/usr/bin/c++  -pthread -g   -v -Wl -v -rdynamic CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_a848e]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper]
+        ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
+        ignore line: [OFFLOAD_TARGET_DEFAULT=1]
+        ignore line: [Target: x86_64-linux-gnu]
+        ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 11.1.0-1ubuntu1~18.04.1' --with-bugurl=file:///usr/share/doc/gcc-11/README.Bugs --enable-languages=c ada c++ go brig d fortran objc obj-c++ m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-11 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --disable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32 m64 mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-nvptx/usr amdgcn-amdhsa=/build/gcc-11-YRKbe7/gcc-11-11.1.0/debian/tmp-gcn/usr --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 11.1.0 (Ubuntu 11.1.0-1ubuntu1~18.04.1) ]
+        ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-pthread' '-g' '-v' '-rdynamic' '-o' 'cmTC_a848e' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a848e.']
+        link line: [ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbSuUk4.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a848e /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lpthread -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccbSuUk4.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lpthread] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [--build-id] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [--hash-style=gnu] ==> ignore
+          arg [--as-needed] ==> ignore
+          arg [-export-dynamic] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-pie] ==> ignore
+          arg [-znow] ==> ignore
+          arg [-zrelro] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_a848e] ==> ignore
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o]
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o]
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
+          arg [-L/usr/lib/gcc/x86_64-linux-gnu/11] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11]
+          arg [-L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu]
+          arg [-L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib]
+          arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+          arg [-L/lib/../lib] ==> dir [/lib/../lib]
+          arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+          arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+          arg [-L/usr/lib/gcc/x86_64-linux-gnu/11/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../..]
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lm] ==> lib [m]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o]
+          arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        ignore line: [collect2 version 11.1.0]
+        ignore line: [/usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccbSuUk4.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a848e /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a848e.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lpthread -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        linker tool for 'CXX': /usr/bin/ld
+        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> [/usr/lib/x86_64-linux-gnu/Scrt1.o]
+        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> [/usr/lib/x86_64-linux-gnu/crti.o]
+        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o] ==> [/usr/lib/x86_64-linux-gnu/crtn.o]
+        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/11] ==> [/usr/lib/gcc/x86_64-linux-gnu/11]
+        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib] ==> [/usr/lib]
+        collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+        collapse library dir [/lib/../lib] ==> [/lib]
+        collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+        collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../..] ==> [/usr/lib]
+        implicit libs: [stdc++;m;gcc_s;gcc;pthread;c;gcc_s;gcc]
+        implicit objs: [/usr/lib/x86_64-linux-gnu/Scrt1.o;/usr/lib/x86_64-linux-gnu/crti.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o;/usr/lib/x86_64-linux-gnu/crtn.o]
+        implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/11;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:210 (cmake_determine_linker_id)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:101 (project)"
+    message: |
+      Running the CXX compiler's linker: "/usr/bin/ld" "-v"
+      GNU ld (GNU Binutils for Ubuntu) 2.30
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include unistd.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_UNISTD_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_37549/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S'
+        /usr/bin/make  -f CMakeFiles/cmTC_37549.dir/build.make CMakeFiles/cmTC_37549.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S'
+        Building CXX object CMakeFiles/cmTC_37549.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_37549.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_37549
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_37549.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_37549.dir/CheckIncludeFile.cxx.o -o cmTC_37549
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-jokM6S'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include stdint.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_STDINT_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_82203/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q'
+        /usr/bin/make  -f CMakeFiles/cmTC_82203.dir/build.make CMakeFiles/cmTC_82203.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q'
+        Building CXX object CMakeFiles/cmTC_82203.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_82203.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_82203
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_82203.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_82203.dir/CheckIncludeFile.cxx.o -o cmTC_82203
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-gmY96Q'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include inttypes.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_INTTYPES_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_fa43a/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR'
+        /usr/bin/make  -f CMakeFiles/cmTC_fa43a.dir/build.make CMakeFiles/cmTC_fa43a.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR'
+        Building CXX object CMakeFiles/cmTC_fa43a.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_fa43a.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_fa43a
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fa43a.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_fa43a.dir/CheckIncludeFile.cxx.o -o cmTC_fa43a
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-8PJoUR'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include sys/types.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_SYS_TYPES_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_7fee2/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS'
+        /usr/bin/make  -f CMakeFiles/cmTC_7fee2.dir/build.make CMakeFiles/cmTC_7fee2.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS'
+        Building CXX object CMakeFiles/cmTC_7fee2.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_7fee2.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_7fee2
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7fee2.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_7fee2.dir/CheckIncludeFile.cxx.o -o cmTC_7fee2
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nBpuFS'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include sys/stat.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_SYS_STAT_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_718e4/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP'
+        /usr/bin/make  -f CMakeFiles/cmTC_718e4.dir/build.make CMakeFiles/cmTC_718e4.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP'
+        Building CXX object CMakeFiles/cmTC_718e4.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_718e4.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_718e4
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_718e4.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_718e4.dir/CheckIncludeFile.cxx.o -o cmTC_718e4
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-2ibHkP'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "CMakeLists.txt:256 (check_include_file_cxx)"
+    checks:
+      - "Looking for C++ include fnmatch.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_FNMATCH_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_bc070/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ'
+        /usr/bin/make  -f CMakeFiles/cmTC_bc070.dir/build.make CMakeFiles/cmTC_bc070.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ'
+        Building CXX object CMakeFiles/cmTC_bc070.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_bc070.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_bc070
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bc070.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_bc070.dir/CheckIncludeFile.cxx.o -o cmTC_bc070
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-if9XbQ'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckIncludeFileCXX.cmake:89 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckTypeSize.cmake:260 (check_include_file_cxx)"
+      - "CMakeLists.txt:277 (check_type_size)"
+    checks:
+      - "Looking for C++ include stddef.h"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_STDDEF_H"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a8f2a/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR'
+        /usr/bin/make  -f CMakeFiles/cmTC_a8f2a.dir/build.make CMakeFiles/cmTC_a8f2a.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR'
+        Building CXX object CMakeFiles/cmTC_a8f2a.dir/CheckIncludeFile.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_a8f2a.dir/CheckIncludeFile.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR/CheckIncludeFile.cxx
+        Linking CXX executable cmTC_a8f2a
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a8f2a.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_a8f2a.dir/CheckIncludeFile.cxx.o -o cmTC_a8f2a
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-9DAzNR'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckTypeSize.cmake:146 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckTypeSize.cmake:271 (__check_type_size_impl)"
+      - "CMakeLists.txt:277 (check_type_size)"
+    checks:
+      - "Check size of uint32_t"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_uint32_t"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_d12c3/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ'
+        /usr/bin/make  -f CMakeFiles/cmTC_d12c3.dir/build.make CMakeFiles/cmTC_d12c3.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ'
+        Building CXX object CMakeFiles/cmTC_d12c3.dir/uint32_t.cpp.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_d12c3.dir/uint32_t.cpp.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ/uint32_t.cpp
+        Linking CXX executable cmTC_d12c3
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d12c3.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_d12c3.dir/uint32_t.cpp.o -o cmTC_d12c3
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-HUzSZQ'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckCXXSymbolExists.cmake:72 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "CMakeLists.txt:312 (check_cxx_symbol_exists)"
+    checks:
+      - "Looking for strtoll"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_STRTOLL"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_837db/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P'
+        /usr/bin/make  -f CMakeFiles/cmTC_837db.dir/build.make CMakeFiles/cmTC_837db.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P'
+        Building CXX object CMakeFiles/cmTC_837db.dir/CheckSymbolExists.cxx.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_837db.dir/CheckSymbolExists.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P/CheckSymbolExists.cxx
+        Linking CXX executable cmTC_837db
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_837db.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_837db.dir/CheckSymbolExists.cxx.o -o cmTC_837db
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-nwP05P'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/FindThreads.cmake:99 (CHECK_CXX_SOURCE_COMPILES)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:320 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_e0043/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT'
+        /usr/bin/make  -f CMakeFiles/cmTC_e0043.dir/build.make CMakeFiles/cmTC_e0043.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT'
+        Building CXX object CMakeFiles/cmTC_e0043.dir/src.cxx.o
+        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -pthread -g  -o CMakeFiles/cmTC_e0043.dir/src.cxx.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT/src.cxx
+        Linking CXX executable cmTC_e0043
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e0043.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_e0043.dir/src.cxx.o -o cmTC_e0043
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-kPh5eT'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckTypeSize.cmake:146 (try_compile)"
+      - "/snap/cmake/1384/share/cmake-3.29/Modules/CheckTypeSize.cmake:271 (__check_type_size_impl)"
+      - "CMakeLists.txt:323 (check_type_size)"
+    checks:
+      - "Check size of pthread_rwlock_t"
+    directories:
+      source: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR"
+      binary: "/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -pthread -g"
+    buildResult:
+      variable: "HAVE_RWLOCK"
+      cached: true
+      stdout: |
+        Change Dir: '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR'
+        
+        Run Build Command(s): /snap/cmake/1384/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a3834/fast
+        make[3]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR'
+        /usr/bin/make  -f CMakeFiles/cmTC_a3834.dir/build.make CMakeFiles/cmTC_a3834.dir/build
+        make[4]: Entering directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR'
+        Building CXX object CMakeFiles/cmTC_a3834.dir/RWLOCK.cpp.o
+        /usr/bin/c++   -pthread -g  -o CMakeFiles/cmTC_a3834.dir/RWLOCK.cpp.o -c /home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR/RWLOCK.cpp
+        Linking CXX executable cmTC_a3834
+        /snap/cmake/1384/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a3834.dir/link.txt --verbose=1
+        /usr/bin/c++  -pthread -g  -rdynamic CMakeFiles/cmTC_a3834.dir/RWLOCK.cpp.o -o cmTC_a3834
+        make[4]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR'
+        make[3]: Leaving directory '/home/user/project/database/demo/Proxy/build/vendor/gflags/src/gflags_src-build/CMakeFiles/CMakeScratch/TryCompile-j2h5MR'
+        
+      exitCode: 0
+...
