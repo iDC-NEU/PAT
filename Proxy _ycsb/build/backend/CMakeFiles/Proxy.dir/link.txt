@@ -1,2 +1,0 @@
-/usr/bin/ar qc libProxy.a CMakeFiles/Proxy.dir/Proxy/Config.cpp.o CMakeFiles/Proxy.dir/Proxy/Proxy.cpp.o CMakeFiles/Proxy.dir/Proxy/dynamicPartition/graph.cpp.o CMakeFiles/Proxy.dir/Proxy/dynamicPartition/router.cpp.o CMakeFiles/Proxy.dir/Proxy/rdma/MessageHandler.cpp.o CMakeFiles/Proxy.dir/Proxy/utils/RandomGenerator.cpp.o CMakeFiles/Proxy.dir/Proxy/utils/Time.cpp.o
-/usr/bin/ranlib libProxy.a
