@@ -41,7 +41,7 @@ struct ScaleStoreAdapter
         i64 offset = 50;
         auto last_pair = partition_map->begin()->first;
         auto last_part = partition_map->begin()->second;
-        auto pair = last_pair + offset;
+        i64 pair = last_pair + offset;
         while (pos != partition_map->end())
         {
             if (partition_map->find(pair) != partition_map->end())
@@ -54,7 +54,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index({last_pair}, {pair}, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part);
                     pos++;
                     last_pair = pair;
                     last_part = partition_map->at(pair);
@@ -64,14 +64,14 @@ struct ScaleStoreAdapter
             else
             {
                 // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                tree.update_metis_index({last_pair}, {pair}, last_part);
+                tree.update_metis_index(last_pair, pair, last_part);
                 last_pair = pos->first;
                 last_part = pos->second;
                 pair = last_pair + offset;
                 pos++;
             }
         }
-        tree.update_metis_index({last_pair}, {pair}, last_part);
+        tree.update_metis_index(last_pair, pair, last_part);
         created = true;
     }
 
@@ -99,7 +99,7 @@ struct ScaleStoreAdapter
         i64 offset = 50;
         auto last_pair = partition_map->begin()->first;
         auto last_part = partition_map->begin()->second;
-        auto pair = last_pair + offset;
+        i64 pair = last_pair + offset;
         while (pos != partition_map->end())
         {
             if (partition_map->find(pair) != partition_map->end())
@@ -112,7 +112,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index({last_pair}, {pair}, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part);
                     pos++;
                     last_pair = pair;
                     last_part = partition_map->at(pair);
@@ -122,14 +122,14 @@ struct ScaleStoreAdapter
             else
             {
                 // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                tree.update_metis_index({last_pair}, {pair}, last_part);
+                tree.update_metis_index(last_pair, pair, last_part);
                 last_pair = pos->first;
                 last_part = pos->second;
                 pair = last_pair + offset;
                 pos++;
             }
         }
-        tree.update_metis_index({last_pair}, {pair}, last_part);
+        tree.update_metis_index(last_pair, pair, last_part);
         created = true;
         std::cout << "increase_count: " << tree.increase_count << std::endl;
         output << "increase_count: " << tree.increase_count << std::endl;

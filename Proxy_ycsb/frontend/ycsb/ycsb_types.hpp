@@ -8,7 +8,7 @@
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(YCSB_read_ratio, 100, "");
 DEFINE_bool(YCSB_all_workloads, false, "Execute all workloads i.e. 50 95 100 ReadRatio on same tree");
-DEFINE_uint64(YCSB_tuple_count, 1, " Tuple count in");
+DEFINE_int64(YCSB_tuple_count, 1, " Tuple count in");
 DEFINE_double(YCSB_zipf_factor, 0.0, "Default value according to spec");
 DEFINE_double(YCSB_run_for_seconds, 10.0, "");
 DEFINE_bool(YCSB_partitioned, false, "");
@@ -47,3 +47,13 @@ struct Partition
 
 using K = int64_t;
 using V = BytesPayload<128>;
+// [0, n)
+Integer rnd(Integer n)
+{
+   return Proxy::utils::RandomGenerator::getRand(0, n);
+}
+
+Integer urand(Integer low, Integer high)
+{
+   return rnd(high - low + 1) + low;
+}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Proxy/Config.hpp"
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 #include <iostream>
 #include <vector>
 #include <map>
@@ -39,14 +39,6 @@ namespace Proxy
         // TODO: 范围不确定，暂定
         inline int neworder_range = 10000;
         inline int orderline_range = 10000;
-
-        struct TxnNode
-         {
-            uint64_t key;
-            bool is_read_only;
-            int weight;
-         };
-         
         class Graph
         {
         public:
@@ -92,13 +84,7 @@ namespace Proxy
         public:
             std::unordered_map<int, int> partmapA;
             std::unordered_map<int, int> partmapB;
-            std::unordered_map<int, int> customer_map;
-            std::unordered_map<int, int> order_map;
-            std::unordered_map<int, int> stock_map;
-            std::unordered_map<int, int> warehouse_map;
-            std::unordered_map<int, int> district_map;
-            std::unordered_map<int, int> neworder_map;
-            std::unordered_map<int, int> orderline_map;
+            std::unordered_map<int, int> ycsb_map;
             std::mutex update_mutex;
             std::mutex partition_mutex;
             std::vector<bool> old_map_use;
@@ -130,13 +116,7 @@ namespace Proxy
             bool ready_send = true;
             std::unordered_map<int, StampInfo> stampinfo_map;
             std::unordered_map<int, int> new_insert_keys;
-            std::unordered_map<int, int> customer_insert_keys;
-            std::unordered_map<int, int> order_insert_keys;
-            std::unordered_map<int, int> stock_insert_keys;
-            std::unordered_map<int, int> warehouse_insert_keys;
-            std::unordered_map<int, int> district_insert_keys;
-            std::unordered_map<int, int> neworder_insert_keys;
-            std::unordered_map<int, int> orderline_insert_keys;
+            std::unordered_map<int, int> ycsb_insert_keys;
             std::unordered_set<int> new_remove_keys;
 
         private:
@@ -161,13 +141,6 @@ namespace Proxy
             std::unordered_set<int> epoch_vids; // 记录每个epoch需要划分的节点
 
         public:
-            int customer_offset = warehouse_range * customer_range;
-            int history_offset = warehouse_range * history_range;
-            int oorder_offset = warehouse_range * oorder_range;
-            int stock_offset = warehouse_range * stock_range;
-            // TODO: 不知道功能，先写上
-            int neworder_offset = warehouse_range * neworder_range;
-            int orderline_offset = warehouse_range * orderline_range;
 
             /*int get_wid(int key)
             {
@@ -187,40 +160,6 @@ namespace Proxy
                 }
                 return key/customer_range;
             }*/
-            const int w_count = FLAGS_tpcc_warehouse_count;
-            const int customer_key_min = 1'000'000 * 1 + 1'0000 * 1 + 1;
-            const int customer_key_max = 1'000'000 * w_count + 1'0000 * 10 + 3000;
-            const int order_key_min = customer_key_max + 1'000'000 * 1 + 1'0000 * 1 + 1;
-            const int order_key_max = customer_key_max + 1'000'000 * w_count + 1'0000 * 10 + 3000;
-            const int stock_key_min = order_key_max + 1'000'000 * 1 + 1;
-            const int stock_key_max = order_key_max + 1'000'000 * w_count + 100000;
-            const int warehouse_key_min = stock_key_max + 50 + 1;
-            const int warehouse_key_max = stock_key_max + w_count * 50 + 1;
-            const int district_key_min = warehouse_key_max + 500 * 1 + 50 * 1;
-            const int district_key_max = warehouse_key_max + w_count * 500 + 500;
-            const int neworder_key_min = district_key_max + 1'000'000 * 1 + 1'0000 * 1 + 1;
-            const int neworder_key_max = district_key_max + 1'000'000 * w_count + 1'0000 * 10 + 3000;              
-            // const int orderline_key_min = neworder_key_max + 5'000'000 * 1 + 30'0000 * 1 + 10000 * 1 + 1;          
-            // const int orderline_key_max = neworder_key_max + 5'000'000 * w_count + 30'0000 * 10 + 10000 * 30 + 30; 
-
-            int get_wid(int key)
-            {
-                if (customer_key_min <= key && key <= customer_key_max)
-                {
-                    return key / 1'000'000;
-                }
-                if (order_key_min <= key && key <= order_key_max)
-                {
-                    return (key - customer_key_max) / 1'000'000;
-                }
-
-                if (stock_key_min <= key && key <= stock_key_max)
-                {
-                    return (key - order_key_max) / 1'000'000;
-                }
-                printf("Invalid Key key%d\n", key);
-                return -1;
-            }
 
             // 建立对顶点的索引
             void GetMap(std::unordered_map<int, int> &Stamp_Vertix_map, std::unordered_map<int, int> &Vertix_Stamp_map)
@@ -273,11 +212,8 @@ namespace Proxy
                     int stamp_id = vertix_map.at(i);
                     cluster[part_id].insert(stamp_id);
                     partmapA.insert({stamp_id, part_id});
-                    int key = stamp_id * 50 + 1;
-                    if (key <= customer_key_max)
-                    {
-                        customer_map.insert({key, part_id});
-                    }
+                    int key = stamp_id * FLAGS_stamp_len;
+                    ycsb_map.insert({key, part_id});
                     i++;
                 }
                 std::cout << "partmap_size: " << partmapA.size() << std::endl;

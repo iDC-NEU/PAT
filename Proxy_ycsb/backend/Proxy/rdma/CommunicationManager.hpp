@@ -1,7 +1,7 @@
 #pragma once
 // -------------------------------------------------------------------------------------
 #include "Proxy/Config.hpp"
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 #include "Proxy/utils/MemoryManagement.hpp"
 // -------------------------------------------------------------------------------------
 #include <arpa/inet.h>

@@ -26,11 +26,13 @@ IF(SANI)
     # target_link_libraries(Proxy ubsan)
   endif ()
 ENDIF(SANI)
-
+set(LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Proxy/dynamicPartition/tools/lib")
 target_link_libraries(Proxy  
-                                  gflags Threads::Threads atomic numa rdmacm ibverbs aio /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a
-                                  /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libGKlib.a
-                                  /home/user/project/database/demo/Proxy/backend/Proxy/dynamicPartition/tools/lib/libmetis.a) 
+    gflags Threads::Threads atomic numa rdmacm ibverbs aio 
+    ${LIBRARY_PATH}/libmetis.a
+    ${LIBRARY_PATH}/libGKlib.a
+    ${LIBRARY_PATH}/libmetis.a
+)
 target_include_directories(Proxy PUBLIC ${SHARED_INCLUDE_DIRECTORY})
 target_include_directories(Proxy PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 # ---------------------------------------------------------------------------

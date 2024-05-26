@@ -123,31 +123,8 @@ namespace Proxy
             {
                 new_insert_keys[vid] = p;
             }
-            int key = vid * 50 + 1;
-            if (key <= customer_key_max)
-            {
-                customer_insert_keys.insert({key, p});
-            }
-            else if (customer_key_max < key && key <= order_key_max)
-            {
-                order_insert_keys.insert({key - customer_key_max, p});
-            }
-            else if (order_key_max < key && key <= stock_key_max)
-            {
-                stock_insert_keys.insert({key - order_key_max, p});
-            }
-            else if (stock_key_max < key && key <= warehouse_key_max)
-            {
-                warehouse_insert_keys.insert({(key - stock_key_max - 1) / 50, p});
-            }
-            else if (warehouse_key_max < key && key <= district_key_max)
-            {
-                district_insert_keys.insert({key - warehouse_key_max, p});
-            }
-            else
-            {
-                neworder_insert_keys.insert({key - district_key_max, p});
-            }
+            int key = vid * FLAGS_stamp_len;
+            ycsb_insert_keys.insert({key, p});
         }
         void DynamicPartitioner::add_node(int vid, std::unordered_map<int, int> &neighbors)
         {
@@ -427,25 +404,9 @@ namespace Proxy
             }
             partition_mutex.lock();
             std::cout << "clear" << std::endl;
-            customer_insert_keys.clear();
-            order_insert_keys.clear();
-            stock_insert_keys.clear();
-            warehouse_insert_keys.clear();
-            district_insert_keys.clear();
-            neworder_insert_keys.clear();
+            ycsb_insert_keys.clear();
             partition_mutex.unlock();
         }
-
-        void DynamicPartitioner::create_table_partitioner()
-        {
-            for (const auto &pair : partmap)
-            {
-                if (pair.first * 50 <= customer_key_max)
-                {
-                    customer_map.insert({pair.first, pair.second});
-                }
-            }
-        };
 
     }
 }

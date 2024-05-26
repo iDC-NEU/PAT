@@ -1,6 +1,6 @@
 #pragma once
 // -------------------------------------------------------------------------------------
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 // -------------------------------------------------------------------------------------
 #include <atomic>
 #include <random>
@@ -80,6 +80,7 @@ class RandomGenerator
       return rand;
    }
    static uint64_t getRandU64() { return mt_generator.rnd(); }
+   static int64_t getRandI64() { return int64_t(mt_generator.rnd()); }
    static uint64_t getRandU64STD(uint64_t min, uint64_t max)
    {
       std::uniform_int_distribution<uint64_t> distribution(min, max - 1);

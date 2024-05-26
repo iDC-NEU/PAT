@@ -1,6 +1,6 @@
 #pragma once
 // -------------------------------------------------------------------------------------
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 
 // -------------------------------------------------------------------------------------
 namespace Proxy
@@ -124,13 +124,10 @@ namespace Proxy
       };
       struct TxnKeysMessage : public Message
       {
-         std::vector<Proxy::router::TxnNode> keylist;
+         std::vector<TxnNode> keylist;
          uint8_t receiveFlag = 1;
          NodeID nodeId;
-         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<Proxy::router::TxnNode> &&keys_message, NodeID nodeId) : Message(type), nodeId(nodeId)
-         {
-            keylist = std::move(keys_message);
-         }
+         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<TxnNode>& keys_message, NodeID nodeId) : Message(type), keylist(keys_message), nodeId(nodeId) {}
       };
 
       struct RouterMapMessage : public Message

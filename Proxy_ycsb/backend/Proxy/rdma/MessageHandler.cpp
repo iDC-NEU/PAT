@@ -1,9 +1,9 @@
 #include "MessageHandler.hpp"
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 #include "Proxy/threads/CoreManager.hpp"
 #include <cstring>
-#include "../frontend/tpcc/proxy_tpcc_workload.hpp"
 #include "../utils/Time.cpp"
+#include "../../../frontend/ycsb/ycsb_workload.hpp"
 // -------------------------------------------------------------------------------------
 #include <numeric>
 
@@ -130,8 +130,8 @@ namespace Proxy
             if (rContext->type == Type::MESSAGE_HANDLER)
             {
 
-               cctx.incoming = (Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
-               cctx.outcoming = (Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
+               cctx.incoming = (Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_TXNKEYSMESSAGE, CACHE_LINE);
+               cctx.outcoming = (Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_TXNKEYSMESSAGE, CACHE_LINE);
                cctx.mbforBusy = (uint8_t *)cm.getGlobalBuffer().allocate(1, CACHE_LINE);
             }
             else
@@ -216,8 +216,8 @@ namespace Proxy
             
 
             if(!router.DyPartitioner.has_send_metis){
-               std::cout<<"send_customer"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.customer_map,outcoming,MESSAGE_TYPE::RouterMap_metis_customer);
+               std::cout<<"send_ycsb_map"<<std::endl;   
+               send_map_to_node(&router.DyPartitioner.ycsb_map,outcoming,MESSAGE_TYPE::RouterMap_metis_customer);
                // std::cout<<"send_orderline"<<std::endl;   
                // send_map_to_node(&router.DyPartitioner.orderline_map,outcoming,MESSAGE_TYPE::RouterMap_metis_orderline);                 
                router.DyPartitioner.has_send_metis=true;
@@ -228,7 +228,7 @@ namespace Proxy
             {
                std::cout << "send_dynamic" << std::endl;
                router.DyPartitioner.partition_mutex.lock();
-               send_map_to_node(&router.DyPartitioner.customer_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_customer);
+               send_map_to_node(&router.DyPartitioner.ycsb_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_customer);
                router.DyPartitioner.has_send_new_insert_keys = true;
                router.DyPartitioner.partition_mutex.unlock();
             }
@@ -288,247 +288,6 @@ namespace Proxy
          stopThread();
       }
       // -------------------------------------------------------------------------------------
-      // void MessageHandler::startThread()
-      // {
-      //    for (uint64_t t_i = 0; t_i < FLAGS_messageHandlerThreads; t_i++)
-      //    {
-      //       std::thread t([&, t_i]()
-      //                     {
-      //    // -------------------------------------------------------------------------------------
-      //    // -------------------------------------------------------------------------------------
-      //    threadCount++;
-      //    // protect init only ont thread should do it;
-      //    if (t_i == 0) {
-      //       init();
-      //       finishedInit = true;
-      //    } else {
-      //       while (!finishedInit)
-      //          ;  // block until initialized
-      //    }
-      //    MailboxPartition& mbPartition = mbPartitions[t_i];
-      //    uint8_t* mailboxes = mbPartition.mailboxes;
-      //    const uint64_t beginId = mbPartition.beginId;
-      //    uint64_t startPosition = 0;  // randomize messages
-      //    uint64_t mailboxIdx = 0;
-
-      //    //uint64_t destNodeId=0;
-      //    auto start = std::chrono::high_resolution_clock::now();
-      //    printf("start_receive\n");
-      //    while (threadsRunning || connectedClients.load()) {
-      //       for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++) {
-      //          // -------------------------------------------------------------------------------------
-      //          if (mailboxIdx >= mbPartition.numberMailboxes) mailboxIdx = 0;
-      //          //sleep(1);
-      //          if (mailboxes[mailboxIdx] == 0) continue;
-
-      //          // -------------------------------------------------------------------------------------
-      //          //mailboxes[mailboxIdx] = 0;  // reset mailbox before response is sent
-      //          // -------------------------------------------------------------------------------------
-      //          // handle message
-      //          uint64_t clientId = mailboxIdx + beginId;  // correct for partiton
-      //          auto& ctx = cctxs[clientId];
-
-      //          switch (ctx.incoming->type) {
-      //             case MESSAGE_TYPE::SQL: {
-      //                auto& sqlMessage = *reinterpret_cast<SqlMessage*>(ctx.incoming);
-      //                char sql[sqlLength]=" ";
-      //                std::strcpy(sql,sqlMessage.sql);
-      //                std::string str=sql;
-      //                //printf("%s\n",sqlMessage.sql);
-
-      //                //按wid返回
-      //                // uint64_t destNodeId;
-      //                // if(routerCach[clientId]==0){
-      //                //    std::vector<std::string> args = extractParameters(str, ',');
-      //                //    int w_id = std::stoi(args[0]);
-      //                //    int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
-      //                //    destNodeId = (w_id-1)/step;
-      //                //    // if(count <180000){
-      //                //    //    destNodeId = rand()%FLAGS_nodes;
-      //                //    // }
-      //                // }else{
-      //                //    destNodeId=routerCach[clientId]-1;
-      //                // }
-      //                //按wid反转
-      //                // uint64_t destNodeId;
-      //                // if(routerCach[clientId]==0){
-      //                //    std::vector<std::string> args = extractParameters(str, ',');
-      //                //    int w_id = std::stoi(args[0]);
-      //                //    int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
-      //                //    destNodeId = (w_id-1)/step;
-      //                //    destNodeId = FLAGS_nodes-1-destNodeId;
-      //                //    // if(count <180000){
-      //                //    //    destNodeId = rand()%FLAGS_nodes;
-      //                //    // }
-      //                // }else{
-      //                //    destNodeId=routerCach[clientId]-1;
-      //                // }
-
-      //                //原路返回
-      //                //uint64_t destNodeId=sqlMessage.nodeId;
-
-      //                //随机返回
-      //                //uint64_t destNodeId=rand()%FLAGS_nodes;
-
-      //                // 随机返回但是只随机一次
-      //                // uint64_t destNodeId;
-      //                // if(routerCach[clientId]==0){
-      //                //    destNodeId=rand()%FLAGS_nodes;
-      //                // }else{
-      //                //    destNodeId=routerCach[clientId]-1;
-      //                // }
-      //                uint64_t destNodeId;
-      //                switch (FLAGS_route_mode)
-      //                {
-      //                case 1:
-      //                    //随机路由
-      //                    if (routerCach[clientId] == 0)
-      //                    {
-      //                       bool ishash = false;
-      //                       auto router_start = std::chrono::high_resolution_clock::now();
-      //                       std::vector<router::TxnNode> txnnodelist;
-      //                       gen_txn_key_list_with_weight(txnnodelist, str, destNodeId, int(FLAGS_nodes), ishash);
-      //                       bool isroute = false;
-      //                       if (FLAGS_routertimeLog)
-      //                          routertime_logger->info(fmt::format("received,{},{}", sqlMessage.nodeId, extractTxnId(str)));
-      //                       destNodeId = router.router(txnnodelist, t_i, false, isroute);
-      //                       auto router_end = std::chrono::high_resolution_clock::now();
-      //                       router_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(router_end - router_start).count() / 1000);
-      //                       random_number_per_thread[destNodeId]++;
-      //                       // if(count > 180000){
-      //                       // std::vector<std::string> args = extractParameters(str, ',');
-      //                       // if(std::stoi(args[0])<int(FLAGS_tpcc_warehouse_count/2+1)) destNodeId=0;
-      //                       // else destNodeId=1;
-      //                       // }
-      //                    }
-      //                    else
-      //                    {
-      //                       destNodeId = routerCach[clientId] - 1;
-      //                    }
-      //                   break;
-      //                case 2:
-      //                   // 按wid取模
-
-      //                   if (routerCach[clientId] == 0)
-      //                   {
-      //                      std::vector<std::string> args = extractParameters(str, ',');
-      //                      int w_id = std::stoi(args[0]);
-      //                      destNodeId = w_id % FLAGS_nodes;
-      //                      // if(count <180000){
-      //                      //    destNodeId = rand()%FLAGS_nodes;
-      //                      // }
-      //                   }
-      //                   else
-      //                   {
-      //                      destNodeId = routerCach[clientId] - 1;
-      //                   }
-      //                   break;
-      //                default:
-      //                //有路由
-      //                if(routerCach[clientId]==0){
-      //                   bool ishash = false;
-      //                   auto router_start = std::chrono::high_resolution_clock::now();
-      //                   std::vector<router::TxnNode> txnnodelist;
-      //                   gen_txn_key_list_with_weight(txnnodelist, str, destNodeId, int(FLAGS_nodes), ishash);
-      //                   bool isroute = false;
-      //                   if(FLAGS_routertimeLog) routertime_logger->info(fmt::format("received,{},{}", sqlMessage.nodeId,extractTxnId(str)));
-      //                   destNodeId=router.router(txnnodelist, t_i, true, isroute);
-      //                   auto router_end = std::chrono::high_resolution_clock::now();
-      //                   router_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(router_end - router_start).count() / 1000);
-      //                   if(isroute)graph_number_per_thread[destNodeId]++;
-      //                   else random_number_per_thread[destNodeId]++;
-      //                }else{
-      //                   destNodeId=routerCach[clientId]-1;
-      //                }
-      //                   break;
-      //                }
-
-      //                auto& sqlMessagetoDispatch = *MessageFabric::createMessage<SqlMessage>(ctx.outcoming,MESSAGE_TYPE::SQL,sql,sqlMessage.nodeId);
-      //                //printf("try send:%s from node%ld to node%ld\n",sqlMessagetoDispatch.sql,sqlMessagetoDispatch.nodeId,destNodeId);
-      //                bool isDispatch=dispatcherSql(destNodeId, sqlMessagetoDispatch,clientId,&mailboxes[mailboxIdx]);
-      //                if(isDispatch) {
-      //                   routerCach[clientId]=0;
-      //                   std::vector<std::string> args = extractParameters(str, ',');
-      //                   //router_logger.info(fmt::format("{},{}", destNodeId, (std::stoi(args[0])-1)/10));
-      //                   router_number_per_thread[destNodeId] += 1;
-      //                   if(FLAGS_routertimeLog) routertime_logger->info(fmt::format("send,{},{}", sqlMessage.nodeId,extractTxnId(sql)));
-      //                   //auto end = std::chrono::high_resolution_clock::now();
-      //                   //proxy_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000);
-      //                   // auto end = std::chrono::high_resolution_clock::now();
-      //                   // proxy_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000);
-      //                   //printf("success\n");
-      //                }
-      //                else{
-      //                   //router_logger.info("false");
-      //                   //printf("defeat%d %ld\n",*(cctxs[cctxsmap[destNodeId]].mbforBusy),destNodeId);
-      //                   routerCach[clientId]=destNodeId+1;
-      //                   //auto end = std::chrono::high_resolution_clock::now();
-      //                   //proxy_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000);
-      //                   //router_number_per_thread[t_i]->fetch_add(1, std::memory_order_relaxed);
-      //                   // auto end = std::chrono::high_resolution_clock::now();
-      //                   // proxy_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000);
-      //                }
-      //                //start = std::chrono::high_resolution_clock::now();
-      //                break;
-      //             }
-      //             case MESSAGE_TYPE::TxnKeys: {
-      //                //有路由
-      //                // auto& txnKeysMessage = *reinterpret_cast<TxnKeysMessage*>(ctx.incoming);
-      //                // size_t len = txnKeysMessage.txnkeysLength;
-
-      //                // int txn_keys[len];
-      //                // memcpy(txn_keys, txnKeysMessage.txnkeys, len * sizeof(int));
-      //                // std::vector<int> txnnodelist;
-
-      //                // for(size_t i = 0; i < len; ++i) {
-      //                //    txnnodelist.push_back(txn_keys[i]);
-      //                // }
-      //                // router.router(txnnodelist,false);
-
-      //                //-------------------------------------------------------------
-      //                mailboxes[mailboxIdx] = 0;
-      //                printf("error\n");
-      //                uint8_t flag = 0;
-      //                auto& wqe_dest = ctx.wqe_flag;
-      //                uint64_t SIGNAL_ = FLAGS_pollingInterval -1;
-      //                rdma::completion signal = ((wqe_dest & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
-      //                rdma::postWrite(&flag, *(ctx.rctx),signal ,ctx.mbOffset);
-      //                if ((wqe_dest & SIGNAL_)==SIGNAL_) {
-
-      //                   int comp{0};
-      //                   ibv_wc wcReturn;
-      //                   while (comp == 0) {
-      //                      comp = rdma::pollCompletion(ctx.rctx->id->qp->send_cq, 1, &wcReturn);
-      //                   }
-      //                   if (wcReturn.status != IBV_WC_SUCCESS){
-      //                      printf("error%d\n",wcReturn.status);
-      //                      throw;
-      //                   }
-      //                }
-      //                wqe_dest++;
-      //                auto end = std::chrono::high_resolution_clock::now();
-      //                proxy_time_per_thread[t_i] += (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000);
-
-      //                break;
-      //             }
-      //             default:
-      //                throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
-      //                                         std::to_string((size_t)ctx.incoming->type));
-      //          }
-      //       }
-      //       mailboxIdx = ++startPosition;
-
-      //    }
-      //    threadCount--; });
-
-      //       // threads::CoreManager::getInstance().pinThreadToCore(t.native_handle());
-      //       // if ((t_i % 2) == 0)
-      //       threads::CoreManager::getInstance().pinThreadToCore(t.native_handle());
-      //       // else
-      //       //    threads::CoreManager::getInstance().pinThreadToHT(t.native_handle());
-      //       t.detach();
-      //    }
-      // }
       void MessageHandler::startThread()
       {
          for (uint64_t t_i = 0; t_i < FLAGS_messageHandlerThreads; t_i++)
@@ -552,8 +311,8 @@ namespace Proxy
          const uint64_t beginId = mbPartition.beginId;
          uint64_t startPosition = 0;  // randomize messages
          uint64_t mailboxIdx = 0;
-         auto w_id = urand(1, FLAGS_tpcc_warehouse_count);
-         std::string sql = txCreate(w_id);
+         ycsb_workload ycsb;
+         std::vector<TxnNode> keylist = ycsb.ycsb_keys_create();
 
          //uint64_t destNodeId=0;
          while (threadsRunning || connectedClients.load()) {
@@ -633,30 +392,27 @@ namespace Proxy
                case 2:
                   // 按wid取模
 
-                  if (routerCach[clientId] == 0)
-                  {
-                     std::vector<std::string> args = extractParameters(sql, ',');
-                     int w_id = std::stoi(args[0]);
-                     destNodeId = w_id % FLAGS_nodes;
-                     // if(count <180000){
-                     //    destNodeId = rand()%FLAGS_nodes;
-                     // }
-                  }
-                  else
-                  {
-                     destNodeId = routerCach[clientId] - 1;
-                  }
+                  // if (routerCach[clientId] == 0)
+                  // {
+                  //    std::vector<std::string> args = extractParameters(sql, ',');
+                  //    int w_id = std::stoi(args[0]);
+                  //    destNodeId = w_id % FLAGS_nodes;
+                  //    // if(count <180000){
+                  //    //    destNodeId = rand()%FLAGS_nodes;
+                  //    // }
+                  // }
+                  // else
+                  // {
+                  //    destNodeId = routerCach[clientId] - 1;
+                  // }
                   break;
                default:
                   // 有路由
                   if (routerCach[clientId] == 0)
                   {
-                     bool ishash = false;
                      auto router_start = Proxy::utils::getTimePoint();
-                     std::vector<router::TxnNode> txnnodelist;
-                     gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
                      bool isroute = false;
-                     destNodeId = router.router(txnnodelist, t_i, true, isroute);
+                     destNodeId = router.router(keylist, t_i, true, isroute);
                      auto router_end = Proxy::utils::getTimePoint();
                      if (router.metis)
                      {
@@ -679,14 +435,13 @@ namespace Proxy
                   }
                   break;
                }
-               auto &sqlMessagetoDispatch = *MessageFabric::createMessage<SqlMessage>(ctx.outcoming, MESSAGE_TYPE::SQL, sql.data(), clientId);
-               bool isDispatch = dispatcherSql(destNodeId, sqlMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
+               auto &keyMessagetoDispatch = *MessageFabric::createMessage<TxnKeysMessage>(ctx.outcoming, MESSAGE_TYPE::TxnKeys, keylist, clientId);
+               bool isDispatch = dispatcherKey(destNodeId, keyMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
                if (isDispatch)
                {
                   routerCach[clientId] = 0;
                   router_number_per_thread[destNodeId] += 1;
-                  w_id = urand(1, FLAGS_tpcc_warehouse_count);
-                  sql = txCreate(w_id);
+                  keylist = ycsb.ycsb_keys_create();
                }
                else
                {

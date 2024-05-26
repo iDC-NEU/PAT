@@ -10,12 +10,6 @@ add SqlMessage
 */
 namespace scalestore
 {
-   struct TxnNode
-   {
-      uint64_t key;
-      bool is_read_only;
-      int weight;
-   };
    namespace rdma
    {
       // -------------------------------------------------------------------------------------

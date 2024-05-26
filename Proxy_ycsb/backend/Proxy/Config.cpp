@@ -44,3 +44,5 @@ DEFINE_uint32(route_mode, 3, " 路由方式（如随机路由）");
 DEFINE_uint32(partition_mode, 2, " 划分方法");
 DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
+DEFINE_uint32(ycsb_num, 10, "多少一个事务");
+DEFINE_uint32(stamp_len, 50, "range");

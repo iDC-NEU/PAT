@@ -1,5 +1,5 @@
-add_executable(tpcc tpcc/tpcc.cpp)
-add_dependencies(tpcc Proxy)
-target_link_libraries(tpcc Proxy numa)
+add_executable(ycsb ycsb/ycsb.cpp)
+add_dependencies(ycsb Proxy)
+target_link_libraries(ycsb Proxy numa)
 
 

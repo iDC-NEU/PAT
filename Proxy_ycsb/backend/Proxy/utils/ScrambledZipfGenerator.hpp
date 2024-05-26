@@ -1,5 +1,5 @@
 #include "FNVHash.hpp"
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 // #include "ZipfGenerator.hpp"
 #include "ZipfRejectionInversion.hpp"
 // -------------------------------------------------------------------------------------
