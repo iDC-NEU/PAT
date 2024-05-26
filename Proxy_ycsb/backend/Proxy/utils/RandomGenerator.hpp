@@ -60,6 +60,14 @@ class RandomGenerator
       return rand;
    }
 
+   static int64_t getRandI64(int64_t min, int64_t max)
+   {
+      int64_t rand = min + (mt_generator.rnd() % (max - min));
+      ensure(rand < max);
+      ensure(rand >= min);
+      return rand;
+   }
+
    static uint64_t getRandU64Fast(){
       return fast_generator.rnd();
    }

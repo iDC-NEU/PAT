@@ -218,16 +218,6 @@ namespace Proxy
             if(!router.DyPartitioner.has_send_metis){
                std::cout<<"send_customer"<<std::endl;   
                send_map_to_node(&router.DyPartitioner.customer_map,outcoming,MESSAGE_TYPE::RouterMap_metis_customer);
-               std::cout<<"send_order"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.order_map,outcoming,MESSAGE_TYPE::RouterMap_metis_order);
-               std::cout<<"send_stock"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.stock_map,outcoming,MESSAGE_TYPE::RouterMap_metis_stock);    
-               std::cout<<"send_warehouse"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.warehouse_map,outcoming,MESSAGE_TYPE::RouterMap_metis_warehouse);     
-               std::cout<<"send_district"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.district_map,outcoming,MESSAGE_TYPE::RouterMap_metis_district);    
-               std::cout<<"send_neworder"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.neworder_map,outcoming,MESSAGE_TYPE::RouterMap_metis_neworder);    
                // std::cout<<"send_orderline"<<std::endl;   
                // send_map_to_node(&router.DyPartitioner.orderline_map,outcoming,MESSAGE_TYPE::RouterMap_metis_orderline);                 
                router.DyPartitioner.has_send_metis=true;
@@ -239,11 +229,6 @@ namespace Proxy
                std::cout << "send_dynamic" << std::endl;
                router.DyPartitioner.partition_mutex.lock();
                send_map_to_node(&router.DyPartitioner.customer_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_customer);
-               send_map_to_node(&router.DyPartitioner.order_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_order);
-               send_map_to_node(&router.DyPartitioner.stock_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_stock);
-               send_map_to_node(&router.DyPartitioner.warehouse_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_warehouse);
-               send_map_to_node(&router.DyPartitioner.district_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_district);
-               send_map_to_node(&router.DyPartitioner.neworder_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_neworder);
                router.DyPartitioner.has_send_new_insert_keys = true;
                router.DyPartitioner.partition_mutex.unlock();
             }

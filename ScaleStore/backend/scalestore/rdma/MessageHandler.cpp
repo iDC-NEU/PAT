@@ -643,7 +643,8 @@ namespace scalestore
             //    continue;
             // }
             // *(proxycctxs[n_i].mailbox) = 1;
-            if(!mail_mtxs[n_i]->try_lock()){
+            if (!mail_mtxs[n_i]->try_lock())
+            {
                continue;
             }
 
@@ -682,12 +683,63 @@ namespace scalestore
 
          return false;
       }
-      void MessageHandler::get_router_map(std::map<int, int> &router_map, bool &ready)
+      bool MessageHandler::getKeyfromProxy(std::vector<TxnNode> &keylist, uint64_t *src_node)
+      {
+
+         for (uint64_t n_i = 0; n_i < FLAGS_sqlSendThreads; n_i++)
+         {
+            // if (*(proxycctxs[n_i].mailbox) == 1)
+            // {
+            //    continue;
+            // }
+            // *(proxycctxs[n_i].mailbox) = 1;
+            if (!mail_mtxs[n_i]->try_lock())
+            {
+               continue;
+            }
+
+            auto &keyMessage = *static_cast<TxnKeysMessage *>(proxycctxs[n_i].incoming);
+            volatile uint8_t &received = keyMessage.receiveFlag;
+            if (received == 1)
+            {
+               received = 0;
+               keylist = std::move(keyMessage.keylist);
+               *src_node = keyMessage.nodeId;
+               uint8_t busy = 0;
+               uint64_t SIGNAL_ = FLAGS_pollingInterval - 1;
+               auto &wqe = proxycctxs[n_i].wqe_get_sql;
+               rdma::completion signal = ((wqe & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
+               rdma::postWrite(&busy, *(proxycctxs[n_i].rctx), signal, proxycctxs[n_i].busyOffset);
+               if ((wqe & SIGNAL_) == SIGNAL_)
+               {
+                  int comp{0};
+                  ibv_wc wcReturn;
+                  while (comp == 0)
+                  {
+                     comp = rdma::pollCompletion(proxycctxs[n_i].rctx->id->qp->send_cq, 1, &wcReturn);
+                  }
+                  if (wcReturn.status != IBV_WC_SUCCESS)
+                  {
+                     printf("error%d\n", wcReturn.status);
+                     throw;
+                  }
+               }
+               wqe++;
+               mail_mtxs[n_i]->unlock();
+               return true;
+            }
+            mail_mtxs[n_i]->unlock();
+         }
+
+         return false;
+      }
+      template <typename T1>
+      void MessageHandler::get_router_map(std::map<T1, T1> &router_map, bool &ready)
       {
          auto &MapMessage = *static_cast<RouterMapMessage *>(cctxForRouterMap.incoming);
          for (size_t i = 0; i < MapMessage.length; i++)
          {
-            router_map.insert({MapMessage.RouterMap[i][0], MapMessage.RouterMap[i][1]});
+            router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
          }
          if (MapMessage.overFlag == 1)
          {
@@ -716,12 +768,13 @@ namespace scalestore
          }
          wqe++;
       }
-      void MessageHandler::get_router_map(std::unordered_map<int, int> &router_map, bool &ready)
+      template <typename T1>
+      void MessageHandler::get_router_map(std::unordered_map<T1, T1> &router_map, bool &ready)
       {
          auto &MapMessage = *static_cast<RouterMapMessage *>(cctxForRouterMap.incoming);
          for (size_t i = 0; i < MapMessage.length; i++)
          {
-            router_map.insert({MapMessage.RouterMap[i][0], MapMessage.RouterMap[i][1]});
+            router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
          }
          if (MapMessage.overFlag == 1)
          {

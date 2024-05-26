@@ -42,7 +42,7 @@ namespace Proxy
 
         struct TxnNode
          {
-            int key;
+            uint64_t key;
             bool is_read_only;
             int weight;
          };
@@ -278,38 +278,9 @@ namespace Proxy
                     {
                         customer_map.insert({key, part_id});
                     }
-                    else if (customer_key_max < key && key <= order_key_max)
-                    {
-                        order_map.insert({key - customer_key_max, part_id});
-                    }
-                    else if (order_key_max < key && key <= stock_key_max)
-                    {
-                        stock_map.insert({key - order_key_max, part_id});
-                    }
-                    else if (stock_key_max < key && key <= warehouse_key_max)
-                    {
-                        warehouse_map.insert({(key - stock_key_max - 1) / 50, part_id});
-                    }
-                    else if (warehouse_key_max < key && key <= district_key_max)
-                    {
-                        district_map.insert({key - warehouse_key_max, part_id});
-                    }
-                    else 
-                    {
-                        neworder_map.insert({key - district_key_max, part_id});
-                    }
-                    // else
-                    // {
-                    //     orderline_map.insert({key - neworder_key_max, part_id});
-                    // }
                     i++;
                 }
                 std::cout << "partmap_size: " << partmapA.size() << std::endl;
-                std::cout << "customer_size: " << customer_map.size() << std::endl;
-                std::cout << "oorder_size: " << order_map.size() << std::endl;
-                std::cout << "stock_size: " << stock_map.size() << std::endl;
-                std::cout << "neworder_size: " << neworder_map.size() << "\n";
-                std::cout << "orderline_size: " << orderline_map.size() << "\n";
             }
 
             void MetisPart()

@@ -63,6 +63,7 @@ inline void DO_NOT_OPTIMIZE(T const& value)
    }
 
 using u64 = uint64_t;
+using i64 = int64_t;
 using s32 = int32_t;
 constexpr size_t CACHE_LINE = 64;
 constexpr size_t MAX_NODES = 64; // only supported due to bitmap

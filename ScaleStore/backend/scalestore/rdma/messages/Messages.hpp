@@ -10,6 +10,12 @@ add SqlMessage
 */
 namespace scalestore
 {
+   struct TxnNode
+   {
+      uint64_t key;
+      bool is_read_only;
+      int weight;
+   };
    namespace rdma
    {
       // -------------------------------------------------------------------------------------
@@ -43,25 +49,25 @@ namespace scalestore
          // -------------------------------------------------------------------------------------
          PRFR = 14,
          PRFRR = 15,
-         RouterMap_metis=30,
-         RouterMap_metis_customer=31,
-         RouterMap_metis_order=32,
-         RouterMap_metis_stock=33,
-         RouterMap_metis_warehouse=34,
-         RouterMap_metis_district=35,
+         RouterMap_metis = 30,
+         RouterMap_metis_customer = 31,
+         RouterMap_metis_order = 32,
+         RouterMap_metis_stock = 33,
+         RouterMap_metis_warehouse = 34,
+         RouterMap_metis_district = 35,
          RouterMap_metis_neworder = 36,
          RouterMap_metis_orderline = 37,
-         RouterMap_dynamic=40,
-         RouterMap_dynamic_customer=41,
-         RouterMap_dynamic_order=42,
-         RouterMap_dynamic_stock=43,
-         RouterMap_dynamic_warehouse=44,
-         RouterMap_dynamic_district=45,
-         RouterMap_dynamic_neworder=46,
-         RouterMap_dynamic_orderline=47,
+         RouterMap_dynamic = 40,
+         RouterMap_dynamic_customer = 41,
+         RouterMap_dynamic_order = 42,
+         RouterMap_dynamic_stock = 43,
+         RouterMap_dynamic_warehouse = 44,
+         RouterMap_dynamic_district = 45,
+         RouterMap_dynamic_neworder = 46,
+         RouterMap_dynamic_orderline = 47,
          // -------------------------------------------------------------------------------------
-         SQL=16,
-         TxnKeys=17,
+         SQL = 16,
+         TxnKeys = 17,
          // -------------------------------------------------------------------------------------
          DPMR = 96, // delegate possession request
          // Remote information for delegation
@@ -99,7 +105,7 @@ namespace scalestore
          uintptr_t plResponseOffset;
          NodeID bmId; // node id of buffermanager the initiator belongs to
          MESSAGE_TYPE type = MESSAGE_TYPE::Init;
-         uintptr_t mbOffsetforBusy;// only proxy use
+         uintptr_t mbOffsetforBusy; // only proxy use
       };
       // -------------------------------------------------------------------------------------
       // Protocol Messages
@@ -114,52 +120,49 @@ namespace scalestore
       struct SqlMessage : public Message
       {
          char sql[sqlLength];
-         uint8_t receiveFlag=1;
+         uint8_t receiveFlag = 1;
          NodeID nodeId;
-         SqlMessage(MESSAGE_TYPE type, char* sql_message, NodeID nodeId): Message(type),nodeId(nodeId)
+         SqlMessage(MESSAGE_TYPE type, char *sql_message, NodeID nodeId) : Message(type), nodeId(nodeId)
          {
-            int i=0;
-            while(sql_message[i]!='\0') 
+            int i = 0;
+            while (sql_message[i] != '\0')
             {
-               sql[i]=sql_message[i];
+               sql[i] = sql_message[i];
                i++;
-            } 
-            sql[i]='\0';
+            }
+            sql[i] = '\0';
          }
       };
       struct TxnKeysMessage : public Message
       {
-         int txnkeys[txnKeyListLength];
-         size_t txnkeysLength;
-         uint8_t receiveFlag=1;
+         std::vector<TxnNode> keylist;
+         uint8_t receiveFlag = 1;
          NodeID nodeId;
-         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<int> & txnkeys_message, NodeID nodeId): Message(type),nodeId(nodeId)
+         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<TxnNode> &&keys_message, NodeID nodeId) : Message(type), nodeId(nodeId)
          {
-            txnkeysLength = txnkeys_message.size();
-            for(size_t i = 0; i < txnkeysLength; ++i) {
-               txnkeys[i] = txnkeys_message[i];
-            }
+            keylist = std::move(keys_message);
          }
       };
+
       struct RouterMapMessage : public Message
       {
          int RouterMap[1000][2];
          size_t length;
          uint8_t receiveFlag;
          uint8_t overFlag;
-         RouterMapMessage(MESSAGE_TYPE type,int x[1000][2],size_t length_x,uint8_t isOver): Message(type)
+         RouterMapMessage(MESSAGE_TYPE type, int x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
          {
-            receiveFlag=1;
-            overFlag=isOver;
-            length=length_x;
-            for(size_t i=0;i<length_x;i++){
-               RouterMap[i][0]=x[i][0];
-               RouterMap[i][1]=x[i][1];
+            receiveFlag = 1;
+            overFlag = isOver;
+            length = length_x;
+            for (size_t i = 0; i < length_x; i++)
+            {
+               RouterMap[i][0] = x[i][0];
+               RouterMap[i][1] = x[i][1];
             }
          }
-        
       };
-      
+
       // -------------------------------------------------------------------------------------
       struct FinishRequest : public Message
       {
@@ -292,7 +295,6 @@ namespace scalestore
       static constexpr uint64_t SIZE_SQLMESSAGE = sizeof(SqlMessage);
       static constexpr uint64_t SIZE_TXNKEYSMESSAGE = sizeof(TxnKeysMessage);
       static constexpr uint64_t SIZE_ROUTERMAPMESSAGE = sizeof(RouterMapMessage);
-
 
       struct MessageFabric
       {

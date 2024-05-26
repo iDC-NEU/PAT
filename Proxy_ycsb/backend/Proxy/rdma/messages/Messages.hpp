@@ -124,16 +124,12 @@ namespace Proxy
       };
       struct TxnKeysMessage : public Message
       {
-         int txnkeys[txnKeyListLength];
-         size_t txnkeysLength;
-         uint8_t receiveFlag=1;
+         std::vector<Proxy::router::TxnNode> keylist;
+         uint8_t receiveFlag = 1;
          NodeID nodeId;
-         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<int> & txnkeys_message, NodeID nodeId): Message(type),nodeId(nodeId)
+         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<Proxy::router::TxnNode> &&keys_message, NodeID nodeId) : Message(type), nodeId(nodeId)
          {
-            txnkeysLength = txnkeys_message.size();
-            for(size_t i = 0; i < txnkeysLength; ++i) {
-               txnkeys[i] = txnkeys_message[i];
-            }
+            keylist = std::move(keys_message);
          }
       };
 

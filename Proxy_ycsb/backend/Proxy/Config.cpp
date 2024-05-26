@@ -37,7 +37,6 @@ DEFINE_uint32(socket, 0, " Socket we are running on");
 DEFINE_bool(pinThreads, true, " Pin threads");
 DEFINE_bool(cpuCounters,true, " CPU counters profiling ");
 
-DEFINE_uint32(tpcc_warehouse_count, 1, "");
 DEFINE_uint64(sqlSendThreads,1," ");
 DEFINE_bool(routertimeLog,false, " ");
 

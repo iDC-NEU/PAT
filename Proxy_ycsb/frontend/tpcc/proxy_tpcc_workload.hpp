@@ -361,3 +361,9 @@ std::string txCreate(Integer w_id)
    txns[transaction_types::NEW_ORDER]++;
    return sql + newOrderRndCreate(w_id);
 }
+
+std::vector<Proxy::router::TxnNode> ycsb_Create()
+{
+   
+}
+

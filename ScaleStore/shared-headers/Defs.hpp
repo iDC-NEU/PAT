@@ -63,7 +63,9 @@ inline void DO_NOT_OPTIMIZE(T const& value)
    }
 
 using u64 = uint64_t;
+using i64 = int64_t;
 using s32 = int32_t;
+using Integer = int32_t;
 constexpr size_t CACHE_LINE = 64;
 constexpr size_t MAX_NODES = 64; // only supported due to bitmap
 constexpr size_t PARTITIONS = 64;  // partitions for partitioned queue 
@@ -92,6 +94,7 @@ const std::vector<std::vector<uint64_t>> NODESport{
 
 const uint32_t sqlLength=1000;
 const uint32_t txnKeyListLength=1000;
+const uint32_t KeyListLength=10;
 static std::string rdmaPathRecv = "/sys/class/infiniband/mlx5_0/ports/1/counters/port_rcv_data";
 static std::string rdmaPathXmit = "/sys/class/infiniband/mlx5_0/ports/1/counters/port_xmit_data";
 using NodeID = uint64_t;
