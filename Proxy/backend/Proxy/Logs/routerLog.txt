@@ -1,0 +1,16 @@
+[2024-05-27 18:24:38.830] t_i: 0 node_id: 1
+[2024-05-27 18:24:38.831] t_i: 1 node_id: 1
+[2024-05-27 18:24:38.832] t_i: 2 node_id: 0
+[2024-05-27 18:24:38.835] t_i: 3 node_id: 0
+[2024-05-27 18:24:38.836] t_i: 4 node_id: 0
+[2024-05-27 18:24:38.837] t_i: 5 node_id: 1
+[2024-05-27 18:24:38.837] t_i: 6 node_id: 0
+[2024-05-27 18:24:38.837] t_i: 7 node_id: 1
+[2024-05-27 18:24:48.857] time:10s; avg_throughput = 5504.4/s; all_route_number= 55044
+[2024-05-27 18:24:48.858] random_route_number:0; graph_route_number:0
+[2024-05-27 18:24:48.859] transfer_count: 0
+[2024-05-27 18:24:48.860] transfer_node: 0
+[2024-05-27 18:24:58.857] time:20s; avg_throughput = 16410.4/s; all_route_number= 219148
+[2024-05-27 18:24:58.857] random_route_number:0; graph_route_number:0
+[2024-05-27 18:24:58.857] transfer_count: 0
+[2024-05-27 18:24:58.857] transfer_node: 0

@@ -688,17 +688,14 @@ namespace Proxy
                }
                auto &sqlMessagetoDispatch = *MessageFabric::createMessage<SqlMessage>(ctx.outcoming, MESSAGE_TYPE::SQL, sql.data(), clientId);
                bool isDispatch = dispatcherSql(destNodeId, sqlMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
-               if (isDispatch)
+               while (!isDispatch)
                {
                   routerCach[clientId] = 0;
-                  router_number_per_thread[destNodeId] += 1;
-                  w_id = urand(1, FLAGS_tpcc_warehouse_count);
-                  sql = txCreate(w_id);
+                  isDispatch = dispatcherSql(destNodeId, sqlMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
                }
-               else
-               {
-                  routerCach[clientId] = destNodeId + 1;
-               }
+               router_number_per_thread[destNodeId] += 1;
+               w_id = urand(1, FLAGS_tpcc_warehouse_count);
+               sql = txCreate(w_id);
             }
             mailboxIdx = ++startPosition;
          }

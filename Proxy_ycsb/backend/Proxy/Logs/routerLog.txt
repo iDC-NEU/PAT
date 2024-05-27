@@ -1,0 +1,43 @@
+[2024-05-27 20:17:18.909] t_i: 0 node_id: 1
+[2024-05-27 20:17:18.917] t_i: 1 node_id: 1
+[2024-05-27 20:17:18.918] t_i: 2 node_id: 0
+[2024-05-27 20:17:18.918] t_i: 3 node_id: 1
+[2024-05-27 20:17:18.918] t_i: 4 node_id: 1
+[2024-05-27 20:17:18.918] t_i: 5 node_id: 0
+[2024-05-27 20:17:18.919] t_i: 6 node_id: 0
+[2024-05-27 20:17:18.919] t_i: 7 node_id: 0
+[2024-05-27 20:17:26.933] Start Metis Part
+[2024-05-27 20:17:28.920] time:10s; avg_throughput = 24609.1/s; all_route_number= 246091
+[2024-05-27 20:17:28.920] random_route_number:246221; graph_route_number:0
+[2024-05-27 20:17:28.920] transfer_count: 0
+[2024-05-27 20:17:28.920] transfer_node: 0
+[2024-05-27 20:17:30.632] 初始图划分后顶点数_cluster统计:,20000;顶点数_number_of_nodes：20000
+[2024-05-27 20:17:30.632] epoch_time =11.7864s
+[2024-05-27 20:17:30.632] dy_time =3.69946s dy_time/epochtime=0.313874
+[2024-05-27 20:17:30.632] router_time =0s router_time/epochtime=0
+[2024-05-27 20:17:30.632] Metis OK
+[2024-05-27 20:17:30.648] Update Metis map
+[2024-05-27 20:17:38.921] time:20s; avg_throughput = 32626.2/s; all_route_number= 572353
+[2024-05-27 20:17:38.921] random_route_number:305244; graph_route_number:267512
+[2024-05-27 20:17:38.921] transfer_count: 9374
+[2024-05-27 20:17:38.921] transfer_node: 9348
+[2024-05-27 20:17:48.925] time:30s; avg_throughput = 30009/s; all_route_number= 872443
+[2024-05-27 20:17:48.925] random_route_number:305244; graph_route_number:567501
+[2024-05-27 20:17:48.925] transfer_count: 9706
+[2024-05-27 20:17:48.925] transfer_node: 9677
+[2024-05-27 20:17:58.925] time:40s; avg_throughput = 30746/s; all_route_number= 1179903
+[2024-05-27 20:17:58.925] random_route_number:305244; graph_route_number:874944
+[2024-05-27 20:17:58.925] transfer_count: 9712
+[2024-05-27 20:17:58.925] transfer_node: 9682
+[2024-05-27 20:18:08.933] time:50s; avg_throughput = 31158.6/s; all_route_number= 1491489
+[2024-05-27 20:18:08.933] random_route_number:305244; graph_route_number:1186485
+[2024-05-27 20:18:08.933] transfer_count: 9713
+[2024-05-27 20:18:08.933] transfer_node: 9683
+[2024-05-27 20:18:18.933] time:60s; avg_throughput = 31815/s; all_route_number= 1809639
+[2024-05-27 20:18:18.933] random_route_number:305244; graph_route_number:1504511
+[2024-05-27 20:18:18.933] transfer_count: 9713
+[2024-05-27 20:18:18.933] transfer_node: 9683
+[2024-05-27 20:18:28.933] time:70s; avg_throughput = 31501.6/s; all_route_number= 2124655
+[2024-05-27 20:18:28.933] random_route_number:305244; graph_route_number:1819669
+[2024-05-27 20:18:28.933] transfer_count: 9713
+[2024-05-27 20:18:28.933] transfer_node: 9683

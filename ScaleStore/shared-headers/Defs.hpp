@@ -86,7 +86,7 @@ const std::vector<std::vector<std::string>> NODES{
     // the last of row is proxy
     {""},                                                                                             // 0 to allow direct offset
     {"10.10.10.1", "10.10.10.2"},                                                                     // 1
-    {"10.10.10.1", "10.10.10.2", "10.10.10.3"},                                                       // 2
+    {"10.10.10.1", "10.10.10.2", "10.10.10.1"},                                                       // 2
     {"10.10.10.1", "10.10.10.2", "10.10.10.4", "10.10.10.3"},                                         // 3
     {"10.10.10.1", "10.10.10.2", "10.10.10.4", "10.10.10.5", "10.10.10.3"},                           // 4
     {"172.18.94.80", "172.18.94.70", "172.18.94.10", "172.18.94.20", "172.18.94.40"},                 // 5
@@ -102,7 +102,7 @@ const std::vector<std::vector<uint64_t>> NODESport{
 };
 
 const uint32_t sqlLength = 1000;
-const uint32_t txnKeyListLength = 1000;
+const uint32_t txnKeyListLength = 50;
 const uint32_t KeyListLength = 10;
 static std::string rdmaPathRecv = "/sys/class/infiniband/mlx5_0/ports/1/counters/port_rcv_data";
 static std::string rdmaPathXmit = "/sys/class/infiniband/mlx5_0/ports/1/counters/port_xmit_data";
@@ -140,6 +140,7 @@ struct TxnNode
    bool is_read_only;
    int weight;
    // 构造函数
+   TxnNode(){};
    TxnNode(int64_t k, bool read_only, int w)
        : key(k), is_read_only(read_only), weight(w) {}
 };

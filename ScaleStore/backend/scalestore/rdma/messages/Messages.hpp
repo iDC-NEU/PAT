@@ -129,22 +129,25 @@ namespace scalestore
       };
       struct TxnKeysMessage : public Message
       {
-         std::vector<TxnNode> keylist;
+         TxnNode keylist[txnKeyListLength]; // 使用数组替代 std::vector
          uint8_t receiveFlag = 1;
+         uint8_t size = 0;
          NodeID nodeId;
-         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<TxnNode> &&keys_message, NodeID nodeId) : Message(type), nodeId(nodeId)
-         {
-            keylist = std::move(keys_message);
-         }
+
+         // 构造函数，接受数组和大小作为参数
+         TxnKeysMessage(MESSAGE_TYPE type, const std::vector<TxnNode>& keys, NodeID nodeId) : Message(type), nodeId(nodeId) {
+            size = keys.size();
+            std::copy(keys.begin(), keys.begin() + size, keylist);
+        }
       };
 
       struct RouterMapMessage : public Message
       {
-         int RouterMap[1000][2];
+         i64 RouterMap[1000][2];
          size_t length;
          uint8_t receiveFlag;
          uint8_t overFlag;
-         RouterMapMessage(MESSAGE_TYPE type, int x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
+         RouterMapMessage(MESSAGE_TYPE type, i64 x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
          {
             receiveFlag = 1;
             overFlag = isOver;

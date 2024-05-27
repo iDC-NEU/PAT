@@ -155,12 +155,11 @@ namespace Proxy
             }
             return false;
          }
-
-         void send_map_to_node(std::unordered_map<int, int> *part_map, rdma::Message *outcoming, MESSAGE_TYPE type)
+         void send_map_to_node(std::unordered_map<i64, int> *part_map, rdma::Message *outcoming, MESSAGE_TYPE type)
          {
             // 遍历unordered_map并执行函数
             int count = 0;
-            int x[1000][2];
+            i64 x[1000][2];
             for (auto it = part_map->begin(); it != part_map->end(); ++it)
             {
                // 处理当前元组

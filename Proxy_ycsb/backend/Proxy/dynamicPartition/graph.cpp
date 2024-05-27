@@ -4,7 +4,7 @@ namespace Proxy
 {
     namespace router
     {
-        int commomValue(const std::unordered_set<int> &a, const std::unordered_map<int, int> &b)
+        int commomValue(const std::unordered_set<idx_t> &a, const std::unordered_map<idx_t, idx_t> &b)
         {
             int count = 0;
             for (const auto elem : b)
@@ -19,7 +19,7 @@ namespace Proxy
         /*
         Graph definition
         */
-        const std::unordered_map<int, std::unordered_map<int, int>> Graph::get_graph()
+        const std::unordered_map<idx_t, std::unordered_map<idx_t, idx_t>> Graph::get_graph()
         {
             return graph_;
         }
@@ -32,7 +32,7 @@ namespace Proxy
             this->graph_ = other.graph_;
             return *this;
         }
-        void Graph::add_edge(int v_i, int v_j, double weight)
+        void Graph::add_edge(idx_t v_i, idx_t v_j, double weight)
         {
             if (graph_[v_i].find(v_j) == graph_[v_i].end())
             {
@@ -45,7 +45,7 @@ namespace Proxy
                 graph_[v_j][v_i] += weight;
             }
         }
-        bool Graph::has_node(int vid)
+        bool Graph::has_node(idx_t vid)
         {
             return graph_.find(vid) == graph_.end() ? false : true;
         }
@@ -53,7 +53,7 @@ namespace Proxy
         {
             return graph_.size();
         }
-        std::unordered_map<int, int> Graph::neighbors(int vid)
+        std::unordered_map<idx_t, idx_t> Graph::neighbors(idx_t vid)
         {
             return graph_[vid];
         }
@@ -82,7 +82,7 @@ namespace Proxy
                 new_map_use.push_back(false);
             }
         }
-        double DynamicPartitioner::fennel([[maybe_unused]] int vid, const std::unordered_map<int, int> &neighbors)
+        double DynamicPartitioner::fennel([[maybe_unused]] idx_t vid, const std::unordered_map<idx_t, idx_t> &neighbors)
         {
             [[maybe_unused]] int load_limit = int(balance_factor * vertex_num / k);
             double *score = new double[k]();
@@ -96,7 +96,7 @@ namespace Proxy
             delete[] score;
             return max_position;
         }
-        void DynamicPartitioner::add_node(int vid)
+        void DynamicPartitioner::add_node(idx_t vid)
         {
             // 只重新计算了vid 的分区，未计算受影响的neighbors的新分区
             int p = fennel(vid, G.neighbors(vid));
@@ -126,7 +126,7 @@ namespace Proxy
             int key = vid * FLAGS_stamp_len;
             ycsb_insert_keys.insert({key, p});
         }
-        void DynamicPartitioner::add_node(int vid, std::unordered_map<int, int> &neighbors)
+        void DynamicPartitioner::add_node(idx_t vid, std::unordered_map<idx_t, idx_t> &neighbors)
         {
             for (auto nbr : neighbors)
             {
@@ -217,11 +217,11 @@ namespace Proxy
                     // line = line.replace(line.find("\n"), 1, "");
                     // line.erase(line.find_last_not_of(' ') + 1, std::string::npos);
                     std::stringstream ss(line);
-                    int word;
+                    idx_t word;
                     ss >> word;
-                    int u = word;
+                    idx_t u = word;
                     double weight;
-                    std::unordered_map<int, int> nbrs;
+                    std::unordered_map<idx_t, idx_t> nbrs;
                     while (ss >> word)
                     {
                         ss >> weight;
@@ -252,11 +252,11 @@ namespace Proxy
         }
         void DynamicPartitioner::generate_stamps(const std::vector<TxnNode> &txn_node_list)
         {
-            std::unordered_map<int, bool> temps;
+            std::unordered_map<idx_t, bool> temps;
             int count = 0;
             for (const auto &node : txn_node_list)
             {
-                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                idx_t stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 epoch_vids.insert(stamp_id);               // 记录epoch需要划分的顶点集
                 if (stampinfo_map.find(stamp_id) == stampinfo_map.end())
                 {
@@ -298,7 +298,7 @@ namespace Proxy
             }
             if (temps.size() == 1)
             {
-                int id = temps.begin()->first;
+                idx_t id = temps.begin()->first;
                 StampInfo &stamp = stampinfo_map[id];
                 stamp.sub_all_count(count);
                 if (stamp.all_count() <= 0)

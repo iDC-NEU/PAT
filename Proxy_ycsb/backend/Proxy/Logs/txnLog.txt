@@ -1,0 +1,4 @@
+[2024-05-27 20:17:26.933] Start Metis Part
+[2024-05-27 20:17:30.632] Metis OK
+[2024-05-27 20:17:30.632] Start Update router map
+[2024-05-27 20:17:30.648] router map updated

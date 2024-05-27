@@ -14,7 +14,7 @@ namespace Proxy
 
         void Router::metisPart()
         {
-            std::unordered_map<int, int> &part_map = DyPartitioner.partmapA;
+            std::unordered_map<idx_t, int> &part_map = DyPartitioner.partmapA;
             std::unique_lock<std::shared_mutex> writeLock(mtx);
             auto dy_start = std::chrono::high_resolution_clock::now();
             // DyPartitioner.WriteCountFile();
@@ -50,7 +50,7 @@ namespace Proxy
             DyPartitioner.old_map_use[t_i] = true;
             DyPartitioner.new_map_use[t_i] = true;
             bool is_old_map;
-            std::unordered_map<int, int> *part_map;
+            std::unordered_map<idx_t, int> *part_map;
             DyPartitioner.update_mutex.lock();
             if (!DyPartitioner.change_map)
             {
@@ -76,10 +76,10 @@ namespace Proxy
             if (part_map->empty())
             {
                 is_route = false;
-                if (size > 1)
-                {
-                    pushToQueue(txnnodelist);
-                }
+                // if (size > 1)
+                // {
+                //     pushToQueue(txnnodelist);
+                // }
                 return rand() % FLAGS_nodes;
             }
             // if(size == 1){
@@ -131,7 +131,7 @@ namespace Proxy
             else
                 DyPartitioner.new_map_use[t_i] = false;
 
-            pushToQueue(txnnodelist);            // txnlist使用完之后再传给划分线程，此时可以直接传入引用来避免复制开销
+            // pushToQueue(txnnodelist);            // txnlist使用完之后再传给划分线程，此时可以直接传入引用来避免复制开销
             // 请勿在此后继续使用txnnodelist
 
             if (count == 4)

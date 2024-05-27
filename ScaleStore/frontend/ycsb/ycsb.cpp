@@ -83,18 +83,19 @@ int main(int argc, char *argv[])
    // -------------------------------------------------------------------------------------
    // create Btree (0), Barrier(1)
    // -------------------------------------------------------------------------------------
-   if (scalestore.getNodeID() == 0)
-   {
-      scalestore.getWorkerPool().scheduleJobSync(0, [&]()
-                                                 {
-         scalestore.createBTree<K, V>();
-         scalestore.createBarrier(FLAGS_worker * FLAGS_nodes); });
-   }
    // -------------------------------------------------------------------------------------
    i64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
+   ScaleStoreAdapter ycsb_adapter;
    auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
-   ScaleStoreAdapter ycsb_adapter(scalestore, "ycsb");
+   scalestore.getWorkerPool().scheduleJobSync(0, [&]()
+                                              {
+                                                 ycsb_adapter = ScaleStoreAdapter(scalestore, "ycsb");
+                                                 // -------------------------------------------------------------------------------------
+                                                 if (scalestore.getNodeID() == 0)
+                                                    scalestore.createBarrier(FLAGS_worker * FLAGS_nodes); // distributed barrier
+                                              });
+   std::cout << "here" << std::endl;
    // -------------------------------------------------------------------------------------
    // Build YCSB Table / Tree
    // -------------------------------------------------------------------------------------
@@ -114,6 +115,7 @@ int main(int argc, char *argv[])
          auto threadPartition = partition(t_i, FLAGS_worker, nodeKeys);
          auto begin = nodePartition.begin + threadPartition.begin;
          auto end = nodePartition.begin + threadPartition.end;
+         std::cout<< end << std::endl;
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
          barrier.wait();
          // -------------------------------------------------------------------------------------
@@ -123,12 +125,12 @@ int main(int argc, char *argv[])
             ycsb_adapter.insert(k_i, value);
             threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
          }
+         std::cout<< "done" << std::endl;
          // -------------------------------------------------------------------------------------
          barrier.wait(); });
    }
    scalestore.getWorkerPool().joinAll();
    scalestore.stopProfiler();
-
    if (FLAGS_YCSB_flush_pages)
    {
       std::cout << "Flushing all pages"
@@ -168,34 +170,35 @@ int main(int argc, char *argv[])
                zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
 
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
-            scalestore.startProfiler(experimentInfo);
+            // scalestore.startProfiler(experimentInfo);
             for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
             {
                scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
                                                            {
                   running_threads_counter++;
                   storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
-                  storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
                   barrier.wait();
-
                   while (keep_running) {
                      uint64_t src_node;
                      std::vector<TxnNode> keylist;
-                     if(scalestore.getKey(keylist, &src_node)){
-                        for(const auto keynode : keylist){
-                           
+                     if (scalestore.getKey(keylist, &src_node))
+                     {
+                        for (const auto keynode : keylist)
+                        {
                            if (keynode.is_read_only)
                            {
                               V result;
-                              auto success = tree.lookup_opt(keynode.key, result);
+                              auto success = ycsb_adapter.lookup_opt(keynode.key, result);
                               ensure(success);
                            }
-                           else{
+                           else
+                           {
                               V payload;
-                              utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
-                              tree.insert(keynode.key, payload);
+                              utils::RandomGenerator::getRandString(reinterpret_cast<u8 *>(&payload), sizeof(V));
+                              ycsb_adapter.insert(keynode.key, payload);
                            }
                         }
+                        threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
                      }
                      if (scalestore.getNodeID() == 0){
                         if(t_i == 0){
@@ -218,7 +221,6 @@ int main(int argc, char *argv[])
                            }
                         }
                      }
-                     threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
                   }
                   running_threads_counter--; });
             }

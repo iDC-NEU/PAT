@@ -43,3 +43,4 @@ DEFINE_bool(use_proxy, false, " ");
 DEFINE_bool(use_codesign, true, " ");
 DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
+DEFINE_uint32(workload_type, 1, "tpcc or ycsb");

@@ -463,8 +463,16 @@ namespace scalestore
          {
             proxycctxs[n_i].rctx = &(cm.initiateConnection(ip, rdma::Type::MESSAGE_HANDLER, 99, nodeId, desport));
             // -------------------------------------------------------------------------------------
-            proxycctxs[n_i].incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
-            proxycctxs[n_i].outgoing = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
+            if (FLAGS_workload_type == 0)
+            {
+               proxycctxs[n_i].incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
+               proxycctxs[n_i].outgoing = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_SQLMESSAGE, CACHE_LINE);
+            }
+            else
+            {
+               proxycctxs[n_i].incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_TXNKEYSMESSAGE, CACHE_LINE);
+               proxycctxs[n_i].outgoing = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_TXNKEYSMESSAGE, CACHE_LINE);
+            }
             proxycctxs[n_i].mailbox = (uint8_t *)cm.getGlobalBuffer().allocate(1, CACHE_LINE);
             proxycctxs[n_i].wqe = 0;
          }
@@ -697,13 +705,12 @@ namespace scalestore
             {
                continue;
             }
-
             auto &keyMessage = *static_cast<TxnKeysMessage *>(proxycctxs[n_i].incoming);
             volatile uint8_t &received = keyMessage.receiveFlag;
             if (received == 1)
             {
                received = 0;
-               keylist = std::move(keyMessage.keylist);
+               keylist.assign(keyMessage.keylist, keyMessage.keylist + keyMessage.size);
                *src_node = keyMessage.nodeId;
                uint8_t busy = 0;
                uint64_t SIGNAL_ = FLAGS_pollingInterval - 1;
@@ -730,7 +737,6 @@ namespace scalestore
             }
             mail_mtxs[n_i]->unlock();
          }
-
          return false;
       }
       template <typename T1>

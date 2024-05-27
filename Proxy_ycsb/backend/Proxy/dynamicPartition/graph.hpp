@@ -44,18 +44,18 @@ namespace Proxy
         public:
             Graph() {}
             Graph(const Graph &other);
-            const std::unordered_map<int, std::unordered_map<int, int>> get_graph();
+            const std::unordered_map<idx_t, std::unordered_map<idx_t, idx_t>> get_graph();
             Graph &operator=(const Graph &other);
-            void add_edge(int v_i, int v_j, double weight);
-            void add_node(int vid) { graph_.insert({vid, std::unordered_map<int, int>()}); }
-            bool has_node(int vid);
-            void remove_node(int vid) { graph_.erase(vid); }
-            std::unordered_map<int, int> neighbors(int vid);
+            void add_edge(idx_t v_i, idx_t v_j, double weight);
+            void add_node(idx_t vid) { graph_.insert({vid, std::unordered_map<idx_t, idx_t>()}); }
+            bool has_node(idx_t vid);
+            void remove_node(idx_t vid) { graph_.erase(vid); }
+            std::unordered_map<idx_t, idx_t> neighbors(idx_t vid);
             int number_of_nodes();
             void clear() { graph_.clear(); }
 
         private:
-            std::unordered_map<int, std::unordered_map<int, int>> graph_;
+            std::unordered_map<idx_t, std::unordered_map<idx_t, idx_t>> graph_;
         };
 
         // 顶点信息
@@ -64,7 +64,7 @@ namespace Proxy
 
         public:
             StampInfo() {}
-            StampInfo(int n) { stamp_number_ = n; }
+            StampInfo(idx_t n) { stamp_number_ = n; }
             ~StampInfo(){};
             int w_id() const { return w_id_; }
             int stamp_number() const { return stamp_number_; }
@@ -75,16 +75,16 @@ namespace Proxy
 
         private:
             int w_id_ = -1;
-            int stamp_number_ = 0;
+            idx_t stamp_number_ = 0;
             int all_count_ = 0;
         };
 
         class DynamicPartitioner
         {
         public:
-            std::unordered_map<int, int> partmapA;
-            std::unordered_map<int, int> partmapB;
-            std::unordered_map<int, int> ycsb_map;
+            std::unordered_map<i64, int> partmapA;
+            std::unordered_map<i64, int> partmapB;
+            std::unordered_map<i64, int> ycsb_map;
             std::mutex update_mutex;
             std::mutex partition_mutex;
             std::vector<bool> old_map_use;
@@ -96,12 +96,12 @@ namespace Proxy
             bool is_update_map_running = false;
             std::atomic<bool> has_send_new_insert_keys = true;
             bool has_send_metis = false;
-            std::vector<std::unordered_set<int>> cluster;
-            std::unordered_map<int, int> &partmap;
+            std::vector<std::unordered_set<idx_t>> cluster;
+            std::unordered_map<i64, int> &partmap;
             DynamicPartitioner(Graph G, double balance_factor = 1.0, int k = 4, double alpha = 0.5, double gamma = 1.5);
-            double fennel(int vid, const std::unordered_map<int, int> &neighbors);
-            void add_node(int vid, std::unordered_map<int, int> &neighbors);
-            void add_node(int vid);
+            double fennel(idx_t vid, const std::unordered_map<idx_t, idx_t> &neighbors);
+            void add_node(idx_t vid, std::unordered_map<idx_t, idx_t> &neighbors);
+            void add_node(idx_t vid);
             void run();
             Graph &get_graph() { return G; }
             void cleargraph() { G.clear(); }
@@ -114,10 +114,10 @@ namespace Proxy
             void update_old_map();
             void create_table_partitioner();
             bool ready_send = true;
-            std::unordered_map<int, StampInfo> stampinfo_map;
-            std::unordered_map<int, int> new_insert_keys;
-            std::unordered_map<int, int> ycsb_insert_keys;
-            std::unordered_set<int> new_remove_keys;
+            std::unordered_map<idx_t, StampInfo> stampinfo_map;
+            std::unordered_map<idx_t, int> new_insert_keys;
+            std::unordered_map<idx_t, int> ycsb_insert_keys;
+            std::unordered_set<idx_t> new_remove_keys;
 
         private:
             Graph G;
@@ -138,7 +138,7 @@ namespace Proxy
             double fennel_time = 0;
             double fine_tuned_fennel_time = 0;
             double fennel_score_time = 0;
-            std::unordered_set<int> epoch_vids; // 记录每个epoch需要划分的节点
+            std::unordered_set<idx_t> epoch_vids; // 记录每个epoch需要划分的节点
 
         public:
 
@@ -162,7 +162,7 @@ namespace Proxy
             }*/
 
             // 建立对顶点的索引
-            void GetMap(std::unordered_map<int, int> &Stamp_Vertix_map, std::unordered_map<int, int> &Vertix_Stamp_map)
+            void GetMap(std::unordered_map<idx_t, idx_t> &Stamp_Vertix_map, std::unordered_map<idx_t, idx_t> &Vertix_Stamp_map)
             {
                 int i = 0;
                 for (const auto &stamp : G.get_graph())
@@ -172,7 +172,7 @@ namespace Proxy
                     i++;
                 }
             }
-            void GetEdge_With_Weight(std::vector<idx_t> &Adjncy, std::vector<idx_t> &Adjwgt, std::vector<idx_t> &Xadj, std::vector<idx_t> &Vwgt, const std::unordered_map<int, int> &stamp_map, const std::unordered_map<int, int> &vertix_map)
+            void GetEdge_With_Weight(std::vector<idx_t> &Adjncy, std::vector<idx_t> &Adjwgt, std::vector<idx_t> &Xadj, std::vector<idx_t> &Vwgt, const std::unordered_map<idx_t, idx_t> &stamp_map, const std::unordered_map<idx_t, idx_t> &vertix_map)
             {
                 int step = 0;
                 std::pair<idx_t, idx_t> page_id;
@@ -197,14 +197,14 @@ namespace Proxy
             }
 
             // 得到分区结果
-            void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<int, int> &vertix_map)
+            void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<idx_t, idx_t> &vertix_map)
             {
                 int i = 0;
                 cluster.clear();
                 cluster.reserve(partition_num);
                 for (int j = 0; j < partition_num; j++)
                 {
-                    std::unordered_set<int> part;
+                    std::unordered_set<idx_t> part;
                     cluster.push_back(part);
                 }
                 for (const auto part_id : parts)
@@ -222,9 +222,9 @@ namespace Proxy
             void MetisPart()
             {
                 std::cout << "METIS_start" << std::endl;
-                std::unordered_map<int, int> Stamp_Vertix_map;
-                std::unordered_map<int, int> Vertix_Stamp_map;
-                std::unordered_map<int, std::unordered_set<int>> cluster;
+                std::unordered_map<idx_t, idx_t> Stamp_Vertix_map;
+                std::unordered_map<idx_t, idx_t> Vertix_Stamp_map;
+                std::unordered_map<idx_t, std::unordered_set<idx_t>> cluster;
                 GetMap(Stamp_Vertix_map, Vertix_Stamp_map);
                 idx_t nvtxs = G.number_of_nodes();
                 idx_t ncon = 1;
