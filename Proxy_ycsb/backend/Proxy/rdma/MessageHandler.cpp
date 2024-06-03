@@ -282,165 +282,151 @@ namespace Proxy
       // -------------------------------------------------------------------------------------
       void MessageHandler::startThread()
       {
+         // i64 judge = FLAGS_YCSB_tuple_count/FLAGS_nodes;
          for (uint64_t t_i = 0; t_i < FLAGS_messageHandlerThreads; t_i++)
          {
             std::thread t([&, t_i]()
                           {
-                           volatile u64 tx_acc = 0;
-         // -------------------------------------------------------------------------------------
-         // ------------------------------------------------------------------------------------- 
-         threadCount++;
-         // protect init only ont thread should do it;
-         if (t_i == 0) {
-            init();
-            finishedInit = true;
-         } else {
-            while (!finishedInit)
-               ;  // block until initialized
-         }
-         MailboxPartition& mbPartition = mbPartitions[t_i];
-         uint8_t* mailboxes = mbPartition.mailboxes;
-         const uint64_t beginId = mbPartition.beginId;
-         uint64_t startPosition = 0;  // randomize messages
-         uint64_t mailboxIdx = 0;
-         ycsb_workload ycsb;
-         std::vector<TxnNode> keylist = ycsb.ycsb_keys_create();
-
-         //uint64_t destNodeId=0;
-         while (threadsRunning || connectedClients.load()) {
-            for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++) {
+               volatile u64 tx_acc = 0;
                // -------------------------------------------------------------------------------------
-               if (mailboxIdx >= mbPartition.numberMailboxes)
-                  mailboxIdx = 0;
                // -------------------------------------------------------------------------------------
-               // mailboxes[mailboxIdx] = 0;  // reset mailbox before response is sent
-               // -------------------------------------------------------------------------------------
-               // handle message
-               uint64_t clientId = mailboxIdx + beginId; // correct for partiton
-               auto &ctx = cctxs[clientId];
-               // printf("%s\n",sqlMessage.sql);
-
-               // 按wid返回
-               //  uint64_t destNodeId;
-               //  if(routerCach[clientId]==0){
-               //     std::vector<std::string> args = extractParameters(str, ',');
-               //     int w_id = std::stoi(args[0]);
-               //     int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
-               //     destNodeId = (w_id-1)/step;
-               //     // if(count <180000){
-               //     //    destNodeId = rand()%FLAGS_nodes;
-               //     // }
-               //  }else{
-               //     destNodeId=routerCach[clientId]-1;
-               //  }
-               // 按wid反转
-               //  uint64_t destNodeId;
-               //  if(routerCach[clientId]==0){
-               //     std::vector<std::string> args = extractParameters(str, ',');
-               //     int w_id = std::stoi(args[0]);
-               //     int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
-               //     destNodeId = (w_id-1)/step;
-               //     destNodeId = FLAGS_nodes-1-destNodeId;
-               //     // if(count <180000){
-               //     //    destNodeId = rand()%FLAGS_nodes;
-               //     // }
-               //  }else{
-               //     destNodeId=routerCach[clientId]-1;
-               //  }
-
-               // 原路返回
-               // uint64_t destNodeId=sqlMessage.nodeId;
-
-               // 随机返回
-               // uint64_t destNodeId=rand()%FLAGS_nodes;
-
-               // 随机返回但是只随机一次
-               // uint64_t destNodeId;
-               // if(routerCach[clientId]==0){
-               //    destNodeId=rand()%FLAGS_nodes;
-               // }else{
-               //    destNodeId=routerCach[clientId]-1;
-               // }
-               uint64_t destNodeId;
-               switch (FLAGS_route_mode)
+               threadCount++;
+               // protect init only ont thread should do it;
+               if (t_i == 0)
                {
-               case 1:
-                  // 随机路由
-                  if (routerCach[clientId] == 0)
-                  {
+                  init();
+                  finishedInit = true;
+               }
+               else
+               {
+                  while (!finishedInit)
+                     ; // block until initialized
+               }
+               MailboxPartition &mbPartition = mbPartitions[t_i];
+               uint8_t *mailboxes = mbPartition.mailboxes;
+               const uint64_t beginId = mbPartition.beginId;
+               uint64_t startPosition = 0; // randomize messages
+               uint64_t mailboxIdx = 0;
+               ycsb_workload ycsb;
+               int partition_id = 0;
+               std::vector<TxnNode> keylist = ycsb.ycsb_keys_create(partition_id);
 
-                     destNodeId = urand(0, FLAGS_nodes-1);
-                     // if(count > 180000){
-                     // std::vector<std::string> args = extractParameters(str, ',');
-                     // if(std::stoi(args[0])<int(FLAGS_tpcc_warehouse_count/2+1)) destNodeId=0;
-                     // else destNodeId=1;
+               // uint64_t destNodeId=0;
+               while (threadsRunning || connectedClients.load())
+               {
+                  for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++)
+                  {
+                     // -------------------------------------------------------------------------------------
+                     if (mailboxIdx >= mbPartition.numberMailboxes)
+                        mailboxIdx = 0;
+                     // -------------------------------------------------------------------------------------
+                     // mailboxes[mailboxIdx] = 0;  // reset mailbox before response is sent
+                     // -------------------------------------------------------------------------------------
+                     // handle message
+                     uint64_t clientId = mailboxIdx + beginId; // correct for partiton
+                     auto &ctx = cctxs[clientId];
+                     // printf("%s\n",sqlMessage.sql);
+
+                     // 按wid返回
+                     //  uint64_t destNodeId;
+                     //  if(routerCach[clientId]==0){
+                     //     std::vector<std::string> args = extractParameters(str, ',');
+                     //     int w_id = std::stoi(args[0]);
+                     //     int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
+                     //     destNodeId = (w_id-1)/step;
+                     //     // if(count <180000){
+                     //     //    destNodeId = rand()%FLAGS_nodes;
+                     //     // }
+                     //  }else{
+                     //     destNodeId=routerCach[clientId]-1;
+                     //  }
+                     // 按wid反转
+                     //  uint64_t destNodeId;
+                     //  if(routerCach[clientId]==0){
+                     //     std::vector<std::string> args = extractParameters(str, ',');
+                     //     int w_id = std::stoi(args[0]);
+                     //     int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
+                     //     destNodeId = (w_id-1)/step;
+                     //     destNodeId = FLAGS_nodes-1-destNodeId;
+                     //     // if(count <180000){
+                     //     //    destNodeId = rand()%FLAGS_nodes;
+                     //     // }
+                     //  }else{
+                     //     destNodeId=routerCach[clientId]-1;
+                     //  }
+
+                     // 原路返回
+                     // uint64_t destNodeId=sqlMessage.nodeId;
+
+                     // 随机返回
+                     // uint64_t destNodeId=rand()%FLAGS_nodes;
+
+                     // 随机返回但是只随机一次
+                     // uint64_t destNodeId;
+                     // if(routerCach[clientId]==0){
+                     //    destNodeId=rand()%FLAGS_nodes;
+                     // }else{
+                     //    destNodeId=routerCach[clientId]-1;
                      // }
-                  }
-                  else
-                  {
-                     destNodeId = routerCach[clientId] - 1;
-                  }
-                  break;
-               case 2:
-                  // 按wid取模
-
-                  // if (routerCach[clientId] == 0)
-                  // {
-                  //    std::vector<std::string> args = extractParameters(sql, ',');
-                  //    int w_id = std::stoi(args[0]);
-                  //    destNodeId = w_id % FLAGS_nodes;
-                  //    // if(count <180000){
-                  //    //    destNodeId = rand()%FLAGS_nodes;
-                  //    // }
-                  // }
-                  // else
-                  // {
-                  //    destNodeId = routerCach[clientId] - 1;
-                  // }
-                  break;
-               default:
-                  // 有路由
-                  if (routerCach[clientId] == 0)
-                  {
-                     auto router_start = Proxy::utils::getTimePoint();
-                     bool isroute = false;
-                     destNodeId = router.router(keylist, t_i, true, isroute);
-                     auto router_end = Proxy::utils::getTimePoint();
-                     if (router.metis)
+                     uint64_t destNodeId;
+                     switch (FLAGS_route_mode)
                      {
-                        outputs[t_i] << (router_end - router_start) << " ";
-                        tx_acc++;
+                     case 1:
+                        // 随机路由
+
+                        destNodeId = urand(0, FLAGS_nodes - 1);
+                        // if(count > 180000){
+                        // std::vector<std::string> args = extractParameters(str, ',');
+                        // if(std::stoi(args[0])<int(FLAGS_tpcc_warehouse_count/2+1)) destNodeId=0;
+                        // else destNodeId=1;
+                        // }
+
+                        break;
+                     case 2:
+                        // 按wid取模
+                        destNodeId = partition_id;
+                        // if(count <180000){
+                        //    destNodeId = rand()%FLAGS_nodes;
+                        // }
+                        break;
+                     default:
+                        // 有路由
+
+                        auto router_start = Proxy::utils::getTimePoint();
+                        bool isroute = false;
+                        destNodeId = router.router(keylist, t_i, true, isroute);
+                        auto router_end = Proxy::utils::getTimePoint();
+                        if (router.metis)
+                        {
+                           outputs[t_i] << (router_end - router_start) << " ";
+                           tx_acc++;
+                        }
+                        if (tx_acc > 10000)
+                        {
+                           outputs[t_i] << std::endl;
+                           outputs[t_i].flush();
+                           tx_acc = 0;
+                        }
+                        if (isroute)
+                           graph_number_per_thread[destNodeId]++;
+                        else
+                           random_number_per_thread[destNodeId]++;
+                        break;
                      }
-                     if(tx_acc > 10000){
-                        outputs[t_i] << std::endl;
-                        outputs[t_i].flush();
-                        tx_acc = 0;
-                     }
-                     if (isroute)
-                        graph_number_per_thread[destNodeId]++;
-                     else
-                        random_number_per_thread[destNodeId]++;
-                  }
-                  else
+                  auto &keyMessagetoDispatch = *MessageFabric::createMessage<TxnKeysMessage>(ctx.outcoming, MESSAGE_TYPE::TxnKeys, keylist, clientId);
+                  bool isDispatch = false;
+                  while (!isDispatch)
                   {
-                     destNodeId = routerCach[clientId] - 1;
+                     isDispatch = dispatcherKey(destNodeId, keyMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
                   }
-                  break;
+                  if (FLAGS_route_mode == 3)
+                  {
+                     router.pushToQueue(keylist);
+                  }
+                  router_number_per_thread[destNodeId] += 1;
+                  keylist = ycsb.ycsb_keys_create(partition_id);
                }
-               auto &keyMessagetoDispatch = *MessageFabric::createMessage<TxnKeysMessage>(ctx.outcoming, MESSAGE_TYPE::TxnKeys, keylist, clientId);
-               bool isDispatch = false;
-               while (!isDispatch)
-               {
-                  isDispatch = dispatcherKey(destNodeId, keyMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
-               }
-               if (FLAGS_route_mode == 3)
-               {
-                  router.pushToQueue(keylist);
-               }
-               router_number_per_thread[destNodeId] += 1;
-               keylist = ycsb.ycsb_keys_create();
-            }
-            mailboxIdx = ++startPosition;
+               mailboxIdx = ++startPosition;
          }
          threadCount--; });
 

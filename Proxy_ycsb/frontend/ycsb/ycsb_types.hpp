@@ -57,3 +57,13 @@ Integer urand(Integer low, Integer high)
 {
    return rnd(high - low + 1) + low;
 }
+
+auto partition = [](int id, int64_t participants, int64_t N) -> Partition
+{
+   const int64_t blockSize = N / participants;
+   auto begin = id * blockSize;
+   auto end = begin + blockSize;
+   if (id == participants - 1)
+      end = N;
+   return {.begin = begin, .end = end};
+};
