@@ -131,6 +131,9 @@ int main(int argc, char *argv[])
    }
    scalestore.getWorkerPool().joinAll();
    scalestore.stopProfiler();
+
+   double gib = (scalestore.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
+   std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
    if (FLAGS_YCSB_flush_pages)
    {
       std::cout << "Flushing all pages"
