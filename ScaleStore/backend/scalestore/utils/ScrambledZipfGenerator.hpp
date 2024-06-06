@@ -13,17 +13,17 @@ namespace utils
 class ScrambledZipfGenerator
 {
   public:
-   u64 min, max, n;
+   int64_t min, max, n;
    double theta;
    std::random_device rd;
    std::mt19937 gen;
    zipf_distribution<> zipf_generator;
    // 10000000000ul
    // [min, max)
-   ScrambledZipfGenerator(u64 min, u64 max, double theta) : min(min), max(max), n(max - min), gen(rd()), zipf_generator((max - min) * 2, theta) {
+   ScrambledZipfGenerator(int64_t min, int64_t max, double theta) : min(min), max(max), n(max - min), gen(rd()), zipf_generator((max - min) * 2, theta) {
    }
-   u64 rand();
-   u64 rand(u64 offset);
+   int64_t rand();
+   int64_t rand(int64_t offset);
 };
 
 // class ScrambledZipfGenerator

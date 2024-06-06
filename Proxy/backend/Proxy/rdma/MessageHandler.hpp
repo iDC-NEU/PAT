@@ -21,7 +21,6 @@
 #include <utility>
 #include "Defs.hpp"
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
 namespace Proxy
 {
    namespace rdma

@@ -109,46 +109,46 @@ void Worker::connectProxy(){
    printf("worker connect over\n");
 }
 
-bool Worker::sendTxnKeystoProxy(std::vector<int> &txnkeys_message){
-      while(*(proxycctx.mailbox)==1){
-            _mm_pause();
-      };
-      *(proxycctx.mailbox)=1;
-      auto& wqe = proxycctx.wqe;
-      uint64_t SIGNAL_ = FLAGS_pollingInterval - 1;
-      rdma::completion signal = ((wqe & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
-      auto& txnKeysMessage = *MessageFabric::createMessage<TxnKeysMessage>(proxycctx.outgoing, MESSAGE_TYPE::TxnKeys,txnkeys_message,nodeId);
-      rdma::postWrite(&txnKeysMessage, *(proxycctx.rctx), signal,proxycctx.plOffset);
-      if ((wqe & SIGNAL_)==SIGNAL_) {
-         int comp{0};
-         ibv_wc wcReturn;
-         while (comp == 0) {
-            comp = rdma::pollCompletion(proxycctx.rctx->id->qp->send_cq, 1, &wcReturn);
-         }
-         if (wcReturn.status != IBV_WC_SUCCESS){
-               printf("error%d\n",wcReturn.status);
-               throw;
-         }
-      }
-      wqe++;
+// bool Worker::sendTxnKeystoProxy(std::vector<int> &txnkeys_message){
+//       while(*(proxycctx.mailbox)==1){
+//             _mm_pause();
+//       };
+//       *(proxycctx.mailbox)=1;
+//       auto& wqe = proxycctx.wqe;
+//       uint64_t SIGNAL_ = FLAGS_pollingInterval - 1;
+//       rdma::completion signal = ((wqe & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
+//       auto& txnKeysMessage = *MessageFabric::createMessage<TxnKeysMessage>(proxycctx.outgoing, MESSAGE_TYPE::TxnKeys,txnkeys_message,nodeId);
+//       rdma::postWrite(&txnKeysMessage, *(proxycctx.rctx), signal,proxycctx.plOffset);
+//       if ((wqe & SIGNAL_)==SIGNAL_) {
+//          int comp{0};
+//          ibv_wc wcReturn;
+//          while (comp == 0) {
+//             comp = rdma::pollCompletion(proxycctx.rctx->id->qp->send_cq, 1, &wcReturn);
+//          }
+//          if (wcReturn.status != IBV_WC_SUCCESS){
+//                printf("error%d\n",wcReturn.status);
+//                throw;
+//          }
+//       }
+//       wqe++;
 
-      uint8_t flag = 1;
-      signal = ((wqe & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
-      rdma::postWrite(&flag, *(proxycctx.rctx), signal, proxycctx.mbOffset);
-      if ((wqe & SIGNAL_)==SIGNAL_) {
-         int comp{0};
-         ibv_wc wcReturn;
-         while (comp == 0) {
-            comp = rdma::pollCompletion(proxycctx.rctx->id->qp->send_cq, 1, &wcReturn);
-         }
-         if (wcReturn.status != IBV_WC_SUCCESS){
-               printf("error%d\n",wcReturn.status);
-               throw;
-         }
-      }
-      wqe++;
-      return true;
-}
+//       uint8_t flag = 1;
+//       signal = ((wqe & SIGNAL_) == 0) ? rdma::completion::signaled : rdma::completion::unsignaled;
+//       rdma::postWrite(&flag, *(proxycctx.rctx), signal, proxycctx.mbOffset);
+//       if ((wqe & SIGNAL_)==SIGNAL_) {
+//          int comp{0};
+//          ibv_wc wcReturn;
+//          while (comp == 0) {
+//             comp = rdma::pollCompletion(proxycctx.rctx->id->qp->send_cq, 1, &wcReturn);
+//          }
+//          if (wcReturn.status != IBV_WC_SUCCESS){
+//                printf("error%d\n",wcReturn.status);
+//                throw;
+//          }
+//       }
+//       wqe++;
+//       return true;
+// }
 // -------------------------------------------------------------------------------------
 }  // namespace threads
 }  // namespace scalestore

@@ -31,6 +31,7 @@ namespace scalestore
             ;
       }
    };
+   
 
    class ScaleStore
    {
@@ -129,6 +130,10 @@ namespace scalestore
       {
          return mh->getSqlfromProxy(sql, src_node);
       }
+      bool getKey(std::vector<TxnNode> &keylist , uint64_t *src_node)
+      {
+         return mh->getKeyfromProxy(keylist, src_node);
+      }
       bool sendSqltoProxy(char *sql, uint64_t sendThreadId)
       {
          return mh->sendSqltoProxy(sql, sendThreadId);
@@ -140,6 +145,7 @@ namespace scalestore
       bool district_created() { return mh->district_ready; }
       bool neworder_created() { return mh->neworder_ready; }
       bool orderline_created() { return mh->orderline_ready; }
+      bool ycsb_map_created() { return mh->ycsb_map_ready; }
       bool customer_update_ready() { return mh->customer_update_ready; }
       bool order_update_ready() { return mh->order_update_ready; }
       bool stock_update_ready() { return mh->stock_update_ready; }
@@ -147,6 +153,7 @@ namespace scalestore
       bool district_update_ready() { return mh->district_update_ready; }
       bool neworder_update_ready() { return mh->neworder_update_ready; }
       bool orderline_update_ready() { return mh->orderline_update_ready; }
+      bool ycsb_update_ready() { return mh->ycsb_update_ready; }
       void set_customer_update_ready(bool ready) { mh->customer_update_ready = ready; }
       void set_order_update_ready(bool ready) { mh->order_update_ready = ready; }
       void set_stock_update_ready(bool ready) { mh->stock_update_ready = ready; }
@@ -154,67 +161,77 @@ namespace scalestore
       void set_district_update_ready(bool ready) { mh->district_update_ready = ready; }
       void set_neworder_update_ready(bool ready) { mh->neworder_update_ready = ready; }
       void set_orderline_update_ready(bool ready) { mh->orderline_update_ready = ready; }
+      void set_ycsb_update_ready(bool ready) { mh->ycsb_update_ready = ready; }
       void customer_clear(){ mh->customer_insert_keys.clear(); }
       void order_clear(){ mh->order_insert_keys.clear(); }
       void stock_clear(){ mh->stock_insert_keys.clear(); }
       void warehouse_clear(){ mh->warehouse_insert_keys.clear(); }
       void district_clear(){ mh->district_insert_keys.clear(); }
       void neworder_clear(){ mh->neworder_insert_keys.clear(); }
-      std::map<int, int> *get_customer_map()
+      void ycsb_map_clear(){ mh->ycsb_insert_keys.clear(); }
+      std::map<Integer, Integer> *get_customer_map()
       {
          return &mh->customer_map;
       }
-      std::map<int, int> *get_order_map()
+      std::map<Integer, Integer> *get_order_map()
       {
          return &mh->order_map;
       }
-      std::map<int, int> *get_stock_map()
+      std::map<Integer, Integer> *get_stock_map()
       {
          return &mh->stock_map;
       }
-      std::map<int, int> *get_warehouse_map()
+      std::map<Integer, Integer> *get_warehouse_map()
       {
          return &mh->warehouse_map;
       }
-      std::map<int, int> *get_district_map()
+      std::map<Integer, Integer> *get_district_map()
       {
          return &mh->district_map;
       }
-      std::map<int, int> *get_neworder_map()
+      std::map<Integer, Integer> *get_neworder_map()
       {
          return &mh->neworder_map;
       }
-      std::map<int, int> *get_orderline_map()
+      std::map<Integer, Integer> *get_orderline_map()
       {
          return &mh->orderline_map;
       }
-      std::unordered_map<int, int> *get_customer_update_map()
+      std::map<i64, i64> *get_ycsb_map()
+      {
+         return &mh->ycsb_map;
+      }
+      std::unordered_map<Integer, Integer> *get_customer_update_map()
       {
          return &mh->customer_insert_keys;
       }
-      std::unordered_map<int, int> *get_order_update_map()
+      std::unordered_map<Integer, Integer> *get_order_update_map()
       {
          return &mh->order_insert_keys;
       }
-      std::unordered_map<int, int> *get_stock_update_map()
+      std::unordered_map<Integer, Integer> *get_stock_update_map()
       {
          return &mh->stock_insert_keys;
       }
-      std::unordered_map<int, int> *get_warehouse_update_map()
+      std::unordered_map<Integer, Integer> *get_warehouse_update_map()
       {
          return &mh->warehouse_insert_keys;
       }
-      std::unordered_map<int, int> *get_district_update_map()
+      std::unordered_map<Integer, Integer> *get_district_update_map()
       {
          return &mh->district_insert_keys;
       }
-      std::unordered_map<int, int> *get_neworder_update_map()
+      std::unordered_map<Integer, Integer> *get_neworder_update_map()
       {
          return &mh->neworder_insert_keys;
       }
-      std::unordered_map<int, int> *get_orderline_update_map()
+      std::unordered_map<Integer, Integer> *get_orderline_update_map()
       {
          return &mh->orderline_insert_keys;
+      }
+      std::unordered_map<i64, i64> *get_ycsb_update_map()
+      {
+         return &mh->ycsb_insert_keys;
       }
       // -------------------------------------------------------------------------------------
    private:

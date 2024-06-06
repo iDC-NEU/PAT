@@ -8,15 +8,15 @@ namespace utils
 {
 
 // -------------------------------------------------------------------------------------
-u64 ScrambledZipfGenerator::rand()
+int64_t ScrambledZipfGenerator::rand()
 {
-   u64 zipf_value = zipf_generator(gen);
+   int64_t zipf_value = zipf_generator(gen);
    return min + (scalestore::utils::FNV::hash(zipf_value) % n);
 }
 // -------------------------------------------------------------------------------------
-u64 ScrambledZipfGenerator::rand(u64 offset)
+int64_t ScrambledZipfGenerator::rand(int64_t offset)
 {
-   u64 zipf_value = zipf_generator(gen);
+   int64_t zipf_value = zipf_generator(gen);
    return (min + ((scalestore::utils::FNV::hash(zipf_value + offset)) % n));
 }
 

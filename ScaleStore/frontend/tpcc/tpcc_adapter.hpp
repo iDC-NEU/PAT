@@ -82,8 +82,8 @@ struct ScaleStoreAdapter
    PID tree_pid;
    bool created = false;
    bool traversed = false;
-   std::map<int, int> *partition_map;
-   std::unordered_map<int, int> *update_map;
+   std::map<Integer, Integer> *partition_map;
+   std::unordered_map<Integer, Integer> *update_map;
    ScaleStoreAdapter(){};
    ScaleStoreAdapter(ScaleStore &db, std::string name) : name(name)
    {
@@ -101,14 +101,14 @@ struct ScaleStoreAdapter
       std::cout << "tpcc_partmap_size: " << partition_map->size() << std::endl;
       auto pos = partition_map->begin();
       pos++;
-      int offset = 50;
+      Integer offset = 50;
       if (Record::id == 0)
       {
          offset = 1;
       }
       auto last_pair = partition_map->begin()->first;
       auto last_part = partition_map->begin()->second;
-      auto pair = last_pair + offset;
+      Integer pair = last_pair + offset;
       while (pos != partition_map->end())
       {
          if (partition_map->find(pair) != partition_map->end())
@@ -190,14 +190,14 @@ struct ScaleStoreAdapter
       std::cout << "tpcc_partmap_size: " << partition_map->size() << std::endl;
       auto pos = partition_map->begin();
       pos++;
-      int offset = 50;
+      Integer offset = 50;
       if (Record::id == 0)
       {
          offset = 1;
       }
       auto last_pair = partition_map->begin()->first;
       auto last_part = partition_map->begin()->second;
-      auto pair = last_pair + offset;
+      Integer pair = last_pair + offset;
       while (pos != partition_map->end())
       {
          if (partition_map->find(pair) != partition_map->end())

@@ -109,23 +109,25 @@ struct MessageHandler {
    std::mutex mtx;
    bool isConnectProxy;
 
-   std::map<int, int> customer_map;
-   std::map<int, int> order_map;
-   std::map<int, int> stock_map;
-   std::map<int, int> warehouse_map;
-   std::map<int, int> district_map;
+   std::map<Integer, Integer> customer_map;
+   std::map<Integer, Integer> order_map;
+   std::map<Integer, Integer> stock_map;
+   std::map<Integer, Integer> warehouse_map;
+   std::map<Integer, Integer> district_map;
    // TODO:
-   std::map<int, int> neworder_map;
-   std::map<int, int> orderline_map;
+   std::map<Integer, Integer> neworder_map;
+   std::map<Integer, Integer> orderline_map;
+   std::map<i64, i64> ycsb_map;
 
-   std::unordered_map<int, int> customer_insert_keys;
-   std::unordered_map<int, int> order_insert_keys;
-   std::unordered_map<int, int> stock_insert_keys;
-   std::unordered_map<int, int> warehouse_insert_keys;
-   std::unordered_map<int, int> district_insert_keys;
+   std::unordered_map<Integer, Integer> customer_insert_keys;
+   std::unordered_map<Integer, Integer> order_insert_keys;
+   std::unordered_map<Integer, Integer> stock_insert_keys;
+   std::unordered_map<Integer, Integer> warehouse_insert_keys;
+   std::unordered_map<Integer, Integer> district_insert_keys;
    // TODO:
-   std::unordered_map<int, int> neworder_insert_keys;
-   std::unordered_map<int, int> orderline_insert_keys;
+   std::unordered_map<Integer, Integer> neworder_insert_keys;
+   std::unordered_map<Integer, Integer> orderline_insert_keys;
+   std::unordered_map<i64, i64> ycsb_insert_keys;
    std::vector<std::mutex *> mail_mtxs;
 
    bool customer_ready = false;
@@ -142,6 +144,8 @@ struct MessageHandler {
    bool district_update_ready = false;
    bool neworder_update_ready = false;
    bool orderline_update_ready = false;
+   bool ycsb_map_ready = false;
+   bool ycsb_update_ready = false;
 
    // -------------------------------------------------------------------------------------   
    
@@ -587,11 +591,14 @@ struct MessageHandler {
    };
 
    void connectProxy();
-   void get_router_map(std::map<int, int> &router_map,bool &ready);
-   void get_router_map(std::unordered_map<int, int> &router_map,bool &ready);
+   template <typename T1>
+   void get_router_map(std::map<T1, T1> &router_map,bool &ready);
+   template <typename T1>
+   void get_router_map(std::unordered_map<T1, T1> &router_map,bool &ready);
    public:
    bool sendSqltoProxy(char *sql, uint64_t sendThreadId);
    bool getSqlfromProxy(char *sql, uint64_t *src_node);
+   bool getKeyfromProxy(std::vector<TxnNode> &keylist, uint64_t *src_node);
    bool ConnectProxy(){
       return isConnectProxy;
    }

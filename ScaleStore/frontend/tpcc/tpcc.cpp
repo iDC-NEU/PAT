@@ -17,7 +17,7 @@
 #include "spdlog/spdlog.h"
 #include <unordered_map>
 #include "schema.hpp"
-#include "adapter.hpp"
+#include "tpcc_adapter.hpp"
 
 // -------------------------------------------------------------------------------------
 
