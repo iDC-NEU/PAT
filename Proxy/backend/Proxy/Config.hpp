@@ -53,4 +53,5 @@ DECLARE_uint32(route_mode);
 DECLARE_uint32(partition_mode);
 DECLARE_bool(distribution);
 DECLARE_uint32(distribution_rate);
-
+DECLARE_int32(TPCC_run_for_seconds);
+DECLARE_int32(file_num);

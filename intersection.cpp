@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <string>
 #include <algorithm>
+#include "utils.hpp"
 
 using namespace std;
 // Function to read PIDs from a file and store them in a set
@@ -289,12 +290,13 @@ int main()
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "new_data/";
+    std::string start = "data3/";
     std::string subpath1 = "";
     std::string subpath2 = "";
     std::string subpath3 = "";
     std::string subpath4 = "";
     std::string subpath5 = "";
+    std::string subpath6 = "";
     // 读取INI文件并存储到字典中
     std::unordered_map<std::string, std::string> params = readINIFile(filename1);
     std::unordered_map<std::string, std::string> params2 = readINIFile(filename2);
@@ -371,7 +373,19 @@ int main()
             subpath5 = "分布式70/";
         }
     }
-    path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5;
+    if (params2["file_num"] == "1")
+    {
+        subpath6 = "1/";
+    }
+    else if (params2["file_num"] == "2")
+    {
+        subpath6 = "2/";
+    }
+    else
+    {
+        subpath6 = "3/";
+    }
+    path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5 + subpath6;
     std::string scpfile_1 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/";
     std::string scpfile_2 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/";
     std::string scpfile_3 = "scp -v -o StrictHostKeyChecking=no -r  root@10.0.0.89:/root/home/AffinityDB/Proxy/backend/Proxy/Logs " + path + "proxy/";
@@ -466,7 +480,7 @@ int main()
             std::cerr << "Error copying file." << std::endl;
         }
     }
-
+    int num_nodes = std::stoi(params["nodes"]);
     if (params["nodes"] == "3")
     {
         int result_7 = system(scpfile_5.c_str());
@@ -495,6 +509,7 @@ int main()
             std::cerr << "Error copying file." << std::endl;
         }
         handle_3_txn(path);
+
         std::string rm_file1 = "rm -rf " + path + "node1/TXN_LOG";
         system(rm_file1.c_str());
         std::string rm_file2 = "rm -rf " + path + "node2/TXN_LOG";
@@ -503,6 +518,8 @@ int main()
         system(rm_file3.c_str());
         std::string rm_file4 = "rm -rf " + path + "proxy/TXN_LOG";
         system(rm_file4.c_str());
+        caculate_txn_lantxncy(path);
+        calculate_remote(path, num_nodes);
         return 0;
     }
     if (params["nodes"] == "4")
@@ -568,6 +585,8 @@ int main()
         system(rm_file4.c_str());
         std::string rm_file5 = "rm -rf " + path + "node4/TXN_LOG";
         system(rm_file5.c_str());
+        caculate_txn_lantxncy(path);
+        calculate_remote(path, num_nodes);
         return 0;
     }
     if (params["nodes"] == "5")
@@ -660,54 +679,58 @@ int main()
         system(rm_file5.c_str());
         std::string rm_file6 = "rm -rf " + path + "node5/TXN_LOG";
         system(rm_file6.c_str());
+        caculate_txn_lantxncy(path);
+        calculate_remote(path, num_nodes);
         return 0;
     }
     handle_txn(path);
-    handle_page(path);
+    caculate_txn_lantxncy(path);
+    calculate_remote(path, num_nodes);
+    // handle_page(path);
     std::string rm_file1 = "rm -rf " + path + "node1/TXN_LOG";
     system(rm_file1.c_str());
     std::string rm_file2 = "rm -rf " + path + "node2/TXN_LOG";
     system(rm_file2.c_str());
     std::string rm_file3 = "rm -rf " + path + "proxy/TXN_LOG";
     system(rm_file3.c_str());
-    string customer1 = "rm " + path + "node1/Logs/customer_page";        // Replace with your first file name
-    string customer2 = "rm " + path + "node2/Logs/customer_page";        // Replace with your second file name
-    string warehouse1 = "rm " + path + "node1/Logs/warehouse_page";      // Replace with your first file name
-    string warehouse2 = "rm " + path + "node2/Logs/warehouse_page";      // Replace with your second file name
-    string district1 = "rm " + path + "node1/Logs/district_page";        // Replace with your first file name
-    string district2 = "rm " + path + "node2/Logs/district_page";        // Replace with your second file name
-    string customerwdl1 = "rm " + path + "node1/Logs/customer_wdl_page"; // Replace with your first file name
-    string customerwdl2 = "rm " + path + "node2/Logs/customer_wdl_page"; // Replace with your second file name
-    string history1 = "rm " + path + "node1/Logs/history_page";          // Replace with your first file name
-    string history2 = "rm " + path + "node2/Logs/history_page";          // Replace with your second file name
-    string neworder1 = "rm " + path + "node1/Logs/neworder_page";        // Replace with your first file name
-    string neworder2 = "rm " + path + "node2/Logs/neworder_page";        // Replace with your second file name
-    string order1 = "rm " + path + "node1/Logs/order_page";              // Replace with your first file name
-    string order2 = "rm " + path + "node2/Logs/order_page";              // Replace with your second file name
-    string order_wdc1 = "rm " + path + "node1/Logs/order_wdc_page";      // Replace with your first file name
-    string order_wdc2 = "rm " + path + "node2/Logs/order_wdc_page";      // Replace with your second file name
-    string item1 = "rm " + path + "node1/Logs/item_page";                // Replace with your first file name
-    string item2 = "rm " + path + "node2/Logs/item_page";                // Replace with your second file name
-    string stock1 = "rm " + path + "node1/Logs/stock_page";              // Replace with your first file name
-    string stock2 = "rm " + path + "node2/Logs/stock_page";              // Replace with your second file name
-    system(customer1.c_str());
-    system(customer2.c_str());
-    system(warehouse1.c_str());
-    system(warehouse2.c_str());
-    system(district1.c_str());
-    system(district2.c_str());
-    system(customerwdl1.c_str());
-    system(customerwdl2.c_str());
-    system(order1.c_str());
-    system(order2.c_str());
-    system(order_wdc1.c_str());
-    system(order_wdc2.c_str());
-    system(history1.c_str());
-    system(history2.c_str());
-    system(item1.c_str());
-    system(item2.c_str());
-    system(stock1.c_str());
-    system(stock2.c_str());
-    system(neworder1.c_str());
-    system(neworder2.c_str());
+    // string customer1 = "rm " + path + "node1/Logs/customer_page";        // Replace with your first file name
+    // string customer2 = "rm " + path + "node2/Logs/customer_page";        // Replace with your second file name
+    // string warehouse1 = "rm " + path + "node1/Logs/warehouse_page";      // Replace with your first file name
+    // string warehouse2 = "rm " + path + "node2/Logs/warehouse_page";      // Replace with your second file name
+    // string district1 = "rm " + path + "node1/Logs/district_page";        // Replace with your first file name
+    // string district2 = "rm " + path + "node2/Logs/district_page";        // Replace with your second file name
+    // string customerwdl1 = "rm " + path + "node1/Logs/customer_wdl_page"; // Replace with your first file name
+    // string customerwdl2 = "rm " + path + "node2/Logs/customer_wdl_page"; // Replace with your second file name
+    // string history1 = "rm " + path + "node1/Logs/history_page";          // Replace with your first file name
+    // string history2 = "rm " + path + "node2/Logs/history_page";          // Replace with your second file name
+    // string neworder1 = "rm " + path + "node1/Logs/neworder_page";        // Replace with your first file name
+    // string neworder2 = "rm " + path + "node2/Logs/neworder_page";        // Replace with your second file name
+    // string order1 = "rm " + path + "node1/Logs/order_page";              // Replace with your first file name
+    // string order2 = "rm " + path + "node2/Logs/order_page";              // Replace with your second file name
+    // string order_wdc1 = "rm " + path + "node1/Logs/order_wdc_page";      // Replace with your first file name
+    // string order_wdc2 = "rm " + path + "node2/Logs/order_wdc_page";      // Replace with your second file name
+    // string item1 = "rm " + path + "node1/Logs/item_page";                // Replace with your first file name
+    // string item2 = "rm " + path + "node2/Logs/item_page";                // Replace with your second file name
+    // string stock1 = "rm " + path + "node1/Logs/stock_page";              // Replace with your first file name
+    // string stock2 = "rm " + path + "node2/Logs/stock_page";              // Replace with your second file name
+    // system(customer1.c_str());
+    // system(customer2.c_str());
+    // system(warehouse1.c_str());
+    // system(warehouse2.c_str());
+    // system(district1.c_str());
+    // system(district2.c_str());
+    // system(customerwdl1.c_str());
+    // system(customerwdl2.c_str());
+    // system(order1.c_str());
+    // system(order2.c_str());
+    // system(order_wdc1.c_str());
+    // system(order_wdc2.c_str());
+    // system(history1.c_str());
+    // system(history2.c_str());
+    // system(item1.c_str());
+    // system(item2.c_str());
+    // system(stock1.c_str());
+    // system(stock2.c_str());
+    // system(neworder1.c_str());
+    // system(neworder2.c_str());
 }

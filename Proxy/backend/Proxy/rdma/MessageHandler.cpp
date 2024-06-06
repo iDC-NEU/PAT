@@ -563,7 +563,7 @@ namespace Proxy
          std::string sql = txCreate(w_id);
 
          //uint64_t destNodeId=0;
-         while (threadsRunning || connectedClients.load()) {
+         while (threadsRunning) {
             for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++) {
                // -------------------------------------------------------------------------------------
                if (mailboxIdx >= mbPartition.numberMailboxes)
@@ -688,17 +688,14 @@ namespace Proxy
                }
                auto &sqlMessagetoDispatch = *MessageFabric::createMessage<SqlMessage>(ctx.outcoming, MESSAGE_TYPE::SQL, sql.data(), clientId);
                bool isDispatch = dispatcherSql(destNodeId, sqlMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
-               if (isDispatch)
+               while (!isDispatch)
                {
                   routerCach[clientId] = 0;
-                  router_number_per_thread[destNodeId] += 1;
-                  w_id = urand(1, FLAGS_tpcc_warehouse_count);
-                  sql = txCreate(w_id);
+                  isDispatch = dispatcherSql(destNodeId, sqlMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
                }
-               else
-               {
-                  routerCach[clientId] = destNodeId + 1;
-               }
+               router_number_per_thread[destNodeId] += 1;
+               w_id = urand(1, FLAGS_tpcc_warehouse_count);
+               sql = txCreate(w_id);
             }
             mailboxIdx = ++startPosition;
          }
@@ -711,6 +708,8 @@ namespace Proxy
             // threads::CoreManager::getInstance().pinThreadToHT(t.native_handle());
             t.detach();
          }
+         sleep(FLAGS_TPCC_run_for_seconds + 10);
+         threadsRunning = false;
       }
       // -------------------------------------------------------------------------------------
       void MessageHandler::stopThread()
@@ -718,6 +717,7 @@ namespace Proxy
          threadsRunning = false;
          while (threadCount)
             ; // wait
+         isfinished = true;
       };
 
    } // namespace rdma

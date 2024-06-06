@@ -45,3 +45,5 @@ DEFINE_uint32(route_mode, 3, " 路由方式（如随机路由）");
 DEFINE_uint32(partition_mode, 2, " 划分方法");
 DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
+DEFINE_int32(TPCC_run_for_seconds, 300, " ");
+DEFINE_int32(file_num, 1, " ");

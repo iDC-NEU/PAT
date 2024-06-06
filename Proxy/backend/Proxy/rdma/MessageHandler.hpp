@@ -99,6 +99,7 @@ namespace Proxy
          std::vector<int> graph_number_per_thread;
          std::vector<int> random_number_per_thread;
          std::vector<std::ofstream> outputs;
+         bool isfinished = false;
          std::chrono::high_resolution_clock::time_point last_router_statistics;
          std::chrono::high_resolution_clock::time_point last_txn_statistics;
          // -------------------------------------------------------------------------------------
