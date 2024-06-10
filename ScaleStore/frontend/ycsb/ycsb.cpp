@@ -160,6 +160,16 @@ int main(int argc, char *argv[])
       // zipf creation can take some time due to floating point loop therefore wait with barrier
       barrier_wait();
       // -------------------------------------------------------------------------------------
+      std::vector<std::ofstream> outputs;
+      bool change_line[FLAGS_worker];
+      for (int i = 0; i < int(FLAGS_worker); i++)
+      {
+         change_line[i] = false;
+      }
+      for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
+      {
+         outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
+      }
       for (auto READ_RATIO : workloads)
       {
          for (auto TYPE : workload_type)
@@ -186,6 +196,7 @@ int main(int argc, char *argv[])
                      std::vector<TxnNode> keylist;
                      if (scalestore.getKey(keylist, &src_node))
                      {
+                        auto start = utils::getTimePoint();
                         for (const auto keynode : keylist)
                         {
                            if (keynode.is_read_only)
@@ -200,6 +211,13 @@ int main(int argc, char *argv[])
                               utils::RandomGenerator::getRandString(reinterpret_cast<u8 *>(&payload), sizeof(V));
                               ycsb_adapter.insert(keynode.key, payload);
                            }
+                        }
+                        auto end = utils::getTimePoint();
+                        outputs[t_i] << (end - start) << " ";
+                        if (change_line[t_i])
+                        {
+                           outputs[t_i] << std::endl;
+                           change_line[t_i] = false;
                         }
                         threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
                      }
@@ -230,6 +248,15 @@ int main(int argc, char *argv[])
             // -------------------------------------------------------------------------------------
             // Join Threads
             // -------------------------------------------------------------------------------------
+            std::thread start_txn_count([&]()
+                                        {
+                           while(keep_running){
+  sleep(10);
+  for(int i = 0; i< int(FLAGS_worker); i++){
+   change_line[i] = true;
+  }
+                           } });
+            start_txn_count.detach();
             sleep(FLAGS_YCSB_run_for_seconds);
             keep_running = false;
             while (running_threads_counter)

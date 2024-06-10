@@ -202,17 +202,8 @@ void calculate_remote(std::string path, int nodes)
     std::vector<std::string> filenames;
     filenames.push_back(path + "node1/Logs/remote_node0.txt");
     filenames.push_back(path + "node2/Logs/remote_node1.txt");
-    if (nodes > 2)
-    {
-        filenames.push_back(path + "node3/Logs/remote_node2.txt");
-        if (nodes > 3)
-        {
-            filenames.push_back(path + "node4/Logs/remote_node3.txt");
-            if (nodes > 4)
-            {
-                filenames.push_back(path + "node5/Logs/remote_node4.txt");
-            }
-        }
+    for(int i = 0; i< nodes; i++){
+        filenames.push_back(path + "node" + std::to_string(i+1) + "/Logs/remote_node" + std::to_string(i) + ".txt");
     }
 
     // 用于存储每行的总和
@@ -269,104 +260,106 @@ void calculate_remote(std::string path, int nodes)
     std::cout << "统计结果已成功保存到 " << output_filename << std::endl;
 }
 
-void calculate_remote_batch(int nodes){
-    std::string path1 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/无分布式/2/";
+void calculate_remote_batch(int nodes)
+{
+    std::string path1 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/无分布式/2/";
     calculate_remote(path1, nodes);
-    std::string path2 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/原版tpcc/2/";
+    std::string path2 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/原版tpcc/2/";
     calculate_remote(path2, nodes);
-    std::string path3 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/分布式30/2/";
+    std::string path3 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式30/2/";
     calculate_remote(path3, nodes);
-    std::string path4 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/分布式50/2/";
+    std::string path4 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式50/2/";
     calculate_remote(path4, nodes);
-    std::string path5 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/无分布式/2/";
+    std::string path5 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/无分布式/2/";
     calculate_remote(path5, nodes);
-    std::string path6 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/原版tpcc/2/";
+    std::string path6 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/原版tpcc/2/";
     calculate_remote(path6, nodes);
-    std::string path7 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/分布式30/2/";
+    std::string path7 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式30/2/";
     calculate_remote(path7, nodes);
-    std::string path8 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/分布式50/2/";
+    std::string path8 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式50/2/";
     calculate_remote(path8, nodes);
-    std::string path11 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/无分布式/2/";
+    std::string path11 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/无分布式/2/";
     calculate_remote(path11, nodes);
-    std::string path12 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
+    std::string path12 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
     calculate_remote(path12, nodes);
-    std::string path13 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/分布式30/2/";
+    std::string path13 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式30/2/";
     calculate_remote(path13, nodes);
-    std::string path14 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/分布式50/2/";
+    std::string path14 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式50/2/";
     calculate_remote(path14, nodes);
-    std::string path15 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/无分布式/2/";
+    std::string path15 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/无分布式/2/";
     calculate_remote(path15, nodes);
-    std::string path16 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
+    std::string path16 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
     calculate_remote(path16, nodes);
-    std::string path17 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/分布式30/2/";
+    std::string path17 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式30/2/";
     calculate_remote(path17, nodes);
-    std::string path18 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/分布式50/2/";
+    std::string path18 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式50/2/";
     calculate_remote(path18, nodes);
-    std::string path21 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/无分布式/2/";
+    std::string path21 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/无分布式/2/";
     calculate_remote(path21, nodes);
-    std::string path22 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
+    std::string path22 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
     calculate_remote(path22, nodes);
-    std::string path23 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/分布式30/2/";
+    std::string path23 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式30/2/";
     calculate_remote(path23, nodes);
-    std::string path24 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/分布式50/2/";
+    std::string path24 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式50/2/";
     calculate_remote(path24, nodes);
-    std::string path25 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/无分布式/2/";
+    std::string path25 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/无分布式/2/";
     calculate_remote(path25, nodes);
-    std::string path26 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
+    std::string path26 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
     calculate_remote(path26, nodes);
-    std::string path27 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/分布式30/2/";
+    std::string path27 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式30/2/";
     calculate_remote(path27, nodes);
-    std::string path28 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/分布式50/2/";
+    std::string path28 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式50/2/";
     calculate_remote(path28, nodes);
 }
-void lantency_batch(int nodes){
-    std::string path1 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/无分布式/2/";
+void lantency_batch(int nodes)
+{
+    std::string path1 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/无分布式/2/";
     caculate_txn_lantxncy(path1);
-    std::string path2 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/原版tpcc/2/";
+    std::string path2 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/原版tpcc/2/";
     caculate_txn_lantxncy(path2);
-    std::string path3 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/分布式30/2/";
+    std::string path3 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式30/2/";
     caculate_txn_lantxncy(path3);
-    std::string path4 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/随机路由/分布式50/2/";
+    std::string path4 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式50/2/";
     caculate_txn_lantxncy(path4);
-    std::string path5 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/无分布式/2/";
+    std::string path5 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/无分布式/2/";
     caculate_txn_lantxncy(path5);
-    std::string path6 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/原版tpcc/2/";
+    std::string path6 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/原版tpcc/2/";
     caculate_txn_lantxncy(path6);
-    std::string path7 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/分布式30/2/";
+    std::string path7 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式30/2/";
     caculate_txn_lantxncy(path7);
-    std::string path8 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/无图划分路由/哈希路由/分布式50/2/";
+    std::string path8 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式50/2/";
     caculate_txn_lantxncy(path8);
-    std::string path11 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/无分布式/2/";
+    std::string path11 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/无分布式/2/";
     caculate_txn_lantxncy(path11);
-    std::string path12 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
+    std::string path12 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
     caculate_txn_lantxncy(path12);
-    std::string path13 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/分布式30/2/";
+    std::string path13 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式30/2/";
     caculate_txn_lantxncy(path13);
-    std::string path14 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/无codesign/分布式50/2/";
+    std::string path14 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式50/2/";
     caculate_txn_lantxncy(path14);
-    std::string path15 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/无分布式/2/";
+    std::string path15 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/无分布式/2/";
     caculate_txn_lantxncy(path15);
-    std::string path16 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
+    std::string path16 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
     caculate_txn_lantxncy(path16);
-    std::string path17 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/分布式30/2/";
+    std::string path17 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式30/2/";
     caculate_txn_lantxncy(path17);
-    std::string path18 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/静态/有codesign/分布式50/2/";
+    std::string path18 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式50/2/";
     caculate_txn_lantxncy(path18);
-    std::string path21 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/无分布式/2/";
+    std::string path21 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/无分布式/2/";
     caculate_txn_lantxncy(path21);
-    std::string path22 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
+    std::string path22 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
     caculate_txn_lantxncy(path22);
-    std::string path23 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/分布式30/2/";
+    std::string path23 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式30/2/";
     caculate_txn_lantxncy(path23);
-    std::string path24 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/无codesign/分布式50/2/";
+    std::string path24 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式50/2/";
     caculate_txn_lantxncy(path24);
-    std::string path25 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/无分布式/2/";
+    std::string path25 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/无分布式/2/";
     caculate_txn_lantxncy(path25);
-    std::string path26 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
+    std::string path26 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
     caculate_txn_lantxncy(path26);
-    std::string path27 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/分布式30/2/";
+    std::string path27 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式30/2/";
     caculate_txn_lantxncy(path27);
-    std::string path28 = "/root/home/AffinityDB/data3/"+ std::to_string(nodes)+ "nodes/图划分路由/动态/有codesign/分布式50/2/";
+    std::string path28 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式50/2/";
     caculate_txn_lantxncy(path28);
 }
 

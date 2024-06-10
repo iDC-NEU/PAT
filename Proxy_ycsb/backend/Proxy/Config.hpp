@@ -54,4 +54,4 @@ DECLARE_bool(distribution);
 DECLARE_uint32(distribution_rate);
 DECLARE_uint32(ycsb_num);
 DECLARE_uint32(stamp_len);
-
+DECLARE_int32(file_num);

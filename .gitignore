@@ -11,3 +11,5 @@ data/
 new_data/
 data3/
 Proxy_ycsb/build
+data_ycsb/
+data_scale/
