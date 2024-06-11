@@ -543,6 +543,10 @@ namespace scalestore
                      get_router_map(district_map,district_ready);
                      break;
                   }
+                  case MESSAGE_TYPE::RouterMap_metis_ycsb:{
+                     get_router_map(ycsb_map, ycsb_map_ready);
+                     break;
+                  }
                   // TODO:
                   case MESSAGE_TYPE::RouterMap_metis_neworder:{
                      get_router_map(neworder_map,neworder_ready);
@@ -579,6 +583,10 @@ namespace scalestore
                   }
                   case MESSAGE_TYPE::RouterMap_dynamic_orderline:{
                      get_router_map(orderline_insert_keys,orderline_update_ready);
+                     break;
+                  }
+                  case MESSAGE_TYPE::RouterMap_dynamic_ycsb:{
+                     get_router_map(ycsb_insert_keys, ycsb_update_ready);
                      break;
                   }
                   default:

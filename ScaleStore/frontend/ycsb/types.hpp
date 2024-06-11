@@ -17,7 +17,7 @@ DEFINE_double(YCSB_zipf_factor, 0.0, "Default value according to spec");
 DEFINE_double(YCSB_run_for_seconds, 10.0, "");
 DEFINE_bool(YCSB_partitioned, false, "");
 DEFINE_bool(YCSB_warm_up, false, "");
-DEFINE_bool(YCSB_record_latency, false, "");
+DEFINE_bool(YCSB_record_latency, true, "");
 DEFINE_bool(YCSB_all_zipf, false, "");
 DEFINE_bool(YCSB_local_zipf, false, "");
 DEFINE_bool(YCSB_flush_pages, false, "");

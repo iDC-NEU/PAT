@@ -99,12 +99,15 @@ int main(int argc, char *argv[])
    // -------------------------------------------------------------------------------------
    // Build YCSB Table / Tree
    // -------------------------------------------------------------------------------------
-   YCSB_workloadInfo builtInfo{"Build", YCSB_tuple_count, FLAGS_YCSB_read_ratio, FLAGS_YCSB_zipf_factor, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
-   scalestore.startProfiler(builtInfo);
+   // YCSB_workloadInfo builtInfo{"Build", YCSB_tuple_count, FLAGS_YCSB_read_ratio, FLAGS_YCSB_zipf_factor, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
+   // scalestore.startProfiler(builtInfo);
    std::string currentFile = __FILE__;
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
-   std::string logFilePath = abstract_filename + "../../Logs/reorganize_time_log." + std::to_string(scalestore.getNodeID()) + "txt";
+   std::string logFilePath = abstract_filename + "../../Logs/reorganize_time_log" + std::to_string(scalestore.getNodeID()) + ".txt";
    std::shared_ptr<spdlog::logger> time_logger = spdlog::basic_logger_mt("router_logger", logFilePath);
+   time_logger->set_level(spdlog::level::info);
+   time_logger->flush_on(spdlog::level::info);
+   time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
@@ -130,7 +133,7 @@ int main(int argc, char *argv[])
          barrier.wait(); });
    }
    scalestore.getWorkerPool().joinAll();
-   scalestore.stopProfiler();
+   // scalestore.stopProfiler();
 
    double gib = (scalestore.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
@@ -160,16 +163,16 @@ int main(int argc, char *argv[])
       // zipf creation can take some time due to floating point loop therefore wait with barrier
       barrier_wait();
       // -------------------------------------------------------------------------------------
-      std::vector<std::ofstream> outputs;
-      bool change_line[FLAGS_worker];
-      for (int i = 0; i < int(FLAGS_worker); i++)
-      {
-         change_line[i] = false;
-      }
-      for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
-      {
-         outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
-      }
+      // std::vector<std::ofstream> outputs;
+      // bool change_line[FLAGS_worker];
+      // for (int i = 0; i < int(FLAGS_worker); i++)
+      // {
+      //    change_line[i] = false;
+      // }
+      // for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
+      // {
+      //    outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
+      // }
       for (auto READ_RATIO : workloads)
       {
          for (auto TYPE : workload_type)
@@ -183,7 +186,7 @@ int main(int argc, char *argv[])
                zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
 
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
-            // scalestore.startProfiler(experimentInfo);
+            scalestore.startProfiler(experimentInfo);
             for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
             {
                scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
@@ -196,7 +199,7 @@ int main(int argc, char *argv[])
                      std::vector<TxnNode> keylist;
                      if (scalestore.getKey(keylist, &src_node))
                      {
-                        auto start = utils::getTimePoint();
+                        // auto start = utils::getTimePoint();
                         for (const auto keynode : keylist)
                         {
                            if (keynode.is_read_only)
@@ -212,13 +215,13 @@ int main(int argc, char *argv[])
                               ycsb_adapter.insert(keynode.key, payload);
                            }
                         }
-                        auto end = utils::getTimePoint();
-                        outputs[t_i] << (end - start) << " ";
-                        if (change_line[t_i])
-                        {
-                           outputs[t_i] << std::endl;
-                           change_line[t_i] = false;
-                        }
+                        // auto end = utils::getTimePoint();
+                        // outputs[t_i] << (end - start) << " ";
+                        // if (change_line[t_i])
+                        // {
+                        //    outputs[t_i] << std::endl;
+                        //    change_line[t_i] = false;
+                        // }
                         threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
                      }
                      if (scalestore.getNodeID() == 0){
@@ -248,15 +251,15 @@ int main(int argc, char *argv[])
             // -------------------------------------------------------------------------------------
             // Join Threads
             // -------------------------------------------------------------------------------------
-            std::thread start_txn_count([&]()
-                                        {
-                           while(keep_running){
-  sleep(10);
-  for(int i = 0; i< int(FLAGS_worker); i++){
-   change_line[i] = true;
-  }
-                           } });
-            start_txn_count.detach();
+            //             std::thread start_txn_count([&]()
+            //                                         {
+            //                            while(keep_running){
+            //   sleep(10);
+            //   for(int i = 0; i< int(FLAGS_worker); i++){
+            //    change_line[i] = true;
+            //   }
+            //                            } });
+            //             start_txn_count.detach();
             sleep(FLAGS_YCSB_run_for_seconds);
             keep_running = false;
             while (running_threads_counter)
@@ -288,33 +291,39 @@ int main(int argc, char *argv[])
                      // use for GAM comparision
                      // V payload;
                      // utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
-                     while (keep_running) {
-                        K key = zipf_random->rand(zipf_offset);
-                        ensure(key < YCSB_tuple_count);
-                        V result;
-                        if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
+                     while (keep_running)
+                     {
+                        uint64_t src_node;
+                        std::vector<TxnNode> keylist;
+                        if (scalestore.getKey(keylist, &src_node))
+                        {
                            auto start = utils::getTimePoint();
-                           auto success = ycsb_adapter.lookup_opt(key, result);
-                           ensure(success);
+                           for (const auto keynode : keylist)
+                           {
+                              if (keynode.is_read_only)
+                              {
+                                 V result;
+                                 auto success = ycsb_adapter.lookup_opt(keynode.key, result);
+                                 ensure(success);
+                                 auto end = utils::getTimePoint();
+                              }
+                              else
+                              {
+                                 V payload;
+                                 utils::RandomGenerator::getRandString(reinterpret_cast<u8 *>(&payload), sizeof(V));
+                                 ycsb_adapter.insert(keynode.key, payload);
+                              }
+                              
+                           }
                            auto end = utils::getTimePoint();
                            threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                           if(ops < LATENCY_SAMPLES)
-                              tl_microsecond_latencies[t_i].push_back(end - start);
-                        } else {
-                           // out-comment for GAM comparision
-                           V payload;
-                           utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V)); 
-                           auto start = utils::getTimePoint();
-                           ycsb_adapter.insert(key, payload);
-                           auto end = utils::getTimePoint();
-                           threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                           if(ops < LATENCY_SAMPLES)
-                              tl_microsecond_latencies[t_i].push_back(end - start);
+                           threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
+                           if (ops < LATENCY_SAMPLES)
+                                 tl_microsecond_latencies[t_i].push_back(end - start);
+                           ops++;
                         }
-                        threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
-                        ops++;
                      }
-                     running_threads_counter--; });
+                        running_threads_counter--; });
                }
                sleep(10);
                keep_running = false;

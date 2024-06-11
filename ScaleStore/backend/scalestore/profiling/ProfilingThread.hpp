@@ -31,7 +31,7 @@ struct ProfilingThread {
       std::unordered_map<std::string, double> cpuCountersAgg;
       // csv file
       std::ofstream csv_file;
-      std::ofstream::openmode open_flags = std::ios::app;
+      std::ofstream::openmode open_flags = std::ios::out;
       bool csv_initialized = std::filesystem::exists(FLAGS_csvFile);
 
       if (FLAGS_csv) {
@@ -67,7 +67,7 @@ struct ProfilingThread {
 
       tabulate::Table::Row_t header;
       tabulate::Table::Row_t row;
-      auto next = std::chrono::system_clock::now() + 1s;
+      auto next = std::chrono::system_clock::now() + 10s;
       while (running) {
          seconds++;
          // -------------------------------------------------------------------------------------

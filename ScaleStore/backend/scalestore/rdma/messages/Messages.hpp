@@ -51,6 +51,7 @@ namespace scalestore
          RouterMap_metis_district = 35,
          RouterMap_metis_neworder = 36,
          RouterMap_metis_orderline = 37,
+         RouterMap_metis_ycsb = 38,
          RouterMap_dynamic = 40,
          RouterMap_dynamic_customer = 41,
          RouterMap_dynamic_order = 42,
@@ -59,6 +60,7 @@ namespace scalestore
          RouterMap_dynamic_district = 45,
          RouterMap_dynamic_neworder = 46,
          RouterMap_dynamic_orderline = 47,
+         RouterMap_dynamic_ycsb = 48,
          // -------------------------------------------------------------------------------------
          SQL = 16,
          TxnKeys = 17,
