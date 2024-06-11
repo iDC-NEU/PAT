@@ -7,6 +7,10 @@ struct ScaleStoreAdapter
     std::string name;
     PID tree_pid;
     bool created = false;
+    std::vector<bool> creates;
+    std::vector<bool> updates;
+    bool start_part = false;
+    bool start_update = false;
     bool traversed = false;
     std::map<i64, i64> *partition_map;
     std::unordered_map<i64, i64> *update_map;
@@ -18,6 +22,11 @@ struct ScaleStoreAdapter
         {
             db.createBTree<K, V>();
         }
+        for (int i = 0; i < int(FLAGS_worker); i++)
+        {
+            creates.push_back(false);
+            updates.push_back(false);
+        }
         tree_pid = catalog.getCatalogEntry(BTREE_ID).pid;
     };
 
@@ -27,7 +36,8 @@ struct ScaleStoreAdapter
         tree.insert(key, payload);
     }
 
-    bool lookup_opt(K key, V &payload){
+    bool lookup_opt(K key, V &payload)
+    {
         BTree tree(tree_pid);
         return tree.lookup_opt(key, payload);
     }
@@ -78,45 +88,90 @@ struct ScaleStoreAdapter
     void create_partitioner(int t_i)
     {
         BTree tree(tree_pid);
-        auto thread_partition = partition(uint64_t(t_i), 4, FLAGS_YCSB_tuple_count/50);
-        std::cout << "ycsb_partmap_size: " << partition_map->size() << std::endl;
+        size_t total_keys = partition_map->size();
+        size_t partition_size = total_keys / 4;
+        std::cout << "ycsb_partmap_size: " << total_keys << std::endl;
         auto pos = partition_map->begin();
+        std::advance(pos, partition_size * t_i);
+        size_t count = 0;
         pos++;
         i64 offset = 50;
-        auto last_pair = partition_map->begin()->first;
-        auto last_part = partition_map->begin()->second;
+        auto last_pair = pos->first;
+        auto last_part = pos->second;
         i64 pair = last_pair + offset;
-        while (pos->first <= int64_t(thread_partition.end) && pos->first >= int64_t(thread_partition.begin))
+        if (t_i < 3)
         {
-            if (partition_map->find(pair) != partition_map->end())
+            while (count < partition_size)
             {
-                if (partition_map->at(pair) == last_part)
+                if (partition_map->find(pair) != partition_map->end())
                 {
-                    pair += offset;
-                    pos++;
+                    if (partition_map->at(pair) == last_part)
+                    {
+                        pair += offset;
+                        count++;
+                        pos++;
+                    }
+                    else
+                    {
+                        // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
+                        tree.update_metis_index(last_pair, pair, last_part);
+                        pos++;
+                        count++;
+                        last_pair = pair;
+                        last_part = partition_map->at(pair);
+                        pair = last_pair + offset;
+                    }
                 }
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
                     tree.update_metis_index(last_pair, pair, last_part);
-                    pos++;
-                    last_pair = pair;
-                    last_part = partition_map->at(pair);
+                    last_pair = pos->first;
+                    last_part = pos->second;
                     pair = last_pair + offset;
+                    pos++;
+                    count++;
                 }
             }
-            else
+        }
+        else
+        {
+            while (pos != partition_map->end())
             {
-                // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                tree.update_metis_index(last_pair, pair, last_part);
-                last_pair = pos->first;
-                last_part = pos->second;
-                pair = last_pair + offset;
-                pos++;
+                if (partition_map->find(pair) != partition_map->end())
+                {
+                    if (partition_map->at(pair) == last_part)
+                    {
+                        pair += offset;
+                        count++;
+                        pos++;
+                    }
+                    else
+                    {
+                        // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
+                        tree.update_metis_index(last_pair, pair, last_part);
+                        pos++;
+                        count++;
+                        last_pair = pair;
+                        last_part = partition_map->at(pair);
+                        pair = last_pair + offset;
+                    }
+                }
+                else
+                {
+                    // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
+                    tree.update_metis_index(last_pair, pair, last_part);
+                    last_pair = pos->first;
+                    last_part = pos->second;
+                    pair = last_pair + offset;
+                    pos++;
+                    count++;
+                }
             }
         }
+        std::cout << "partition_size: " << count << std::endl;
         tree.update_metis_index(last_pair, pair, last_part);
-        created = true;
+        creates[t_i] = true;
     }
 
     void update_partitioner()
@@ -127,6 +182,45 @@ struct ScaleStoreAdapter
             tree.update_metis_index({pair.first}, {pair.first + 50}, pair.second);
         }
         update_map = nullptr;
+    }
+
+    void update_partitioner(int t_i)
+    {
+        BTree tree(tree_pid);
+        size_t total_keys = partition_map->size();
+        size_t partition_size = total_keys / 4;
+        size_t count = 0;
+        std::cout << "update_partmap_size: " << total_keys << std::endl;
+        auto pos = partition_map->begin();
+        std::advance(pos, partition_size * t_i);
+        if (t_i < 3)
+        {
+            while (count < partition_size)
+            {
+                tree.update_metis_index(pos->first, pos->first+50, pos->second);
+                pos++;
+                count++;
+            }
+        }
+        else
+        {
+            while (pos != partition_map->end())
+            {
+
+                tree.update_metis_index(pos->first, pos->first+50, pos->second);
+                pos++;
+                count++;
+            }
+        }
+    }
+
+    bool all_update_ready(){
+        for(auto ready : updates){
+            if(!ready){
+                return false;
+            }
+        }
+        return true;
     }
 
     void page_count()

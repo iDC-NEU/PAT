@@ -217,36 +217,41 @@ int main(int argc, char *argv[])
                      }
                      if (scalestore.getNodeID() == 0){
                         if(t_i == 0){
-                           if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.created)
+                           if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.creates[t_i])
                            {
-                              time_logger->info(fmt::format("start create ycsb partitioner thread"));
+                              time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
                               auto time_start = utils::getTimePoint();
                               ycsb_adapter.partition_map = scalestore.get_ycsb_map();
-                              ycsb_adapter.create_partitioner();
+                              ycsb_adapter.start_part = true;
+                              ycsb_adapter.create_partitioner(t_i);
                               auto time_end = utils::getTimePoint();
-                              time_logger->info(fmt::format("ycsb partitioner created"));
-                              time_logger->info(fmt::format("ycsb partition cost {}ms", float(time_end - time_start) / 1000));
+                              time_logger->info(fmt::format("ycsb partitioner created thread t{}", t_i));
+                              time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
                            }
-                           if (scalestore.customer_update_ready())
+                           if (scalestore.ycsb_update_ready())
                            {
+                              time_logger->info(fmt::format("start update ycsb partitioner thread t{}", t_i));
+                              auto time_start = utils::getTimePoint();
                               ycsb_adapter.update_map = scalestore.get_ycsb_update_map();
                               ycsb_adapter.update_partitioner();
-                              scalestore.set_customer_update_ready(false);
-                              scalestore.customer_clear();
+                              auto time_end = utils::getTimePoint();
+                              scalestore.set_ycsb_update_ready(false);
+                              scalestore.ycsb_map_clear();
+                              time_logger->info(fmt::format("ycsb partitioner update thread t{}", t_i));
+                              time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
                            }
                         }
-                        // else{
-                        //    if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.created)
-                        //    {
-                        //       time_logger->info(fmt::format("start create ycsb partitioner"));
-                        //       auto time_start = utils::getTimePoint();
-                        //       ycsb_adapter.partition_map = scalestore.get_ycsb_map();
-                        //       ycsb_adapter.create_partitioner();
-                        //       auto time_end = utils::getTimePoint();
-                        //       time_logger->info(fmt::format("ycsb partitioner created"));
-                        //       time_logger->info(fmt::format("ycsb partition cost {}ms", float(time_end - time_start) / 1000));
-                        //    }
-                        // }
+                        else{
+                           if (ycsb_adapter.start_part && !ycsb_adapter.creates[t_i])
+                           {
+                              time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
+                              auto time_start = utils::getTimePoint();
+                              ycsb_adapter.create_partitioner(t_i);
+                              auto time_end = utils::getTimePoint();
+                              time_logger->info(fmt::format("ycsb partitioner created thread t{}", t_i));
+                              time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
+                           }
+                        }
                      }
                   }
                   running_threads_counter--; });
