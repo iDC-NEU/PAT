@@ -31,14 +31,13 @@ struct ProfilingThread {
       std::unordered_map<std::string, double> cpuCountersAgg;
       // csv file
       std::ofstream csv_file;
-      std::ofstream::openmode open_flags = std::ios::out;
+      std::ofstream::openmode open_flags = std::ios::app;
       bool csv_initialized = std::filesystem::exists(FLAGS_csvFile);
 
       if (FLAGS_csv) {
          // create file and fill with headers
          csv_file.open(FLAGS_csvFile, open_flags);
       }
-
       auto convert_precision = [](double number) -> std::string {
          std::ios stream_state(nullptr);
          std::stringstream stream;
@@ -270,7 +269,7 @@ struct ProfilingThread {
          std::fill(bmCounterAgg.begin(), bmCounterAgg.end(), 0);
          cpuCountersAgg.clear();
          std::this_thread::sleep_until(next);
-         next += 1s;
+         next += 10s;
       }
    }
 

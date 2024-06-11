@@ -59,15 +59,6 @@ int main(int argc, char *argv[])
    ScaleStore scalestore;
    auto &catalog = scalestore.getCatalog();
    // -------------------------------------------------------------------------------------
-   auto partition = [&](uint64_t id, uint64_t participants, int64_t N) -> Partition
-   {
-      const int64_t blockSize = N / participants;
-      auto begin = id * blockSize;
-      auto end = begin + blockSize;
-      if (id == participants - 1)
-         end = N;
-      return {.begin = begin, .end = end};
-   };
 
    auto barrier_wait = [&]()
    {
@@ -99,8 +90,8 @@ int main(int argc, char *argv[])
    // -------------------------------------------------------------------------------------
    // Build YCSB Table / Tree
    // -------------------------------------------------------------------------------------
-   // YCSB_workloadInfo builtInfo{"Build", YCSB_tuple_count, FLAGS_YCSB_read_ratio, FLAGS_YCSB_zipf_factor, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
-   // scalestore.startProfiler(builtInfo);
+   YCSB_workloadInfo builtInfo{"Build", YCSB_tuple_count, FLAGS_YCSB_read_ratio, FLAGS_YCSB_zipf_factor, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
+   scalestore.startProfiler(builtInfo);
    std::string currentFile = __FILE__;
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
    std::string logFilePath = abstract_filename + "../../Logs/reorganize_time_log" + std::to_string(scalestore.getNodeID()) + ".txt";
@@ -133,7 +124,7 @@ int main(int argc, char *argv[])
          barrier.wait(); });
    }
    scalestore.getWorkerPool().joinAll();
-   // scalestore.stopProfiler();
+   scalestore.stopProfiler();
 
    double gib = (scalestore.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
@@ -181,9 +172,9 @@ int main(int argc, char *argv[])
             std::atomic<bool> keep_running = true;
             std::atomic<u64> running_threads_counter = 0;
 
-            uint64_t zipf_offset = 0;
-            if (FLAGS_YCSB_local_zipf)
-               zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
+            // uint64_t zipf_offset = 0;
+            // if (FLAGS_YCSB_local_zipf)
+            //    zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
 
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
             scalestore.startProfiler(experimentInfo);
@@ -228,7 +219,7 @@ int main(int argc, char *argv[])
                         if(t_i == 0){
                            if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.created)
                            {
-                              time_logger->info(fmt::format("start create ycsb partitioner"));
+                              time_logger->info(fmt::format("start create ycsb partitioner thread"));
                               auto time_start = utils::getTimePoint();
                               ycsb_adapter.partition_map = scalestore.get_ycsb_map();
                               ycsb_adapter.create_partitioner();
@@ -244,6 +235,18 @@ int main(int argc, char *argv[])
                               scalestore.customer_clear();
                            }
                         }
+                        // else{
+                        //    if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.created)
+                        //    {
+                        //       time_logger->info(fmt::format("start create ycsb partitioner"));
+                        //       auto time_start = utils::getTimePoint();
+                        //       ycsb_adapter.partition_map = scalestore.get_ycsb_map();
+                        //       ycsb_adapter.create_partitioner();
+                        //       auto time_end = utils::getTimePoint();
+                        //       time_logger->info(fmt::format("ycsb partitioner created"));
+                        //       time_logger->info(fmt::format("ycsb partition cost {}ms", float(time_end - time_start) / 1000));
+                        //    }
+                        // }
                      }
                   }
                   running_threads_counter--; });
@@ -305,7 +308,6 @@ int main(int argc, char *argv[])
                                  V result;
                                  auto success = ycsb_adapter.lookup_opt(keynode.key, result);
                                  ensure(success);
-                                 auto end = utils::getTimePoint();
                               }
                               else
                               {
@@ -355,7 +357,7 @@ int main(int argc, char *argv[])
                   // write out 400 samples
                   std::ofstream latency_file;
                   std::ofstream::openmode open_flags = std::ios::app;
-                  std::string filename = "latency_samples_" + FLAGS_csvFile;
+                  std::string filename = FLAGS_csvFile + "_lantency_sample.csv";
                   bool csv_initialized = std::filesystem::exists(filename);
                   latency_file.open(filename, open_flags);
                   if (!csv_initialized)
@@ -380,7 +382,7 @@ int main(int argc, char *argv[])
                // write to csv file
                std::ofstream latency_file;
                std::ofstream::openmode open_flags = std::ios::app;
-               std::string filename = "latency_" + FLAGS_csvFile;
+               std::string filename = FLAGS_csvFile + "_lantency_info.csv";
                bool csv_initialized = std::filesystem::exists(filename);
                latency_file.open(filename, open_flags);
                if (!csv_initialized)

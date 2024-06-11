@@ -75,6 +75,50 @@ struct ScaleStoreAdapter
         created = true;
     }
 
+    void create_partitioner(int t_i)
+    {
+        BTree tree(tree_pid);
+        auto thread_partition = partition(uint64_t(t_i), 4, FLAGS_YCSB_tuple_count/50);
+        std::cout << "ycsb_partmap_size: " << partition_map->size() << std::endl;
+        auto pos = partition_map->begin();
+        pos++;
+        i64 offset = 50;
+        auto last_pair = partition_map->begin()->first;
+        auto last_part = partition_map->begin()->second;
+        i64 pair = last_pair + offset;
+        while (pos->first <= int64_t(thread_partition.end) && pos->first >= int64_t(thread_partition.begin))
+        {
+            if (partition_map->find(pair) != partition_map->end())
+            {
+                if (partition_map->at(pair) == last_part)
+                {
+                    pair += offset;
+                    pos++;
+                }
+                else
+                {
+                    // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
+                    tree.update_metis_index(last_pair, pair, last_part);
+                    pos++;
+                    last_pair = pair;
+                    last_part = partition_map->at(pair);
+                    pair = last_pair + offset;
+                }
+            }
+            else
+            {
+                // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
+                tree.update_metis_index(last_pair, pair, last_part);
+                last_pair = pos->first;
+                last_part = pos->second;
+                pair = last_pair + offset;
+                pos++;
+            }
+        }
+        tree.update_metis_index(last_pair, pair, last_part);
+        created = true;
+    }
+
     void update_partitioner()
     {
         BTree tree(tree_pid);

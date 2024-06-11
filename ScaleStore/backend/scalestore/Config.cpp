@@ -9,7 +9,7 @@ DEFINE_double(freePercentage, 1, "Percentage free for PP");
 DEFINE_uint64(coolingPercentage, 10 , "Percentage cooling for PP");
 DEFINE_double(evictCoolestEpochs, 0.1, "Percentage of coolest epchos choosen for eviction must be less than 1");
 DEFINE_bool(csv, true , "If written to csv file or not");
-DEFINE_string(csvFile, "stats.csv" , "filename for profiling output");
+DEFINE_string(csvFile, "../Logs/stats.csv" , "filename for profiling output");
 DEFINE_string(tag,"","descirption of experiment");
 DEFINE_string(ssd_path, "./scalestore", "path to ssd");
 DEFINE_bool(evict_to_ssd, true , "evict to ssd");

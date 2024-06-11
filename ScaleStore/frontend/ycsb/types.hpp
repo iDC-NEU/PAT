@@ -109,3 +109,13 @@ struct YCSB_workloadInfo : public scalestore::profiling::WorkloadInfo
              << " , ";
     }
 };
+
+auto partition = [](uint64_t id, uint64_t participants, int64_t N) -> Partition
+{
+    const int64_t blockSize = N / participants;
+    auto begin = id * blockSize;
+    auto end = begin + blockSize;
+    if (id == participants - 1)
+        end = N;
+    return {.begin = begin, .end = end};
+};

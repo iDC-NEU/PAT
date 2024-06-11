@@ -170,17 +170,17 @@ void mergeFiles(const std::vector<std::string> &filenames, const std::string &ou
 
 void handle_txn(std::string &path, int num_nodes)
 {
-    std::vector<std::string> filenames;
+    // std::vector<std::string> filenames;
     std::vector<std::string> proxy_file;
 
     // Add worker files for each node
-    for (int i = 0; i < num_nodes; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
-        }
-    }
+    // for (int i = 0; i < num_nodes; i++)
+    // {
+    //     for (int j = 0; j < 4; j++)
+    //     {
+    //         filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
+    //     }
+    // }
 
     // Add proxy worker files
     for (int i = 0; i < num_nodes * 4; i++)
@@ -188,8 +188,8 @@ void handle_txn(std::string &path, int num_nodes)
         proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
     }
 
-    std::string outputFilename = path + "txn_lantency";
-    mergeFiles(filenames, outputFilename);
+    // std::string outputFilename = path + "txn_lantency";
+    // mergeFiles(filenames, outputFilename);
 
     std::string outputproxy = path + "route_lantency";
     mergeFiles(proxy_file, outputproxy);
@@ -242,7 +242,7 @@ int main()
     std::string filename1 = "./ycsb_config.ini";
     std::string filename2 = "./proxy_ycsb_config.ini";
     std::string path;
-    std::string start = "data_ycsb/";
+    std::string start = "new_data_ycsb/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "", subpath7 = "";
 
     // 读取INI文件并存储到字典中
@@ -310,30 +310,30 @@ int main()
     // 定义 SCP 命令模板
     std::vector<std::string> scp_commands;
     scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/");
-    scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
+    //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
     scp_commands.push_back("cp -r ScaleStore/Logs " + path + "node1/");
-    scp_commands.push_back("cp -r ScaleStore/TXN_LOG " + path + "node1/");
+    //scp_commands.push_back("cp -r ScaleStore/TXN_LOG " + path + "node1/");
 
     // 添加更多节点的 SCP 命令
     if (num_nodes >= 3)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/Logs " + path + "node3/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
+        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
     }
     if (num_nodes >= 4)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/Logs " + path + "node4/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
+        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
     }
     if (num_nodes >= 5)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/Logs " + path + "node5/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
+        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
     }
     if (num_nodes == 6)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/Logs " + path + "node6/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
+        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
     }
 
     // 添加代理的 SCP 命令
