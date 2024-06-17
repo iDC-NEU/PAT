@@ -276,26 +276,28 @@ int main(int argc, char *argv[])
             }
             scalestore.getWorkerPool().joinAll();
             // -------------------------------------------------------------------------------------
+            auto a = utils::getTimePoint();
             scalestore.stopProfiler();
+            auto b = utils::getTimePoint();
+            std::cout <<"stop_time" << b-a <<std::endl;
 
             if (FLAGS_YCSB_record_latency)
             {
                std::atomic<bool> keep_running = true;
                constexpr uint64_t LATENCY_SAMPLES = 1e6;
+               bool start_timer = false;
                YCSB_workloadInfo experimentInfo{"Latency", YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf ? "local_zipf" : "global_zipf")};
-               scalestore.startProfiler(experimentInfo);
+               //scalestore.startProfiler(experimentInfo);
                std::vector<uint64_t> tl_microsecond_latencies[FLAGS_worker];
                for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
                {
                   scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
                                                               {
                      running_threads_counter++;
-
                      uint64_t ops = 0;
                      storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
-                     storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
                      barrier.wait();
-
+                     start_timer = true;
                      // use for GAM comparision
                      // V payload;
                      // utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
@@ -332,6 +334,11 @@ int main(int argc, char *argv[])
                      }
                         running_threads_counter--; });
                }
+               while (!start_timer)
+               {
+                  _mm_pause();
+               }
+               
                sleep(10);
                keep_running = false;
                while (running_threads_counter)
@@ -351,6 +358,7 @@ int main(int argc, char *argv[])
                for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
                {
                   microsecond_latencies.insert(microsecond_latencies.end(), tl_microsecond_latencies[t_i].begin(), tl_microsecond_latencies[t_i].end());
+                  std::cout << "tx_lan_size " << tl_microsecond_latencies[t_i].size() << std::endl;
                }
 
                {

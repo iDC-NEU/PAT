@@ -4,6 +4,18 @@
 
 // -------------------------------------------------------------------------------------
 using namespace Proxy;
+
+Integer urandexcept(Integer low, Integer high, Integer v)
+{
+   if (high <= low)
+      return low;
+   Integer r = rnd(high - low) + low;
+   if (r >= v)
+      return r + 1;
+   else
+      return r;
+}
+
 class ycsb_workload
 {
 private:
@@ -33,9 +45,22 @@ std::vector<TxnNode> ycsb_workload::ycsb_keys_create(int &partition_id)
    std::vector<TxnNode> keylist;
    keylist.reserve(FLAGS_ycsb_num);
    partition_id = utils::RandomGenerator::getRandU64(0, FLAGS_nodes);
-   for (int i = 0; i < int(FLAGS_ycsb_num); i++)
+   for (int i = 0; i < int(FLAGS_ycsb_num) - 1; i++)
    {
       K key = zipf_randoms[partition_id]->rand(zipf_offset);
+      if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+      {
+         keylist.emplace_back(TxnNode(key, true, 1));
+      }
+      else
+      {
+         keylist.emplace_back(TxnNode(key, false, 2));
+      }
+   }
+   if (FLAGS_distribution && urand(1, 100) <= int(FLAGS_distribution_rate))
+   {
+      int distribution_id = urandexcept(0, FLAGS_nodes -1, partition_id);
+      K key = zipf_randoms[distribution_id]->rand(zipf_offset);
       if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
       {
          keylist.emplace_back(TxnNode(key, true, 1));
