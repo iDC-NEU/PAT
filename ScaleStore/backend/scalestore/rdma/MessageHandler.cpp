@@ -480,7 +480,13 @@ namespace scalestore
          if (nodeId == 0)
          {
             cctxForRouterMap.rctx = &(cm.initiateConnection(ip, rdma::Type::MESSAGE_HANDLER, 90, nodeId, desport));
-            cctxForRouterMap.incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_ROUTERMAPMESSAGE, CACHE_LINE);
+            if(FLAGS_workload_type==0){
+               cctxForRouterMap.incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_ROUTERMAPMESSAGE_tpcc, CACHE_LINE);
+            }
+            else{
+               cctxForRouterMap.incoming = (rdma::Message *)cm.getGlobalBuffer().allocate(rdma::SIZE_ROUTERMAPMESSAGE_ycsb, CACHE_LINE);
+            }
+            
             cctxForRouterMap.mailbox = (uint8_t *)cm.getGlobalBuffer().allocate(1, CACHE_LINE);
             cctxForRouterMap.wqe = 0;
          }
@@ -750,15 +756,31 @@ namespace scalestore
       template <typename T1>
       void MessageHandler::get_router_map(std::map<T1, T1> &router_map, bool &ready)
       {
-         auto &MapMessage = *static_cast<RouterMapMessage *>(cctxForRouterMap.incoming);
-         for (size_t i = 0; i < MapMessage.length; i++)
+         if (FLAGS_workload_type == 0)
          {
-            router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            auto &MapMessage = *static_cast<RouterMapMessage_tpcc *>(cctxForRouterMap.incoming);
+            for (size_t i = 0; i < MapMessage.length; i++)
+            {
+               router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            }
+            if (MapMessage.overFlag == 1)
+            {
+               ready = true;
+               std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            }
          }
-         if (MapMessage.overFlag == 1)
+         else
          {
-            ready = true;
-            std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            auto &MapMessage = *static_cast<RouterMapMessage_ycsb *>(cctxForRouterMap.incoming);
+            for (size_t i = 0; i < MapMessage.length; i++)
+            {
+               router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            }
+            if (MapMessage.overFlag == 1)
+            {
+               ready = true;
+               std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            }
          }
 
          auto &wqe = cctxForRouterMap.wqe;
@@ -785,15 +807,31 @@ namespace scalestore
       template <typename T1>
       void MessageHandler::get_router_map(std::unordered_map<T1, T1> &router_map, bool &ready)
       {
-         auto &MapMessage = *static_cast<RouterMapMessage *>(cctxForRouterMap.incoming);
-         for (size_t i = 0; i < MapMessage.length; i++)
+         if (FLAGS_workload_type == 0)
          {
-            router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            auto &MapMessage = *static_cast<RouterMapMessage_tpcc *>(cctxForRouterMap.incoming);
+            for (size_t i = 0; i < MapMessage.length; i++)
+            {
+               router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            }
+            if (MapMessage.overFlag == 1)
+            {
+               ready = true;
+               std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            }
          }
-         if (MapMessage.overFlag == 1)
+         else
          {
-            ready = true;
-            std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            auto &MapMessage = *static_cast<RouterMapMessage_ycsb *>(cctxForRouterMap.incoming);
+            for (size_t i = 0; i < MapMessage.length; i++)
+            {
+               router_map.insert({static_cast<T1>(MapMessage.RouterMap[i][0]), static_cast<T1>(MapMessage.RouterMap[i][1])});
+            }
+            if (MapMessage.overFlag == 1)
+            {
+               ready = true;
+               std::cout << "partmapmetis.over,size:" << router_map.size() << std::endl;
+            }
          }
 
          auto &wqe = cctxForRouterMap.wqe;

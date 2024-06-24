@@ -143,13 +143,13 @@ namespace scalestore
         }
       };
 
-      struct RouterMapMessage : public Message
+      struct RouterMapMessage_tpcc : public Message
       {
-         i64 RouterMap[1000][2];
+         int RouterMap[1000][2];
          size_t length;
          uint8_t receiveFlag;
          uint8_t overFlag;
-         RouterMapMessage(MESSAGE_TYPE type, i64 x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
+         RouterMapMessage_tpcc(MESSAGE_TYPE type, int x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
          {
             receiveFlag = 1;
             overFlag = isOver;
@@ -161,6 +161,26 @@ namespace scalestore
             }
          }
       };
+
+      struct RouterMapMessage_ycsb : public Message
+      {
+         i64 RouterMap[1000][2];
+         size_t length;
+         uint8_t receiveFlag;
+         uint8_t overFlag;
+         RouterMapMessage_ycsb(MESSAGE_TYPE type, i64 x[1000][2], size_t length_x, uint8_t isOver) : Message(type)
+         {
+            receiveFlag = 1;
+            overFlag = isOver;
+            length = length_x;
+            for (size_t i = 0; i < length_x; i++)
+            {
+               RouterMap[i][0] = x[i][0];
+               RouterMap[i][1] = x[i][1];
+            }
+         }
+      };
+
 
       // -------------------------------------------------------------------------------------
       struct FinishRequest : public Message
@@ -293,7 +313,8 @@ namespace scalestore
       static_assert(LARGEST_MESSAGE <= 32, "Messags span more than one CL");
       static constexpr uint64_t SIZE_SQLMESSAGE = sizeof(SqlMessage);
       static constexpr uint64_t SIZE_TXNKEYSMESSAGE = sizeof(TxnKeysMessage);
-      static constexpr uint64_t SIZE_ROUTERMAPMESSAGE = sizeof(RouterMapMessage);
+      static constexpr uint64_t SIZE_ROUTERMAPMESSAGE_tpcc = sizeof(RouterMapMessage_tpcc);
+      static constexpr uint64_t SIZE_ROUTERMAPMESSAGE_ycsb = sizeof(RouterMapMessage_ycsb);
 
       struct MessageFabric
       {
