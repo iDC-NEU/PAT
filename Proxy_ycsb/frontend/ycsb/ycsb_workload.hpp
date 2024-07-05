@@ -54,7 +54,7 @@ std::vector<TxnNode> ycsb_workload::ycsb_keys_create(int &partition_id)
       }
       else
       {
-         keylist.emplace_back(TxnNode(key, false, 2));
+         keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
       }
    }
    if (FLAGS_distribution && urand(1, 100) <= int(FLAGS_distribution_rate))
@@ -67,7 +67,7 @@ std::vector<TxnNode> ycsb_workload::ycsb_keys_create(int &partition_id)
       }
       else
       {
-         keylist.emplace_back(TxnNode(key, false, 2));
+         keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
       }
    }
    return keylist;

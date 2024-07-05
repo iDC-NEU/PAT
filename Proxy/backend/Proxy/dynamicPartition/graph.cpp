@@ -312,7 +312,7 @@ namespace Proxy
                         }
                         else
                         {
-                            G.add_edge(stamp_id, tmp.first, 2);
+                            G.add_edge(stamp_id, tmp.first, 1);
                         }
                         edge_count++;
                     }

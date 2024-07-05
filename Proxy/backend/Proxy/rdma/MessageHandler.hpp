@@ -607,18 +607,18 @@ namespace Proxy
                   auto supware = std::stoi(arg);
                   getline(iss2, arg, ';');
                   auto itemid = std::stoi(arg);
-                  key_list.push_back({gen_stock_key(supware, itemid), false, 1});
-                  key_list.push_back({gen_stock_key(w_id, itemid), false, 1});
+                  key_list.push_back({gen_stock_key(supware, itemid), false, FLAGS_write_weight});
+                  key_list.push_back({gen_stock_key(w_id, itemid), false, FLAGS_write_weight});
                   // key_list.push_back(gen_orderline_key(w_id,d_id,o_id,i));
                }
                // std::vector<Integer> qtys = convertStringVectorToIntVector(extractParameters(args[6], ';'));
                key_list.push_back({gen_customer_key(w_id, d_id, c_id), true, 1});
                key_list.push_back({gen_warehouse_key(w_id), true, 1});
-               key_list.push_back({gen_district_key(w_id, d_id), false, 1});
+               key_list.push_back({gen_district_key(w_id, d_id), false, FLAGS_write_weight});
 
                // tpcc_workload.hpp:316  order.insert({w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local});
-               key_list.push_back({gen_order_key(w_id, d_id, o_id), false, 1});
-               key_list.push_back({gen_neworder_key(w_id, d_id, o_id), false, 1});
+               key_list.push_back({gen_order_key(w_id, d_id, o_id), false, FLAGS_write_weight});
+               key_list.push_back({gen_neworder_key(w_id, d_id, o_id), false, FLAGS_write_weight});
                // Log::getInstance().writekeyLog(w_id, key_list);
             }
 
@@ -636,8 +636,8 @@ namespace Proxy
                   // Integer no_o_id = rand() % 3000 + 1;
                   // o_id = no_o_id;
                   Integer ol_cnt = rand() % 15 + 1; // TODO: 此处模仿tpcc_workload.cpp:667-669
-                  key_list.push_back({gen_customer_key(w_id, d_id, c_id), false, 1});
-                  key_list.push_back({gen_order_key(w_id, d_id, o_id), false, 1});
+                  key_list.push_back({gen_customer_key(w_id, d_id, c_id), false, FLAGS_write_weight});
+                  key_list.push_back({gen_order_key(w_id, d_id, o_id), false, FLAGS_write_weight});
                   key_list.push_back({gen_neworder_key(w_id, d_id, no_o_id), true, 1});
                   // key_list.push_back(gen_orderline_key(w_id,d_id,o_id,ol_cnt)); // TODO: 正确？
                   for (Integer ol_number = 1; ol_number <= ol_cnt; ol_number++)
@@ -705,7 +705,7 @@ namespace Proxy
                Integer c_id = std::stoi(args[4]);
 
                // customer.lookup1({c_w_id, c_d_id, c_id}, [&](const customer_t& rec) {});
-               key_list.push_back({gen_customer_key(c_w_id, c_d_id, c_id), false, 2});
+               key_list.push_back({gen_customer_key(c_w_id, c_d_id, c_id), false, FLAGS_write_weight});
 
                // if (c_credit == "BC") {
                // customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t& rec) {});
@@ -713,9 +713,9 @@ namespace Proxy
                // customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t& rec) {});
                // }
                temp = gen_warehouse_key(w_id);
-               key_list.push_back({gen_warehouse_key(temp), false, 2});
+               key_list.push_back({gen_warehouse_key(temp), false, FLAGS_write_weight});
                temp = gen_district_key(w_id, d_id);
-               key_list.push_back({gen_district_key(w_id, d_id), false, 2});
+               key_list.push_back({gen_district_key(w_id, d_id), false, FLAGS_write_weight});
                // Log::getInstance().writekeyLog(w_id, key_list);
             }
 
@@ -731,8 +731,8 @@ namespace Proxy
                // Timestamp datetime = std::stoul(args[7]);
                Integer c_id = rand() % 3000 + 1;
                key_list.push_back({gen_customer_key(c_w_id, c_d_id, c_id), true, 1});
-               key_list.push_back({gen_warehouse_key(w_id), false, 2});
-               key_list.push_back({gen_district_key(w_id, d_id), false, 2});
+               key_list.push_back({gen_warehouse_key(w_id), false, FLAGS_write_weight});
+               key_list.push_back({gen_district_key(w_id, d_id), false, FLAGS_write_weight});
                // Log::getInstance().writekeyLog(w_id, key_list);
                ishash = true;
                destNodeId = w_id % mod;

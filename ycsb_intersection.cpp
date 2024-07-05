@@ -32,83 +32,62 @@ void readPIDsFromFile(const string &filename, unordered_set<uint64_t> &pids)
     file.close();
 }
 
-void calculate(std::string filename1, std::string filename2, ofstream &output, uint32_t &up, uint32_t &down)
+void calculate(const vector<string> &filenames, ofstream &output, uint32_t &up, uint32_t &down)
 {
-    unordered_set<uint64_t> pidSet1, pidSet2;
-    readPIDsFromFile(filename1, pidSet1);
-    readPIDsFromFile(filename2, pidSet2);
-    int intersection = 0;
-    for (const auto &pid : pidSet1)
+    unordered_set<uint64_t> pidSetUnion, pidSetIntersection;
+    bool firstFile = true;
+    for (const auto &filename : filenames)
     {
-        if (pidSet2.find(pid) != pidSet2.end())
+        unordered_set<uint64_t> pidSet;
+        readPIDsFromFile(filename, pidSet);
+        if (firstFile)
         {
-            intersection++;
+            pidSetUnion = pidSet;
+            pidSetIntersection = pidSet;
+            firstFile = false;
+        }
+        else
+        {
+            unordered_set<uint64_t> tempIntersection;
+            for (const auto &pid : pidSetIntersection)
+            {
+                if (pidSet.find(pid) != pidSet.end())
+                {
+                    tempIntersection.insert(pid);
+                }
+            }
+            pidSetIntersection = tempIntersection;
+
+            for (const auto &pid : pidSet)
+            {
+                pidSetUnion.insert(pid);
+            }
         }
     }
-    // Calculate union
-    unordered_set<uint64_t> unionSet(pidSet1);
-    for (const auto &pid : pidSet2)
-    {
-        unionSet.insert(pid);
-    }
-    up += intersection;
-    down += unionSet.size();
-    output << "Intersection count: " << intersection << endl;
-    output << "Union count: " << unionSet.size() << endl;
-    output << "ratio : " << float(intersection) / unionSet.size() * 100 << "%" << endl;
+
+    up += pidSetIntersection.size();
+    down += pidSetUnion.size();
+
+    output << "Intersection count: " << pidSetIntersection.size() << endl;
+    output << "Union count: " << pidSetUnion.size() << endl;
+    output << "Ratio: " << float(pidSetIntersection.size()) / pidSetUnion.size() * 100 << "%" << endl;
 }
 
-void handle_page(std::string path)
+void handle_page(const string &path, int numNodes)
 {
-    unordered_set<uint64_t> pidSet1, pidSet2;
-    string customer1 = path + "node1/Logs/customer_page";        // Replace with your first file name
-    string customer2 = path + "node2/Logs/customer_page";        // Replace with your second file name
-    string warehouse1 = path + "node1/Logs/warehouse_page";      // Replace with your first file name
-    string warehouse2 = path + "node2/Logs/warehouse_page";      // Replace with your second file name
-    string district1 = path + "node1/Logs/district_page";        // Replace with your first file name
-    string district2 = path + "node2/Logs/district_page";        // Replace with your second file name
-    string customerwdl1 = path + "node1/Logs/customer_wdl_page"; // Replace with your first file name
-    string customerwdl2 = path + "node2/Logs/customer_wdl_page"; // Replace with your second file name
-    string history1 = path + "node1/Logs/history_page";          // Replace with your first file name
-    string history2 = path + "node2/Logs/history_page";          // Replace with your second file name
-    string neworder1 = path + "node1/Logs/neworder_page";        // Replace with your first file name
-    string neworder2 = path + "node2/Logs/neworder_page";        // Replace with your second file name
-    string order1 = path + "node1/Logs/order_page";              // Replace with your first file name
-    string order2 = path + "node2/Logs/order_page";              // Replace with your second file name
-    string order_wdc1 = path + "node1/Logs/order_wdc_page";      // Replace with your first file name
-    string order_wdc2 = path + "node2/Logs/order_wdc_page";      // Replace with your second file name
-    string item1 = path + "node1/Logs/item_page";                // Replace with your first file name
-    string item2 = path + "node2/Logs/item_page";                // Replace with your second file name
-    string stock1 = path + "node1/Logs/stock_page";              // Replace with your first file name
-    string stock2 = path + "node2/Logs/stock_page";              // Replace with your second file name
-    // string customer1 = "pages/codesign/node0/Logs/customer_page";    // Replace with your first file name
-    // string customer2 = "pages/codesign/node1/Logs/customer_page";    // Replace with your second file name
+    vector<string> filenames;
+    for (int i = 1; i <= numNodes; ++i)
+    {
+        filenames.push_back(path + "node" + to_string(i) + "/Logs/ycsb_page");
+    }
+
     ofstream output(path + "result");
     uint32_t a = 0, b = 0;
-    output << "warehouse" << endl;
-    calculate(warehouse1, warehouse2, output, a, b);
-    output << "district" << endl;
-    calculate(district1, district2, output, a, b);
-    output << "customer" << endl;
-    calculate(customer1, customer2, output, a, b);
-    output << "history" << endl;
-    calculate(history1, history2, output, a, b);
-    output << "neworder" << endl;
-    calculate(neworder1, neworder2, output, a, b);
-    output << "order" << endl;
-    calculate(order1, order2, output, a, b);
-    output << "item" << endl;
-    calculate(item1, item2, output, a, b);
-    output << "stock" << endl;
-    calculate(stock1, stock2, output, a, b);
-    output << "customerwdl" << endl;
-    calculate(customerwdl1, customerwdl2, output, a, b);
-    output << "order_wdc" << endl;
-    calculate(order_wdc1, order_wdc2, output, a, b);
-    output << "all" << endl;
+    calculate(filenames, output, a, b);
+    output << "All Nodes Combined" << endl;
     output << "Intersection count: " << a << endl;
     output << "Union count: " << b << endl;
-    output << "ratio : " << float(a) / b * 100 << "%" << endl;
+    output << "Ratio: " << float(a) / b * 100 << "%" << endl;
 }
 
 void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)

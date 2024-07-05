@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
                bool csv_initialized = std::filesystem::exists(filename);
                latency_file.open(filename, open_flags);
                if (!csv_initialized) {
-                  latency_file << "nodeId,workload,tag,ReadRatio,targetThroughput,YCSB_tuple_count,zipf,min,median,max,95th,99th,999th"
+                  latency_file << "nodeId,workload,tag,ReadRatio,targetThroughput,YCSB_tuple_count,zipf,min,median,max,95th,99th,999th,all_lantency"
                                << std::endl;
                }
                latency_file << scalestore.getNodeID() << "," << TYPE << "," << FLAGS_tag << "," << READ_RATIO << "," << TARGET_TROUGHPUT
@@ -429,7 +429,7 @@ int main(int argc, char* argv[]) {
                             << (microsecond_latencies[microsecond_latencies.size() / 2]) << "," << (microsecond_latencies.back()) << ","
                             << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.95)]) << ","
                             << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.99)]) << ","
-                            << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.999)]) << std::endl;
+                            << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.999)])<< std::endl;
                latency_file.close();
             }
          }

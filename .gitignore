@@ -14,3 +14,4 @@ Proxy_ycsb/build
 data_ycsb/
 data_scale/
 new_data_ycsb
+result/

@@ -241,7 +241,7 @@ int main() {
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "data_scale/";
+    std::string start = "result/new_read_write/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "";
 
     // 读取INI文件并存储到字典中
@@ -280,6 +280,7 @@ int main() {
         }
     }
 
+    
     // 获取文件数量参数
     if (params2["file_num"] == "1") {
         subpath6 = "1/";
@@ -287,6 +288,10 @@ int main() {
         subpath6 = "2/";
     } else {
         subpath6 = "3/";
+    }
+
+    if(start == "result/new_read_write/"){
+        subpath6 = params2["write_weight"] + "/";
     }
 
     // 构建完整路径

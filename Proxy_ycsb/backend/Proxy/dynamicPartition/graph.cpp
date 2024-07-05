@@ -289,7 +289,7 @@ namespace Proxy
                         }
                         else
                         {
-                            G.add_edge(stamp_id, tmp.first, 2);
+                            G.add_edge(stamp_id, tmp.first, FLAGS_write_weight);
                         }
                         edge_count++;
                     }
