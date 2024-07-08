@@ -59,8 +59,20 @@ std::vector<TxnNode> ycsb_workload::ycsb_keys_create(int &partition_id)
    }
    if (FLAGS_distribution && urand(1, 100) <= int(FLAGS_distribution_rate))
    {
-      int distribution_id = urandexcept(0, FLAGS_nodes -1, partition_id);
+      int distribution_id = urandexcept(0, FLAGS_nodes - 1, partition_id);
       K key = zipf_randoms[distribution_id]->rand(zipf_offset);
+      if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+      {
+         keylist.emplace_back(TxnNode(key, true, 1));
+      }
+      else
+      {
+         keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
+      }
+   }
+   else
+   {
+      K key = zipf_randoms[partition_id]->rand(zipf_offset);
       if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
       {
          keylist.emplace_back(TxnNode(key, true, 1));

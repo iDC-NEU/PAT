@@ -43,18 +43,18 @@ struct WorkerCounters {
       latency,
       ssd_pages_read,
       ssd_pages_written,
-      rdma_pages_tx,
-      rdma_pages_rx,
-      mh_msgs_handled,
+      rdma_pages_tx, //page远程传输
+      rdma_pages_rx, //page远程请求数量
+      mh_msgs_handled, //成功处理的消息数量
       mh_msgs_restarted,
-      btree_traversals,
-      btree_restarted,
-      w_rpc_tried,
-      w_rpc_restarted,
-      pp_rounds,
-      pp_rdma_evicted,
-      pp_rdma_received,
-      pp_latency_p1_incoming_requests,
+      btree_traversals, //b树使用次数
+      btree_restarted, //加锁 retry次数
+      w_rpc_tried,  //STATE::REMOTE_POSSESSION_CHANGE 有page但要升级写权限
+      w_rpc_restarted, //写权限升级重试次数
+      pp_rounds, //pageprovider 循环次数
+      pp_rdma_evicted, //远程页面淘汰数
+      pp_rdma_received, //pageprovider 收到的远程页面数
+      pp_latency_p1_incoming_requests, //6阶段延迟
       pp_latency_p2_cooling,
       pp_latency_p3_select,
       pp_latency_p4_send_requests,

@@ -283,10 +283,11 @@ struct ScaleStoreAdapter
     }
     void traverse_page()
    {
-      std::string filename = "../../Logs/ycsb_page";
+      std::string filename = "../Logs/ycsb_page";
       BTree tree(tree_pid);
       tree.page_traversal(filename);
       traversed = true;
+      std::cout<<"traverse_done!" <<std::endl;
    }
 
 };
