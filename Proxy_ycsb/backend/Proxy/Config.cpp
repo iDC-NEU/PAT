@@ -48,3 +48,4 @@ DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
 DEFINE_int32(file_num, 1, " ");
 DEFINE_int32(write_weight, 2, " ");
+DEFINE_bool(ycsb_workload_change, false, "enable ycsb_workload_change");

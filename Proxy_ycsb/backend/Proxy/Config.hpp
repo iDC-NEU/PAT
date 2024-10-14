@@ -56,3 +56,4 @@ DECLARE_uint32(ycsb_num);
 DECLARE_uint32(stamp_len);
 DECLARE_int32(file_num);
 DECLARE_int32(write_weight);
+DECLARE_bool(ycsb_workload_change);

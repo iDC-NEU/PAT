@@ -272,6 +272,9 @@ namespace Proxy
 
                std::this_thread::sleep_for(std::chrono::seconds(10) - duration);
                overall_time +=10;
+               if(overall_time == 60){
+                  txn_logger.info("start workloadchange");
+               }
             } });
          statistics.detach();
          // -------------------------------------------------------------------------------------
@@ -426,7 +429,7 @@ namespace Proxy
                      router.pushToQueue(keylist);
                   }
                   router_number_per_thread[destNodeId] += 1;
-                  if(overall_time > 100){
+                  if(FLAGS_ycsb_workload_change && overall_time > 60){
                      keylist = ycsb.ycsb_workload_change(partition_id);
                   }
                   else{
