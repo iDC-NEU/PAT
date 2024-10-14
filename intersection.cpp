@@ -241,7 +241,7 @@ int main() {
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "result/new_read_write/";
+    std::string start = "validate_data/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "";
 
     // 读取INI文件并存储到字典中
@@ -259,10 +259,14 @@ int main() {
     } else if (params2["route_mode"] == "2") {
         subpath2 = "无图划分路由/";
         subpath3 = "哈希路由/";
-    } else {
+    } else if (params2["route_mode"] == "3") {
         subpath2 = "图划分路由/";
         subpath3 = params2["partition_mode"] == "1" ? "静态/" : "动态/";
         subpath4 = params["use-codesign"] == "false" ? "无codesign/" : "有codesign/";
+    }
+    else {
+        subpath2 = "无图划分路由/";
+        subpath3 = "范围路由/";
     }
 
     // 获取分布式参数

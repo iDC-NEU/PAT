@@ -246,6 +246,7 @@ namespace Proxy
             uint64_t random_numbers=0;
             uint64_t last_all_numbers=0;
             sleep(10);
+            overall_time +=10;
             while(true){
                auto start = std::chrono::high_resolution_clock::now();
 
@@ -270,6 +271,7 @@ namespace Proxy
                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
                std::this_thread::sleep_for(std::chrono::seconds(10) - duration);
+               overall_time +=10;
             } });
          statistics.detach();
          // -------------------------------------------------------------------------------------
@@ -424,7 +426,12 @@ namespace Proxy
                      router.pushToQueue(keylist);
                   }
                   router_number_per_thread[destNodeId] += 1;
-                  keylist = ycsb.ycsb_keys_create(partition_id);
+                  if(overall_time > 100){
+                     keylist = ycsb.ycsb_workload_change(partition_id);
+                  }
+                  else{
+                     keylist = ycsb.ycsb_keys_create(partition_id);
+                  }
                }
                mailboxIdx = ++startPosition;
          }

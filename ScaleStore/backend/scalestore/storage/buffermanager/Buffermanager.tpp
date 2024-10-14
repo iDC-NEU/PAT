@@ -215,6 +215,7 @@ restart:
    // SSD
    // -------------------------------------------------------------------------------------
    volatile int mask = 1; // for backoff
+   
    switch (guard.state)
    {
    case STATE::SSD:
