@@ -356,6 +356,7 @@ namespace Proxy
             partmapB = partmapA;
             change_map = false;
             i = 0;
+            std::cout<<partmapB.size()<< std::endl;
             while (1)
             {
                 if (!new_map_use[i])

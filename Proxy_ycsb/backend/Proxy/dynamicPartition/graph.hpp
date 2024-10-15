@@ -98,7 +98,7 @@ namespace Proxy
             bool has_send_metis = false;
             std::vector<std::unordered_set<idx_t>> cluster;
             std::unordered_map<i64, int> &partmap;
-            DynamicPartitioner(Graph G, double balance_factor = 1.0, int k = 4, double alpha = 0.5, double gamma = 1.5);
+            DynamicPartitioner(Graph G,double balance_factor = 1.0, int k = 4, double alpha = 0.5, double gamma = 1.5);
             double fennel(idx_t vid, const std::unordered_map<idx_t, idx_t> &neighbors);
             void add_node(idx_t vid, std::unordered_map<idx_t, idx_t> &neighbors);
             void add_node(idx_t vid);
@@ -200,13 +200,6 @@ namespace Proxy
             void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<idx_t, idx_t> &vertix_map)
             {
                 int i = 0;
-                cluster.clear();
-                cluster.reserve(partition_num);
-                for (int j = 0; j < partition_num; j++)
-                {
-                    std::unordered_set<idx_t> part;
-                    cluster.push_back(part);
-                }
                 for (const auto part_id : parts)
                 {
                     int stamp_id = vertix_map.at(i);

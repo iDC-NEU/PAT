@@ -21,7 +21,7 @@ namespace Proxy
             std::vector<int> graph_route_count;
             std::vector<int> random_route_count;
             std::vector<int> match_count;
-            int partition_limit = 100000;
+            int partition_limit = 20000;
             int txn_count = 0;
             int partition_count = 0;
             bool running = true;
@@ -47,6 +47,12 @@ namespace Proxy
                     graph_route_count.push_back(0);
                     random_route_count.push_back(0);
                     match_count.push_back(0);
+                }
+                DyPartitioner.cluster.reserve(int(FLAGS_nodes));
+                for (int j = 0; j < int(FLAGS_nodes); j++)
+                {
+                    std::unordered_set<idx_t> part;
+                    DyPartitioner.cluster.push_back(part);
                 }
                 // std::vector<std::vector<int>> graph_txns;
                 // DyPartitioner.get_txns("/home/user/project/database/demo/Proxy/Proxy/backend/Proxy/Logs/graph_key", graph_txns);

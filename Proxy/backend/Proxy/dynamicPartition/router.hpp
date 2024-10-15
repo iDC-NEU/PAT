@@ -48,6 +48,12 @@ namespace Proxy
                     random_route_count.push_back(0);
                     match_count.push_back(0);
                 }
+                DyPartitioner.cluster.reserve(int(FLAGS_nodes));
+                for (int j = 0; j < int(FLAGS_nodes); j++)
+                {
+                    std::unordered_set<int> part;
+                    DyPartitioner.cluster.push_back(part);
+                }
                 // std::vector<std::vector<int>> graph_txns;
                 // DyPartitioner.get_txns("/home/user/project/database/demo/Proxy/Proxy/backend/Proxy/Logs/graph_key", graph_txns);
                 // for (const auto &txn : graph_txns)

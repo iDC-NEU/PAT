@@ -261,13 +261,6 @@ namespace Proxy
             void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<int, int> &vertix_map)
             {
                 int i = 0;
-                cluster.clear();
-                cluster.reserve(partition_num);
-                for (int j = 0; j < partition_num; j++)
-                {
-                    std::unordered_set<int> part;
-                    cluster.push_back(part);
-                }
                 for (const auto part_id : parts)
                 {
                     int stamp_id = vertix_map.at(i);

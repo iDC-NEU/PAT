@@ -216,8 +216,10 @@ namespace Proxy
             
 
             if(!router.DyPartitioner.has_send_metis){
-               std::cout<<"send_ycsb_map"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.ycsb_map,outcoming,MESSAGE_TYPE::RouterMap_metis_ycsb);
+               std::cout<<"send_ycsb_map"<<std::endl;
+               if(!router.DyPartitioner.ycsb_map.empty()){
+                  send_map_to_node(&router.DyPartitioner.ycsb_map,outcoming,MESSAGE_TYPE::RouterMap_metis_ycsb);
+               }   
                // std::cout<<"send_orderline"<<std::endl;   
                // send_map_to_node(&router.DyPartitioner.orderline_map,outcoming,MESSAGE_TYPE::RouterMap_metis_orderline);                 
                router.DyPartitioner.has_send_metis=true;
@@ -228,7 +230,9 @@ namespace Proxy
             {
                std::cout << "send_dynamic" << std::endl;
                router.DyPartitioner.partition_mutex.lock();
-               send_map_to_node(&router.DyPartitioner.ycsb_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_ycsb);
+               if(!router.DyPartitioner.ycsb_insert_keys.empty()){
+                  send_map_to_node(&router.DyPartitioner.ycsb_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_ycsb);
+               }
                router.DyPartitioner.has_send_new_insert_keys = true;
                router.DyPartitioner.partition_mutex.unlock();
             }
@@ -430,10 +434,10 @@ namespace Proxy
                   }
                   router_number_per_thread[destNodeId] += 1;
                   if(FLAGS_ycsb_workload_change && overall_time > 60){
-                     keylist = ycsb.ycsb_workload_change(partition_id);
+                     keylist = ycsb.ycsb_keys_create(partition_id);
                   }
                   else{
-                     keylist = ycsb.ycsb_keys_create(partition_id);
+                     keylist = ycsb.ycsb_workload_change(partition_id);
                   }
                }
                mailboxIdx = ++startPosition;

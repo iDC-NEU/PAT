@@ -171,6 +171,7 @@ namespace Proxy
                         if(partition_count > partition_limit){
                             partition_count = 0;
                             if(!metis){
+                                metis = true;
                                 router_logger.info("Start Metis Part");
                                 txn_logger.info("Start Metis Part");
                                 metisPart();
