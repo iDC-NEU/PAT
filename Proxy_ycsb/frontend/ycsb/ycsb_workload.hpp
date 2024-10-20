@@ -159,11 +159,11 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
    for (int i = 0; i < int(FLAGS_ycsb_num) - 1; i++)
    {
       K key = zipf_randoms[partition_id]->rand(zipf_offset);
-      while(key < 1500)
+      while(key < FLAGS_ycsb_hot_page_size)
       {
          key = zipf_randoms[partition_id]->rand(zipf_offset);
       }
-      key += FLAGS_stamp_len * 1500;
+      key += FLAGS_stamp_len * FLAGS_ycsb_hot_page_size;
       if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
       {
          keylist.emplace_back(TxnNode(key, true, 1));
@@ -173,7 +173,7 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
          keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
       }
    }
-   K key = utils::RandomGenerator::getRandU64(0, 1500);
+   K key = utils::RandomGenerator::getRandU64(0, FLAGS_ycsb_hot_page_size);
    // 检查 random_number % nodes 是否等于 partition_id
    int hash_value = key % FLAGS_nodes;
    if (hash_value != partition_id)
@@ -185,7 +185,7 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
       if (diff > 0)
       {
          // 尝试加上差值，如果超出范围则改为减
-         if (key + diff < 1500)
+         if (key + diff < FLAGS_ycsb_hot_page_size)
          {
             key += diff;
          }
@@ -227,13 +227,13 @@ void ycsb_workload::key_transfer(std::vector<TxnNode> &keylist)
    for (auto &key_node : keylist)
    {
       int key = key_node.key / FLAGS_stamp_len;
-      if (key < 1500)
+      if (key < FLAGS_ycsb_hot_page_size)
       {
          key_node.key = key;
       }
       else
       {
-         key_node.key -= 1500 * FLAGS_stamp_len;
+         key_node.key -= FLAGS_ycsb_hot_page_size * FLAGS_stamp_len;
       }
    }
 }
@@ -243,13 +243,13 @@ void ycsb_workload::key_transfer_back(std::vector<TxnNode> &keylist)
    for (auto &key_node : keylist)
    {
       int key = key_node.key / FLAGS_stamp_len;
-      if (key < 1500)
+      if (key < FLAGS_ycsb_hot_page_size)
       {
          key_node.key = key * FLAGS_stamp_len;
       }
       else
       {
-         key_node.key += 1500 * FLAGS_stamp_len;
+         key_node.key += FLAGS_ycsb_hot_page_size * FLAGS_stamp_len;
       }
    }
 }

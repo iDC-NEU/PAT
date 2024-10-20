@@ -207,11 +207,11 @@ namespace Proxy
                     partmapA.insert({stamp_id, part_id});
                     if (FLAGS_ycsb_hot_page)
                     {
-                        if(stamp_id < 1500){
+                        if(stamp_id < FLAGS_ycsb_hot_page_size){
                             key = stamp_id;
                         }
                         else{
-                            key = (stamp_id - 1500) * FLAGS_stamp_len;
+                            key = (stamp_id - FLAGS_ycsb_hot_page_size) * FLAGS_stamp_len;
                         }
                     }
                     else{

@@ -126,13 +126,13 @@ namespace Proxy
             int key = 0;
             if (FLAGS_ycsb_hot_page)
             {
-                if (vid < 1500)
+                if (vid < FLAGS_ycsb_hot_page_size)
                 {
                     key = vid;
                 }
                 else
                 {
-                    key = (vid - 1500) * FLAGS_stamp_len;
+                    key = (vid - FLAGS_ycsb_hot_page_size) * FLAGS_stamp_len;
                 }
             }
             else
