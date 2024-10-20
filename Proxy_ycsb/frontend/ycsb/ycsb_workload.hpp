@@ -207,9 +207,6 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
          }
       }
    }
-   if(key > 1499 || key < 0){
-      std::cout << "error" << std::endl;
-   }
    if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
    {
       keylist.emplace_back(TxnNode(key * FLAGS_stamp_len, true, 1));
