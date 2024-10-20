@@ -11,7 +11,7 @@ namespace Proxy
             {
                 if (a.find(elem.first) != a.end())
                 {
-                    count+= elem.second;
+                    count += elem.second;
                 }
             }
             return count;
@@ -90,7 +90,7 @@ namespace Proxy
             for (int i = 0; i < partition_num; ++i)
             {
                 score[i] = commomValue(cluster[i], neighbors) - alpha * pow(cluster[i].size() + 1.0, gamma) + alpha * pow(cluster[i].size(), gamma);
-                //score[i] = commomValue(cluster[i], neighbors);
+                // score[i] = commomValue(cluster[i], neighbors);
             }
             int max_position = std::distance(score, std::max_element(score, score + partition_num));
             delete[] score;
@@ -123,7 +123,22 @@ namespace Proxy
             {
                 new_insert_keys[vid] = p;
             }
-            int key = vid * FLAGS_stamp_len;
+            int key = 0;
+            if (FLAGS_ycsb_hot_page)
+            {
+                if (vid < 1500)
+                {
+                    key = vid;
+                }
+                else
+                {
+                    key = (vid - 1500) * FLAGS_stamp_len;
+                }
+            }
+            else
+            {
+                key = vid * FLAGS_stamp_len;
+            }
             ycsb_insert_keys.insert({key, p});
         }
         void DynamicPartitioner::add_node(idx_t vid, std::unordered_map<idx_t, idx_t> &neighbors)
@@ -256,8 +271,8 @@ namespace Proxy
             int count = 0;
             for (const auto &node : txn_node_list)
             {
-                idx_t stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
-                epoch_vids.insert(stamp_id);               // 记录epoch需要划分的顶点集
+                idx_t stamp_id = node.key / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
+                epoch_vids.insert(stamp_id);                       // 记录epoch需要划分的顶点集
                 if (stampinfo_map.find(stamp_id) == stampinfo_map.end())
                 {
                     StampInfo stamp(stamp_id);
@@ -265,12 +280,12 @@ namespace Proxy
                     // stamp.set_w_id(w_id);
                     stamp.add_all_count(node.weight);
                     stampinfo_map.insert({stamp_id, stamp});
-                    count+= node.weight;
+                    count += node.weight;
                 }
                 else
                 {
                     stampinfo_map[stamp_id].add_all_count(node.weight);
-                    count+= node.weight;
+                    count += node.weight;
                 }
                 if (!G.has_node(stamp_id))
                 {
@@ -356,7 +371,7 @@ namespace Proxy
             partmapB = partmapA;
             change_map = false;
             i = 0;
-            std::cout<<partmapB.size()<< std::endl;
+            std::cout << partmapB.size() << std::endl;
             while (1)
             {
                 if (!new_map_use[i])
@@ -381,11 +396,14 @@ namespace Proxy
                 if (i == size)
                     break;
             }
-            for(const auto key : new_insert_keys){
-                if(partmapB.find(key.first) == partmapB.end()){
+            for (const auto key : new_insert_keys)
+            {
+                if (partmapB.find(key.first) == partmapB.end())
+                {
                     partmapB.insert(key);
                 }
-                else{
+                else
+                {
                     partmapB[key.first] = key.second;
                 }
             }

@@ -1,0 +1,91 @@
+[2024-10-20 17:39:38.966] t_i: 0 node_id: 0
+[2024-10-20 17:39:38.967] t_i: 1 node_id: 1
+[2024-10-20 17:39:38.967] t_i: 2 node_id: 1
+[2024-10-20 17:39:38.967] t_i: 3 node_id: 0
+[2024-10-20 17:39:38.967] t_i: 4 node_id: 0
+[2024-10-20 17:39:38.967] t_i: 5 node_id: 0
+[2024-10-20 17:39:38.967] t_i: 6 node_id: 1
+[2024-10-20 17:39:38.967] t_i: 7 node_id: 1
+[2024-10-20 17:39:48.967] time:10s; avg_throughput = 0.8/s; all_route_number= 8
+[2024-10-20 17:39:48.967] random_route_number:16; graph_route_number:0
+[2024-10-20 17:39:48.967] transfer_count: 0
+[2024-10-20 17:39:48.967] transfer_node: 0
+[2024-10-20 17:39:58.967] time:20s; avg_throughput = 0/s; all_route_number= 8
+[2024-10-20 17:39:58.967] random_route_number:16; graph_route_number:0
+[2024-10-20 17:39:58.967] transfer_count: 0
+[2024-10-20 17:39:58.967] transfer_node: 0
+[2024-10-20 17:39:59.958] Start Metis Part
+[2024-10-20 17:40:01.118] 初始图划分后顶点数_cluster统计:,91438;顶点数_number_of_nodes：91438
+[2024-10-20 17:40:01.118] epoch_time =72.002808s
+[2024-10-20 17:40:01.118] dy_time =1.159616s dy_time/epochtime=0.016105149676940374
+[2024-10-20 17:40:01.118] router_time =0s router_time/epochtime=0
+[2024-10-20 17:40:01.118] Metis OK
+[2024-10-20 17:40:01.163] Update Metis map
+[2024-10-20 17:40:08.967] time:30s; avg_throughput = 41033.1/s; all_route_number= 410339
+[2024-10-20 17:40:08.967] random_route_number:121459; graph_route_number:288880
+[2024-10-20 17:40:08.967] transfer_count: 171
+[2024-10-20 17:40:08.967] transfer_node: 166
+[2024-10-20 17:40:18.967] time:40s; avg_throughput = 62207.7/s; all_route_number= 1032416
+[2024-10-20 17:40:18.967] random_route_number:167379; graph_route_number:865050
+[2024-10-20 17:40:18.967] transfer_count: 376
+[2024-10-20 17:40:18.967] transfer_node: 363
+[2024-10-20 17:40:28.968] time:50s; avg_throughput = 79999.2/s; all_route_number= 1832408
+[2024-10-20 17:40:28.968] random_route_number:216736; graph_route_number:1615746
+[2024-10-20 17:40:28.968] transfer_count: 610
+[2024-10-20 17:40:28.968] transfer_node: 594
+[2024-10-20 17:40:38.968] time:60s; avg_throughput = 82627.7/s; all_route_number= 2658685
+[2024-10-20 17:40:38.968] random_route_number:252936; graph_route_number:2405884
+[2024-10-20 17:40:38.968] transfer_count: 802
+[2024-10-20 17:40:38.968] transfer_node: 781
+[2024-10-20 17:40:48.968] time:70s; avg_throughput = 104792.4/s; all_route_number= 3706609
+[2024-10-20 17:40:48.968] random_route_number:297468; graph_route_number:3409415
+[2024-10-20 17:40:48.968] transfer_count: 981
+[2024-10-20 17:40:48.968] transfer_node: 958
+[2024-10-20 17:40:58.968] time:80s; avg_throughput = 103507.2/s; all_route_number= 4741681
+[2024-10-20 17:40:58.968] random_route_number:336234; graph_route_number:4405804
+[2024-10-20 17:40:58.968] transfer_count: 1145
+[2024-10-20 17:40:58.968] transfer_node: 1121
+[2024-10-20 17:41:08.968] time:90s; avg_throughput = 108998.3/s; all_route_number= 5831664
+[2024-10-20 17:41:08.968] random_route_number:369529; graph_route_number:5462608
+[2024-10-20 17:41:08.968] transfer_count: 1287
+[2024-10-20 17:41:08.968] transfer_node: 1263
+[2024-10-20 17:41:18.968] time:100s; avg_throughput = 118595.9/s; all_route_number= 7017623
+[2024-10-20 17:41:18.968] random_route_number:405796; graph_route_number:6612418
+[2024-10-20 17:41:18.968] transfer_count: 1416
+[2024-10-20 17:41:18.968] transfer_node: 1390
+[2024-10-20 17:41:28.968] time:110s; avg_throughput = 117399.4/s; all_route_number= 8191617
+[2024-10-20 17:41:28.968] random_route_number:440252; graph_route_number:7752061
+[2024-10-20 17:41:28.968] transfer_count: 1532
+[2024-10-20 17:41:28.968] transfer_node: 1505
+[2024-10-20 17:41:38.968] time:120s; avg_throughput = 111976.5/s; all_route_number= 9311382
+[2024-10-20 17:41:38.968] random_route_number:465613; graph_route_number:8846591
+[2024-10-20 17:41:38.968] transfer_count: 1679
+[2024-10-20 17:41:38.968] transfer_node: 1649
+[2024-10-20 17:41:48.968] time:130s; avg_throughput = 124214.8/s; all_route_number= 10553530
+[2024-10-20 17:41:48.968] random_route_number:493428; graph_route_number:10061081
+[2024-10-20 17:41:48.968] transfer_count: 1799
+[2024-10-20 17:41:48.968] transfer_node: 1765
+[2024-10-20 17:41:58.968] time:140s; avg_throughput = 124879.5/s; all_route_number= 11802325
+[2024-10-20 17:41:58.968] random_route_number:521643; graph_route_number:11281929
+[2024-10-20 17:41:58.968] transfer_count: 1920
+[2024-10-20 17:41:58.968] transfer_node: 1885
+[2024-10-20 17:42:08.968] time:150s; avg_throughput = 112113.8/s; all_route_number= 12923463
+[2024-10-20 17:42:08.968] random_route_number:543161; graph_route_number:12381711
+[2024-10-20 17:42:08.968] transfer_count: 2007
+[2024-10-20 17:42:08.968] transfer_node: 1969
+[2024-10-20 17:42:18.968] time:160s; avg_throughput = 124361.1/s; all_route_number= 14167074
+[2024-10-20 17:42:18.968] random_route_number:564646; graph_route_number:13603951
+[2024-10-20 17:42:18.968] transfer_count: 2132
+[2024-10-20 17:42:18.968] transfer_node: 2092
+[2024-10-20 17:42:28.968] time:170s; avg_throughput = 126774.3/s; all_route_number= 15434817
+[2024-10-20 17:42:28.968] random_route_number:586336; graph_route_number:14850163
+[2024-10-20 17:42:28.968] transfer_count: 2222
+[2024-10-20 17:42:28.968] transfer_node: 2181
+[2024-10-20 17:42:38.968] time:180s; avg_throughput = 126702.7/s; all_route_number= 16701844
+[2024-10-20 17:42:38.968] random_route_number:607905; graph_route_number:16095804
+[2024-10-20 17:42:38.968] transfer_count: 2317
+[2024-10-20 17:42:38.968] transfer_node: 2273
+[2024-10-20 17:42:48.968] time:190s; avg_throughput = 112032.6/s; all_route_number= 17822170
+[2024-10-20 17:42:48.968] random_route_number:625036; graph_route_number:17199107
+[2024-10-20 17:42:48.969] transfer_count: 2402
+[2024-10-20 17:42:48.969] transfer_node: 2357

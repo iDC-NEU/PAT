@@ -199,9 +199,9 @@ namespace Proxy
             void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<idx_t, idx_t> &vertix_map)
             {
                 int i = 0;
-                int key = 0;
                 for (const auto part_id : parts)
                 {
+                    int key = 0;
                     int stamp_id = vertix_map.at(i);
                     cluster[part_id].insert(stamp_id);
                     partmapA.insert({stamp_id, part_id});
@@ -211,7 +211,7 @@ namespace Proxy
                             key = stamp_id;
                         }
                         else{
-                            key = 1500 + (stamp_id - 1500) * FLAGS_stamp_len;
+                            key = (stamp_id - 1500) * FLAGS_stamp_len;
                         }
                     }
                     else{

@@ -422,11 +422,17 @@ namespace Proxy
                            random_number_per_thread[destNodeId]++;
                         break;
                      }
+                  if(FLAGS_ycsb_hot_page){
+                     ycsb.key_transfer(keylist);
+                  }
                   auto &keyMessagetoDispatch = *MessageFabric::createMessage<TxnKeysMessage>(ctx.outcoming, MESSAGE_TYPE::TxnKeys, keylist, clientId);
                   bool isDispatch = false;
                   while (!isDispatch)
                   {
                      isDispatch = dispatcherKey(destNodeId, keyMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
+                  }
+                  if(FLAGS_ycsb_hot_page){
+                     ycsb.key_transfer_back(keylist);
                   }
                   if (FLAGS_route_mode == 3)
                   {
@@ -434,10 +440,18 @@ namespace Proxy
                   }
                   router_number_per_thread[destNodeId] += 1;
                   if(FLAGS_ycsb_workload_change && overall_time > 50){
-                     keylist = ycsb.ycsb_workload_change(partition_id);
+                        keylist = ycsb.ycsb_workload_change(partition_id);
                   }
-                  else{
-                     keylist = ycsb.ycsb_keys_create(partition_id);
+                  else
+                  {
+                     if (FLAGS_ycsb_hot_page)
+                     {
+                        keylist = ycsb.ycsb_hot_page(partition_id);
+                     }
+                     else
+                     {
+                        keylist = ycsb.ycsb_keys_create(partition_id);
+                     }
                   }
                }
                mailboxIdx = ++startPosition;

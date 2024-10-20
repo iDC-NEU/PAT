@@ -34,6 +34,8 @@ public:
    std::vector<TxnNode> ycsb_keys_create(int &partition_id);
    std::vector<TxnNode> ycsb_hot_page(int &partition_id);
    std::vector<TxnNode> ycsb_workload_change(int &partition_id);
+   void key_transfer(std::vector<TxnNode> &keylist);
+   void key_transfer_back(std::vector<TxnNode> &keylist);
    std::vector<std::unique_ptr<utils::ScrambledZipfGenerator>> zipf_randoms;
    std::vector<Partition> partitions;
    int64_t zipf_offset = 0;
@@ -156,7 +158,12 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
    partition_id = utils::RandomGenerator::getRandU64(0, FLAGS_nodes);
    for (int i = 0; i < int(FLAGS_ycsb_num) - 1; i++)
    {
-      K key = zipf_randoms[partition_id]->rand(zipf_offset) + FLAGS_stamp_len * 1500;
+      K key = zipf_randoms[partition_id]->rand(zipf_offset);
+      while(key < 1500)
+      {
+         key = zipf_randoms[partition_id]->rand(zipf_offset);
+      }
+      key += FLAGS_stamp_len * 1500;
       if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
       {
          keylist.emplace_back(TxnNode(key, true, 1));
@@ -167,14 +174,79 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
       }
    }
    K key = utils::RandomGenerator::getRandU64(0, 1500);
+   // 检查 random_number % nodes 是否等于 partition_id
+   int hash_value = key % FLAGS_nodes;
+   if (hash_value != partition_id)
+   {
+      // 计算差值
+      int diff = partition_id - hash_value;
+
+      // 调整随机数，决定是加还是减
+      if (diff > 0)
+      {
+         // 尝试加上差值，如果超出范围则改为减
+         if (key + diff < 1500)
+         {
+            key += diff;
+         }
+         else
+         {
+            key -= (FLAGS_nodes - diff);
+         }
+      }
+      else
+      {
+         // 尝试减去差值，如果小于0则改为加
+         if (key + diff >= 0)
+         {
+            key -= diff;
+         }
+         else
+         {
+            key += (FLAGS_nodes + diff);
+         }
+      }
+   }
    if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
    {
-      keylist.emplace_back(TxnNode(key * 50, true, 1));
+      keylist.emplace_back(TxnNode(key * FLAGS_stamp_len, true, 1));
    }
    else
    {
-      keylist.emplace_back(TxnNode(key * 50, false, FLAGS_write_weight));
+      keylist.emplace_back(TxnNode(key * FLAGS_stamp_len, false, FLAGS_write_weight));
    }
 
    return keylist;
+}
+
+void ycsb_workload::key_transfer(std::vector<TxnNode> &keylist)
+{
+   for (auto &key_node : keylist)
+   {
+      int key = key_node.key / FLAGS_stamp_len;
+      if (key < 1500)
+      {
+         key_node.key = key;
+      }
+      else
+      {
+         key_node.key -= 1500 * FLAGS_stamp_len;
+      }
+   }
+}
+
+void ycsb_workload::key_transfer_back(std::vector<TxnNode> &keylist)
+{
+   for (auto &key_node : keylist)
+   {
+      int key = key_node.key / FLAGS_stamp_len;
+      if (key < 1500)
+      {
+         key_node.key = key * FLAGS_stamp_len;
+      }
+      else
+      {
+         key_node.key += 1500 * FLAGS_stamp_len;
+      }
+   }
 }

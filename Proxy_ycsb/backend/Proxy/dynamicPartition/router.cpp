@@ -32,8 +32,8 @@ namespace Proxy
             router_logger.info(fmt::format("router_time ={}s router_time/epochtime={}", epoch_router, epoch_router / (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(epoch_end - epoch_start).count() / 1000)));
 
             epoch_router = 0;
-            epoch_start = std::chrono::high_resolution_clock::now();
             metis = true;
+            epoch_start = std::chrono::high_resolution_clock::now();
         }
 
         void Router::dyPartition()
@@ -171,7 +171,6 @@ namespace Proxy
                         if(partition_count > partition_limit){
                             partition_count = 0;
                             if(!metis){
-                                metis = true;
                                 router_logger.info("Start Metis Part");
                                 txn_logger.info("Start Metis Part");
                                 metisPart();
@@ -181,7 +180,7 @@ namespace Proxy
                                 DyPartitioner.get_metis_map();
                                 txn_logger.info("router map updated");
                                 router_logger.info("Update Metis map");
-                                partition_limit = 100000;
+                                partition_limit = 20000;
                             }
                             else if(FLAGS_partition_mode == 2){
                                 DyPartitioner.update_old_map();
