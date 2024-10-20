@@ -200,8 +200,6 @@ void calculate_remote(std::string path, int nodes)
         return;
     }
     std::vector<std::string> filenames;
-    filenames.push_back(path + "node1/Logs/remote_node0.txt");
-    filenames.push_back(path + "node2/Logs/remote_node1.txt");
     for(int i = 0; i< nodes; i++){
         filenames.push_back(path + "node" + std::to_string(i+1) + "/Logs/remote_node" + std::to_string(i) + ".txt");
     }

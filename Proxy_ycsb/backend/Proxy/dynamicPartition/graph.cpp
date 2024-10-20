@@ -11,7 +11,7 @@ namespace Proxy
             {
                 if (a.find(elem.first) != a.end())
                 {
-                    count++;
+                    count+= elem.second;
                 }
             }
             return count;
@@ -84,15 +84,15 @@ namespace Proxy
         }
         double DynamicPartitioner::fennel([[maybe_unused]] idx_t vid, const std::unordered_map<idx_t, idx_t> &neighbors)
         {
-            [[maybe_unused]] int load_limit = int(balance_factor * vertex_num / k);
-            double *score = new double[k]();
+            [[maybe_unused]] int load_limit = int(balance_factor * vertex_num / partition_num);
+            double *score = new double[partition_num]();
 
-            for (int i = 0; i < k; ++i)
+            for (int i = 0; i < partition_num; ++i)
             {
                 score[i] = commomValue(cluster[i], neighbors) - alpha * pow(cluster[i].size() + 1.0, gamma) + alpha * pow(cluster[i].size(), gamma);
-                // score[i] = commomValue(cluster[i], neighbors);
+                //score[i] = commomValue(cluster[i], neighbors);
             }
-            int max_position = std::distance(score, std::max_element(score, score + k));
+            int max_position = std::distance(score, std::max_element(score, score + partition_num));
             delete[] score;
             return max_position;
         }
@@ -381,7 +381,14 @@ namespace Proxy
                 if (i == size)
                     break;
             }
-            partmapB.insert(new_insert_keys.begin(), new_insert_keys.end());
+            for(const auto key : new_insert_keys){
+                if(partmapB.find(key.first) == partmapB.end()){
+                    partmapB.insert(key);
+                }
+                else{
+                    partmapB[key.first] = key.second;
+                }
+            }
             // for (const auto &pair : new_remove_keys)
             // {
             //     partmapB.erase(pair.first);

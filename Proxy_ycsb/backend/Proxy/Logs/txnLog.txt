@@ -1,2 +1,0 @@
-[2024-10-15 11:19:15.033] router map updated
-[2024-10-15 11:19:52.188] start workloadchange
