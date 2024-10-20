@@ -199,13 +199,16 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
          // 尝试减去差值，如果小于0则改为加
          if (key + diff >= 0)
          {
-            key -= diff;
+            key += diff;
          }
          else
          {
-            key += (FLAGS_nodes + diff);
+            key -= (FLAGS_nodes + diff);
          }
       }
+   }
+   if(key > 1499 || key < 0){
+      std::cout << "error" << std::endl;
    }
    if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
    {
