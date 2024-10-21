@@ -271,7 +271,7 @@ namespace Proxy
             int count = 0;
             for (const auto &node : txn_node_list)
             {
-                idx_t stamp_id = (node.key -1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
+                idx_t stamp_id = node.key / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 epoch_vids.insert(stamp_id);                       // 记录epoch需要划分的顶点集
                 if (stampinfo_map.find(stamp_id) == stampinfo_map.end())
                 {
