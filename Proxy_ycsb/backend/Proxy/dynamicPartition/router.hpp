@@ -87,6 +87,27 @@ namespace Proxy
                 return num;
             }
             uint64_t router(std::vector<TxnNode> &txnnodelist, int t_i, bool isRouter, bool &is_route);
+            void writeToFile(const std::unordered_map<i64, int> *part_map, const std::string &filename)
+            {
+                std::ofstream outfile(filename);
+                if (!outfile)
+                {
+                    std::cerr << "Failed to open file: " << filename << std::endl;
+                    return;
+                }
+
+                int count = 0;
+                while(count < 5000)
+                {
+                    // 只打印前 5000 
+                    if(part_map->find(count) != part_map->end()){
+                        outfile << count << " : " << part_map->at(count) << std::endl;
+                    }
+                    count++;
+                }
+
+                outfile.close();
+            }
         };
     }
 }

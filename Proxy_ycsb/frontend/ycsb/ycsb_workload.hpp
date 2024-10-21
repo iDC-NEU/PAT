@@ -203,7 +203,7 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
          }
          else
          {
-            key -= (FLAGS_nodes + diff);
+            key += (FLAGS_nodes + diff);
          }
       }
    }

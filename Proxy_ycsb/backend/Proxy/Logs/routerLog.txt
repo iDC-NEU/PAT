@@ -1,0 +1,35 @@
+[2024-10-20 23:19:16.354] t_i: 0 node_id: 0
+[2024-10-20 23:19:16.354] t_i: 1 node_id: 1
+[2024-10-20 23:19:16.354] t_i: 2 node_id: 1
+[2024-10-20 23:19:16.354] t_i: 3 node_id: 0
+[2024-10-20 23:19:16.354] t_i: 4 node_id: 0
+[2024-10-20 23:19:16.354] t_i: 5 node_id: 0
+[2024-10-20 23:19:16.354] t_i: 6 node_id: 1
+[2024-10-20 23:19:16.354] t_i: 7 node_id: 1
+[2024-10-20 23:19:26.355] time:10s; avg_throughput = 0.8/s; all_route_number= 8
+[2024-10-20 23:19:26.355] random_route_number:15; graph_route_number:0
+[2024-10-20 23:19:26.355] transfer_count: 0
+[2024-10-20 23:19:26.355] transfer_node: 0
+[2024-10-20 23:19:36.355] time:20s; avg_throughput = 0/s; all_route_number= 8
+[2024-10-20 23:19:36.355] random_route_number:15; graph_route_number:0
+[2024-10-20 23:19:36.355] transfer_count: 0
+[2024-10-20 23:19:36.355] transfer_node: 0
+[2024-10-20 23:19:37.263] Start Metis Part
+[2024-10-20 23:19:38.017] 初始图划分后顶点数_cluster统计:,92002;顶点数_number_of_nodes：92002
+[2024-10-20 23:19:38.017] epoch_time =21.669382s
+[2024-10-20 23:19:38.017] dy_time =0.754117s dy_time/epochtime=0.03480103862675917
+[2024-10-20 23:19:38.017] router_time =0s router_time/epochtime=0
+[2024-10-20 23:19:38.017] Metis OK
+[2024-10-20 23:19:38.036] Update Metis map
+[2024-10-20 23:19:46.355] time:30s; avg_throughput = 59932.5/s; all_route_number= 599333
+[2024-10-20 23:19:46.355] random_route_number:95434; graph_route_number:503804
+[2024-10-20 23:19:46.355] transfer_count: 335
+[2024-10-20 23:19:46.355] transfer_node: 308
+[2024-10-20 23:19:56.355] time:40s; avg_throughput = 82474.5/s; all_route_number= 1424078
+[2024-10-20 23:19:56.355] random_route_number:142658; graph_route_number:1281146
+[2024-10-20 23:19:56.355] transfer_count: 741
+[2024-10-20 23:19:56.355] transfer_node: 683
+[2024-10-20 23:20:06.355] time:50s; avg_throughput = 97656.7/s; all_route_number= 2400645
+[2024-10-20 23:20:06.355] random_route_number:184830; graph_route_number:2215222
+[2024-10-20 23:20:06.355] transfer_count: 1111
+[2024-10-20 23:20:06.355] transfer_node: 1020

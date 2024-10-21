@@ -1,0 +1,5 @@
+[2024-10-20 23:19:37.263] Start Metis Part
+[2024-10-20 23:19:38.017] Metis OK
+[2024-10-20 23:19:38.017] Start Update router map
+[2024-10-20 23:19:38.036] router map updated
+[2024-10-20 23:20:06.355] start workloadchange
