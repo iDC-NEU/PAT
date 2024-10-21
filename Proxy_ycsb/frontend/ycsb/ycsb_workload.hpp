@@ -29,6 +29,7 @@ public:
       }
       offset = YCSB_tuple_count / FLAGS_nodes;
       tail_range = offset / 5 * 4;
+      outfile.open("/root/home/AffinityDB/Proxy_ycsb/backend/Proxy/Logs/ycsb_key");
    };
    ~ycsb_workload();
    std::vector<TxnNode> ycsb_keys_create(int &partition_id);
@@ -36,6 +37,7 @@ public:
    std::vector<TxnNode> ycsb_workload_change(int &partition_id);
    void key_transfer(std::vector<TxnNode> &keylist);
    void key_transfer_back(std::vector<TxnNode> &keylist);
+   std::ofstream outfile;
    std::vector<std::unique_ptr<utils::ScrambledZipfGenerator>> zipf_randoms;
    std::vector<Partition> partitions;
    int64_t zipf_offset = 0;
@@ -207,13 +209,14 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
          }
       }
    }
+   key = key * FLAGS_stamp_len;
    if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
    {
-      keylist.emplace_back(TxnNode(key * FLAGS_stamp_len, true, 1));
+      keylist.emplace_back(TxnNode(key, true, 1));
    }
    else
    {
-      keylist.emplace_back(TxnNode(key * FLAGS_stamp_len, false, FLAGS_write_weight));
+      keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
    }
 
    return keylist;
@@ -239,7 +242,7 @@ void ycsb_workload::key_transfer_back(std::vector<TxnNode> &keylist)
 {
    for (auto &key_node : keylist)
    {
-      int key = key_node.key / FLAGS_stamp_len;
+      int key = key_node.key;
       if (key < FLAGS_ycsb_hot_page_size)
       {
          key_node.key = key * FLAGS_stamp_len;

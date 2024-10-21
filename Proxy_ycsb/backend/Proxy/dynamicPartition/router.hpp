@@ -21,7 +21,7 @@ namespace Proxy
             std::vector<int> graph_route_count;
             std::vector<int> random_route_count;
             std::vector<int> match_count;
-            int partition_limit = 20000;
+            int partition_limit = 100000;
             int txn_count = 0;
             int partition_count = 0;
             bool running = true;
