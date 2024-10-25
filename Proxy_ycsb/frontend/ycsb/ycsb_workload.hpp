@@ -158,10 +158,45 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
    std::vector<TxnNode> keylist;
    keylist.reserve(FLAGS_ycsb_num);
    partition_id = utils::RandomGenerator::getRandU64(0, FLAGS_nodes);
-   for (int i = 0; i < int(FLAGS_ycsb_num) - 1; i++)
+   for (int i = 0; i < int(FLAGS_ycsb_num) - 2; i++)
    {
       K key = zipf_randoms[partition_id]->rand(zipf_offset);
-      while(key < FLAGS_ycsb_hot_page_size)
+      while (key < FLAGS_ycsb_hot_page_size)
+      {
+         key = zipf_randoms[partition_id]->rand(zipf_offset);
+      }
+      key += FLAGS_stamp_len * FLAGS_ycsb_hot_page_size;
+      if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+      {
+         keylist.emplace_back(TxnNode(key, true, 1));
+      }
+      else
+      {
+         keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
+      }
+   }
+   if (FLAGS_distribution && urand(1, 100) <= int(FLAGS_distribution_rate))
+   {
+      int distribution_id = urandexcept(0, FLAGS_nodes - 1, partition_id);
+      K key = zipf_randoms[distribution_id]->rand(zipf_offset);
+      while (key < FLAGS_ycsb_hot_page_size)
+      {
+         key = zipf_randoms[distribution_id]->rand(zipf_offset);
+      }
+      key += FLAGS_stamp_len * FLAGS_ycsb_hot_page_size;
+      if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+      {
+         keylist.emplace_back(TxnNode(key, true, 1));
+      }
+      else
+      {
+         keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
+      }
+   }
+   else
+   {
+      K key = zipf_randoms[partition_id]->rand(zipf_offset);
+      while (key < FLAGS_ycsb_hot_page_size)
       {
          key = zipf_randoms[partition_id]->rand(zipf_offset);
       }
@@ -176,6 +211,25 @@ std::vector<TxnNode> ycsb_workload::ycsb_hot_page(int &partition_id)
       }
    }
    K key = utils::RandomGenerator::getRandU64(0, FLAGS_ycsb_hot_page_size);
+   // if (FLAGS_distribution && urand(1, 100) <= int(FLAGS_distribution_rate))
+   // {
+   //    int hash_value = key % FLAGS_nodes;
+   //    while (hash_value == partition_id)
+   //    {
+   //       key = utils::RandomGenerator::getRandU64(0, FLAGS_ycsb_hot_page_size);
+   //       hash_value = key % FLAGS_nodes;
+   //    }
+   //    key = key * FLAGS_stamp_len;
+   //    if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+   //    {
+   //       keylist.emplace_back(TxnNode(key, true, 1));
+   //    }
+   //    else
+   //    {
+   //       keylist.emplace_back(TxnNode(key, false, FLAGS_write_weight));
+   //    }
+   //    return keylist;
+   // }
    // 检查 random_number % nodes 是否等于 partition_id
    int hash_value = key % FLAGS_nodes;
    if (hash_value != partition_id)
