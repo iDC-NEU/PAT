@@ -1,3 +1,4 @@
+#include "scalestore/storage/buffermanager/BufferFrameGuards.hpp"
 DEFINE_bool(order_wdc_index, true, "");
 std::atomic<u64> scanned_elements = 0;
 
@@ -18,6 +19,8 @@ enum transaction_types
    PAYMENT = 4,
    MAX,
 };
+// commit mtx
+std::mutex mtx;
 
 thread_local std::vector<uint64_t> txns(transaction_types::MAX);
 thread_local std::vector<uint64_t> txn_latencies(transaction_types::MAX);
@@ -162,7 +165,7 @@ inline Integer getNonUniformRandomLastNameForLoad()
 // -------------------------------------------------------------------------------------
 void loadItem()
 {
-   printf("Call loadItem\n");
+   // printf("Call loadItem\n");
    for (Integer i = 1; i <= ITEMS_NO; i++)
    {
       Varchar<50> i_data = randomastring<50>(25, 50);
@@ -178,7 +181,7 @@ void loadItem()
 // generates a range of warehouses
 void loadWarehouse(Integer from_wh_id, Integer to_wh_id)
 {
-   printf("Call loadWarehouse\n");
+   // printf("Call loadWarehouse\n");
    for (Integer i = from_wh_id; i < to_wh_id; i++)
    {
       warehouse.insert({i + 1}, {randomastring<10>(6, 10), randomastring<20>(10, 20), randomastring<20>(10, 20), randomastring<20>(10, 20),
@@ -189,7 +192,7 @@ void loadWarehouse(Integer from_wh_id, Integer to_wh_id)
 // TODO：改顺序插入
 void loadStock(Integer w_id)
 {
-   printf("Call loadStock\n");
+   // printf("Call loadStock\n");
    for (Integer i = 0; i < ITEMS_NO; i++)
    {
       Varchar<50> s_data = randomastring<50>(25, 50);
@@ -207,7 +210,7 @@ void loadStock(Integer w_id)
 
 void loadDistrinct(Integer w_id)
 {
-   printf("Call loadDistrinct\n");
+   // printf("Call loadDistrinct\n");
    for (Integer i = 1; i < 11; i++)
    {
       district.insert({w_id, i}, {randomastring<10>(6, 10), randomastring<20>(10, 20), randomastring<20>(10, 20), randomastring<20>(10, 20),
@@ -223,7 +226,6 @@ Timestamp currentTimestamp()
 // TODO：改顺序插入
 void loadCustomer(Integer w_id, Integer d_id)
 {
-   printf("Call Customer\n");
    Timestamp now = currentTimestamp();
    for (Integer i = 0; i < 3000; i++)
    {
@@ -248,8 +250,6 @@ void loadCustomer(Integer w_id, Integer d_id)
 // TODO：改顺序插入
 void loadOrders(Integer w_id, Integer d_id)
 {
-   printf("Call loadOrders\n");
-
    Timestamp now = currentTimestamp();
    std::vector<Integer> c_ids;
    for (Integer i = 1; i <= 3000; i++)
@@ -292,19 +292,25 @@ void newOrder(Integer w_id,
               const std::vector<Integer> &qtys,
               Timestamp timestamp)
 {
-
-   // printf("Call newOrder\n");
    //  -------------------------------------------------------------------------------------
    Numeric w_tax = warehouse.lookupField({w_id}, &warehouse_t::w_tax);
    Numeric c_discount = customer.lookupField({w_id, d_id, c_id}, &customer_t::c_discount);
    Numeric d_tax;
    Integer o_id;
-
-   district.update1({w_id, d_id}, [&](district_t &rec)
-                    {
-      d_tax = rec.d_tax;
-      o_id = rec.d_next_o_id++; });
-   // WALUpdate1(district_t, d_next_o_id));
+   
+   // hold locks until commit
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_district;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_order;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_neworder;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_order_wdc;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_stock;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_orderline;
+   
+   district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
+   {
+         d_tax = rec.d_tax;
+         o_id = rec.d_next_o_id++; 
+   });
 
    Numeric all_local = 1;
    for (Integer sw : supwares)
@@ -313,186 +319,155 @@ void newOrder(Integer w_id,
 
    Numeric cnt = lineNumbers.size();
    Integer carrier_id = 0; /*null*/
-   order.insert({w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local});
+   order.insert(my_lock_order, {w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local});
    if (FLAGS_order_wdc_index)
    {
-      order_wdc.insert({w_id, d_id, c_id, o_id}, {});
+      order_wdc.insert(my_lock_order_wdc, {w_id, d_id, c_id, o_id}, {});
    }
-   neworder.insert({w_id, d_id, o_id}, {});
+   neworder.insert(my_lock_neworder, {w_id, d_id, o_id}, {});
 
+   // sort by key, to lock in order
+   std::map<stock_t::Key, Integer> ordered_key;
    for (unsigned i = 0; i < lineNumbers.size(); i++)
    {
       Integer qty = qtys[i];
-      stock.update1({supwares[i], itemids[i]}, [&](stock_t &rec)
-                    {
+      ordered_key[{supwares[i], itemids[i]}] = qty;
+   }
+   std::map<stock_t::Key, stock_t> stockWriteSet;
+   // for (unsigned i = 0; i < lineNumbers.size(); i++)
+   for (const auto& [key, value] : ordered_key)
+   {
+      // Integer qty = qtys[i];
+      Integer qty = value;
+      // stock.lookup1({supwares[i], itemids[i]}, [&](stock_t &rec)
+      // {
+      //    stockReadSet[{supwares[i], itemids[i]}] = rec;
+      //    // auto& s_quantity = rec.s_quantity;
+      //    // s_quantity = (s_quantity >= qty)? s_quantity - qty : s_quantity + 91 - qty;
+      //    // rec.s_remote_cnt += (supwares[i]!= w_id);
+      //    // rec.s_order_cnt++;
+      //    // rec.s_ytd += qty;
+      // });
+      // stock.update1(my_lock_stock, {supwares[i], itemids[i]}, [&](stock_t &rec)
+      stock.update1(my_lock_stock, key, [&](stock_t &rec)
+      {
          auto& s_quantity = rec.s_quantity;
          s_quantity = (s_quantity >= qty + 10) ? s_quantity - qty : s_quantity + 91 - qty;
-         rec.s_remote_cnt += (supwares[i] != w_id);
+         rec.s_remote_cnt += (key.s_w_id != w_id);
          rec.s_order_cnt++;
-         rec.s_ytd += qty; });
-      // WALUpdate3(stock_t, s_remote_cnt, s_order_cnt, s_ytd));
+         rec.s_ytd += qty; 
+         // cache writeset, to support subsequent read self writeset
+         stockWriteSet[key] = rec;
+      });
    }
-
+   // lookup1
    for (unsigned i = 0; i < lineNumbers.size(); i++)
    {
       Integer lineNumber = lineNumbers[i];
       Integer supware = supwares[i];
       Integer itemid = itemids[i];
       Numeric qty = qtys[i];
-
       Numeric i_price = item.lookupField({itemid}, &item_t::i_price); // TODO: rollback on miss
       Varchar<24> s_dist;
-      stock.lookup1({w_id, itemid}, [&](const stock_t &rec)
-                    {
+      // check local write set
+      auto it = stockWriteSet.find({w_id, itemid});
+      if (it != stockWriteSet.end())
+      {
+         // read local write set directly
          switch (d_id) {
             case 1:
-               s_dist = rec.s_dist_01;
+               s_dist = it->second.s_dist_01;
                break;
             case 2:
-               s_dist = rec.s_dist_02;
+               s_dist = it->second.s_dist_02;
                break;
             case 3:
-               s_dist = rec.s_dist_03;
+               s_dist = it->second.s_dist_03;
                break;
             case 4:
-               s_dist = rec.s_dist_04;
+               s_dist = it->second.s_dist_04;
                break;
             case 5:
-               s_dist = rec.s_dist_05;
+               s_dist = it->second.s_dist_05;
                break;
             case 6:
-               s_dist = rec.s_dist_06;
+               s_dist = it->second.s_dist_06;
                break;
             case 7:
-               s_dist = rec.s_dist_07;
+               s_dist = it->second.s_dist_07;
                break;
             case 8:
-               s_dist = rec.s_dist_08;
+               s_dist = it->second.s_dist_08;
                break;
             case 9:
-               s_dist = rec.s_dist_09;
+               s_dist = it->second.s_dist_09;
                break;
             case 10:
-               s_dist = rec.s_dist_10;
+               s_dist = it->second.s_dist_10;
                break;
             default:
                throw;
-         } });
+         } 
+      } 
+      else
+      {
+         stock.lookup1({w_id, itemid}, [&](const stock_t &rec)
+         {
+            switch (d_id) {
+               case 1:
+                  s_dist = rec.s_dist_01;
+                  break;
+               case 2:
+                  s_dist = rec.s_dist_02;
+                  break;
+               case 3:
+                  s_dist = rec.s_dist_03;
+                  break;
+               case 4:
+                  s_dist = rec.s_dist_04;
+                  break;
+               case 5:
+                  s_dist = rec.s_dist_05;
+                  break;
+               case 6:
+                  s_dist = rec.s_dist_06;
+                  break;
+               case 7:
+                  s_dist = rec.s_dist_07;
+                  break;
+               case 8:
+                  s_dist = rec.s_dist_08;
+                  break;
+               case 9:
+                  s_dist = rec.s_dist_09;
+                  break;
+               case 10:
+                  s_dist = rec.s_dist_10;
+                  break;
+               default:
+                  throw;
+            } 
+         });
+      }
+
       Numeric ol_amount = qty * i_price * (1.0 + w_tax + d_tax) * (1.0 - c_discount);
       Timestamp ol_delivery_d = 0; // NULL
-      orderline.insert({w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
-      // TODO: i_data, s_data
+      orderline.insert(my_lock_orderline, {w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
    }
+   std::cout << "newOrderRnd end" << std::endl;
+   // my_lock_district.clear();
+   // my_lock_order.clear();
+   // my_lock_neworder.clear();
+   // my_lock_order_wdc.clear();
+   // my_lock_stock.clear();
+   // my_lock_orderline.clear();
 }
 
-void newOrderWithTrace(Integer w_id,
-                       Integer d_id,
-                       Integer c_id,
-                       const std::vector<Integer> &lineNumbers,
-                       const std::vector<Integer> &supwares,
-                       const std::vector<Integer> &itemids,
-                       const std::vector<Integer> &qtys,
-                       Timestamp timestamp, std::vector<int> &trace_key_list)
-{
 
-   // printf("Call newOrderWithTrace\n");
-   //  -------------------------------------------------------------------------------------
-   Numeric w_tax = warehouse.lookupField({w_id}, &warehouse_t::w_tax);
-   Numeric c_discount = customer.lookupFieldWithTrace({w_id, d_id, c_id}, &customer_t::c_discount, trace_key_list);
-   Numeric d_tax;
-   Integer o_id;
-
-   district.update1({w_id, d_id}, [&](district_t &rec)
-                    {
-      d_tax = rec.d_tax;
-      o_id = rec.d_next_o_id++; });
-   // WALUpdate1(district_t, d_next_o_id));
-
-   Numeric all_local = 1;
-   for (Integer sw : supwares)
-      if (sw != w_id)
-         all_local = 0;
-
-   Numeric cnt = lineNumbers.size();
-   Integer carrier_id = 0; /*null*/
-   order.insertWithTrace({w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local}, trace_key_list);
-   if (FLAGS_order_wdc_index)
-   {
-      order_wdc.insert({w_id, d_id, c_id, o_id}, {});
-   }
-   neworder.insert({w_id, d_id, o_id}, {});
-
-   for (unsigned i = 0; i < lineNumbers.size(); i++)
-   {
-      Integer qty = qtys[i];
-      stock.update1WithTrace(
-          {supwares[i], itemids[i]}, [&](stock_t &rec)
-          {
-         auto& s_quantity = rec.s_quantity;
-         s_quantity = (s_quantity >= qty + 10) ? s_quantity - qty : s_quantity + 91 - qty;
-         rec.s_remote_cnt += (supwares[i] != w_id);
-         rec.s_order_cnt++;
-         rec.s_ytd += qty; },
-          trace_key_list);
-      // WALUpdate3(stock_t, s_remote_cnt, s_order_cnt, s_ytd));
-   }
-
-   for (unsigned i = 0; i < lineNumbers.size(); i++)
-   {
-      Integer lineNumber = lineNumbers[i];
-      Integer supware = supwares[i];
-      Integer itemid = itemids[i];
-      Numeric qty = qtys[i];
-
-      Numeric i_price = item.lookupField({itemid}, &item_t::i_price); // TODO: rollback on miss
-      Varchar<24> s_dist;
-      stock.lookup1WithTrace(
-          {w_id, itemid}, [&](const stock_t &rec)
-          {
-         switch (d_id) {
-            case 1:
-               s_dist = rec.s_dist_01;
-               break;
-            case 2:
-               s_dist = rec.s_dist_02;
-               break;
-            case 3:
-               s_dist = rec.s_dist_03;
-               break;
-            case 4:
-               s_dist = rec.s_dist_04;
-               break;
-            case 5:
-               s_dist = rec.s_dist_05;
-               break;
-            case 6:
-               s_dist = rec.s_dist_06;
-               break;
-            case 7:
-               s_dist = rec.s_dist_07;
-               break;
-            case 8:
-               s_dist = rec.s_dist_08;
-               break;
-            case 9:
-               s_dist = rec.s_dist_09;
-               break;
-            case 10:
-               s_dist = rec.s_dist_10;
-               break;
-            default:
-               throw;
-         } },
-          trace_key_list);
-      Numeric ol_amount = qty * i_price * (1.0 + w_tax + d_tax) * (1.0 - c_discount);
-      Timestamp ol_delivery_d = 0; // NULL
-      orderline.insert({w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
-      // TODO: i_data, s_data
-   }
-}
 
 void newOrderRnd(Integer w_id)
 {
+   std::cout<< "Call newOrderRnd" << std::endl;
    // -------------------------------------------------------------------------------------
    total_new_order++;
    // -------------------------------------------------------------------------------------
@@ -508,6 +483,14 @@ void newOrderRnd(Integer w_id)
    itemids.reserve(15);
    std::vector<Integer> qtys;
    qtys.reserve(15);
+   // std::map<Integer, char> lineNumbers;
+   // lineNumbers.reserve(15);
+   // std::map<Integer, char> supwares;
+   // supwares.reserve(15);
+   // std::map<Integer, char> itemids;
+   // itemids.reserve(15);
+   // std::map<Integer, char> qtys;
+   // qtys.reserve(15);
    for (Integer i = 1; i <= ol_cnt; i++)
    {
       Integer supware = w_id;
@@ -528,6 +511,8 @@ void newOrderRnd(Integer w_id)
       itemids.push_back(itemid);
       qtys.push_back(urand(1, 10));
    }
+   // std::sort(supwares.begin(), supwares.end());
+   // std::sort(itemids.begin(), itemids.end());
    newOrder(w_id, d_id, c_id, lineNumbers, supwares, itemids, qtys, currentTimestamp());
 }
 
@@ -591,14 +576,24 @@ std::string newOrderRndCreate(Integer w_id)
 void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
 {
    // printf("Call delivery\n");
+   // hold locks until commit
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_order;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_orderline;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_customer;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_neworder;
+   std::map<neworder_t::Key, bool> neworderWriteSet;
+   std::map<order_t::Key, order_t> orderWriteSet;
+   std::map<orderline_t::Key, orderline_t> orderlineWriteSet;
+   std::map<customer_t::Key, customer_t> customerWriteSet;
 
    for (Integer d_id = 1; d_id <= 10; d_id++)
    {
       Integer o_id = minInteger;
       neworder.scan({w_id, d_id, minInteger}, [&](const neworder_t::Key &key, const neworder_t &)
-                    {
+      {
          if (key.no_w_id == w_id && key.no_d_id == d_id) { o_id = key.no_o_id; }
-         return false; });
+         return false; 
+      });
       // [&]() { o_id = minInteger; }); undo which we have not implemented
       if (o_id == minInteger)
       {
@@ -610,21 +605,26 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
       // -------------------------------------------------------------------------------------
       if (FLAGS_tpcc_remove)
       {
-         [[maybe_unused]] const auto ret = neworder.erase({w_id, d_id, o_id});
-         // if(!ret)
-         // std::cout << "Could not erase neworder " << "\n";
+         // auto it = neworderWriteSet.find({w_id, d_id, o_id});
+         // if (it != neworderWriteSet.end())
+         // {
+         //    // label remove
+         //    neworderWriteSet[{w_id, d_id, o_id}] = true;
+         // }
+         [[maybe_unused]] const auto ret = neworder.erase(my_lock_neworder, {w_id, d_id, o_id});
       }
-      // -------------------------------------------------------------------------------------
-      // Integer ol_cnt = minInteger, c_id;
-      // order.scan({w_id, d_id, o_id}, [&](const order_t& rec) { ol_cnt = rec.o_ol_cnt; c_id = rec.o_c_id; return false; });
-      // if (ol_cnt == minInteger)
-      // continue;
       Integer ol_cnt = 0;
       Integer c_id = 0;
 
+
+      // order.lookup1({w_id, d_id, o_id}, [&](const order_t &rec)
+      // {
+      //    ol_cnt = rec.o_ol_cnt;
+      //    c_id = rec.o_c_id;
+      // });
       bool is_safe_to_continue = false;
       order.scan({w_id, d_id, o_id}, [&](const order_t::Key &key, const order_t &rec)
-                 {
+      {
          if (key.o_w_id == w_id && key.o_d_id == d_id && key.o_id == o_id) {
             is_safe_to_continue = true;
             ol_cnt = rec.o_ol_cnt;
@@ -632,7 +632,8 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
          } else {
             is_safe_to_continue = false;
          }
-         return false; });
+         return false; 
+      });
       // [&]() { is_safe_to_continue = false; });
       if (!is_safe_to_continue)
       {
@@ -641,18 +642,20 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
          delivery_aborts++;
          continue;
       }
-      order.update1({w_id, d_id, o_id}, [&](order_t &rec)
+      
+      order.update1(my_lock_order, {w_id, d_id, o_id}, [&](order_t &rec)
                     { rec.o_carrier_id = carrier_id; });
       // -------------------------------------------------------------------------------------
       // First check if all orderlines have been inserted, a hack because of the missing transaction and concurrency control
       orderline.scan({w_id, d_id, o_id, ol_cnt}, [&](const orderline_t::Key &key, const orderline_t &)
-                     {
+      {
          if (key.ol_w_id == w_id && key.ol_d_id == d_id && key.ol_o_id == o_id && key.ol_number == ol_cnt) {
             is_safe_to_continue = true;
          } else {
             is_safe_to_continue = false;
          }
-         return false; });
+         return false; 
+      });
       // [&]() { is_safe_to_continue = false; });
       if (!is_safe_to_continue)
       {
@@ -665,121 +668,28 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
       Numeric ol_total = 0;
       for (Integer ol_number = 1; ol_number <= ol_cnt; ol_number++)
       {
-         orderline.update1({w_id, d_id, o_id, ol_number}, [&](orderline_t &rec)
-                           {
+         orderline.update1(my_lock_orderline, {w_id, d_id, o_id, ol_number}, [&](orderline_t &rec)
+         {
             ol_total += rec.ol_amount;
-            rec.ol_delivery_d = datetime; });
-         // WALUpdate1(orderline_t, ol_delivery_d));
+            rec.ol_delivery_d = datetime; 
+         });
       }
-
-      customer.update1({w_id, d_id, c_id}, [&](customer_t &rec)
-                       {
+      customer.update1(my_lock_customer, {w_id, d_id, c_id}, [&](customer_t &rec)
+      {
          rec.c_balance += ol_total;
-         rec.c_delivery_cnt++; });
-      // WALUpdate2(customer_t, c_balance, c_delivery_cnt));
+         rec.c_delivery_cnt++; 
+      });
+      // my_lock_order.clear();
+      // my_lock_orderline.clear();
+      // my_lock_customer.clear();
+      // my_lock_neworder.clear();
    }
-}
-
-void deliveryWithTrace(Integer w_id, Integer carrier_id, Timestamp datetime, std::vector<int> &trace_key_list)
-{
-   // printf("Call deliveryWithTrace\n");
-
-   for (Integer d_id = 1; d_id <= 10; d_id++)
-   {
-      Integer o_id = minInteger;
-      neworder.scan({w_id, d_id, minInteger}, [&](const neworder_t::Key &key, const neworder_t &)
-                    {
-         if (key.no_w_id == w_id && key.no_d_id == d_id) { o_id = key.no_o_id; }
-         return false; });
-      // [&]() { o_id = minInteger; }); undo which we have not implemented
-      if (o_id == minInteger)
-      {
-         delivery_aborts++;
-         std::cout << "abort"
-                   << "\n";
-         continue;
-      }
-      // -------------------------------------------------------------------------------------
-      if (FLAGS_tpcc_remove)
-      {
-         [[maybe_unused]] const auto ret = neworder.erase({w_id, d_id, o_id});
-         // if(!ret)
-         // std::cout << "Could not erase neworder " << "\n";
-      }
-      // -------------------------------------------------------------------------------------
-      // Integer ol_cnt = minInteger, c_id;
-      // order.scan({w_id, d_id, o_id}, [&](const order_t& rec) { ol_cnt = rec.o_ol_cnt; c_id = rec.o_c_id; return false; });
-      // if (ol_cnt == minInteger)
-      // continue;
-      Integer ol_cnt = 0;
-      Integer c_id = 0;
-
-      bool is_safe_to_continue = false;
-      order.scanWithTrace(
-          {w_id, d_id, o_id}, [&](const order_t::Key &key, const order_t &rec)
-          {
-         if (key.o_w_id == w_id && key.o_d_id == d_id && key.o_id == o_id) {
-            is_safe_to_continue = true;
-            ol_cnt = rec.o_ol_cnt;
-            c_id = rec.o_c_id;
-         } else {
-            is_safe_to_continue = false;
-         }
-         return false; },
-          trace_key_list);
-      // [&]() { is_safe_to_continue = false; });
-      if (!is_safe_to_continue)
-      {
-         std::cout << "aborted"
-                   << "\n";
-         delivery_aborts++;
-         continue;
-      }
-      order.update1WithTrace(
-          {w_id, d_id, o_id}, [&](order_t &rec)
-          { rec.o_carrier_id = carrier_id; },
-          trace_key_list);
-      // -------------------------------------------------------------------------------------
-      // First check if all orderlines have been inserted, a hack because of the missing transaction and concurrency control
-      orderline.scan({w_id, d_id, o_id, ol_cnt}, [&](const orderline_t::Key &key, const orderline_t &)
-                     {
-         if (key.ol_w_id == w_id && key.ol_d_id == d_id && key.ol_o_id == o_id && key.ol_number == ol_cnt) {
-            is_safe_to_continue = true;
-         } else {
-            is_safe_to_continue = false;
-         }
-         return false; });
-      // [&]() { is_safe_to_continue = false; });
-      if (!is_safe_to_continue)
-      {
-         std::cout << "aborted"
-                   << "\n";
-         delivery_aborts++;
-         continue;
-      }
-      // -------------------------------------------------------------------------------------
-      Numeric ol_total = 0;
-      for (Integer ol_number = 1; ol_number <= ol_cnt; ol_number++)
-      {
-         orderline.update1({w_id, d_id, o_id, ol_number}, [&](orderline_t &rec)
-                           {
-            ol_total += rec.ol_amount;
-            rec.ol_delivery_d = datetime; });
-         // WALUpdate1(orderline_t, ol_delivery_d));
-      }
-
-      customer.update1WithTrace(
-          {w_id, d_id, c_id}, [&](customer_t &rec)
-          {
-         rec.c_balance += ol_total;
-         rec.c_delivery_cnt++; },
-          trace_key_list);
-      // WALUpdate2(customer_t, c_balance, c_delivery_cnt));
-   }
+   std::cout << "delivery done" << std::endl;
 }
 
 void deliveryRnd(Integer w_id)
 {
+   std::cout<< "Call deliveryRnd" << std::endl;
    Integer carrier_id = urand(1, 10);
    delivery(w_id, carrier_id, currentTimestamp());
 }
@@ -791,6 +701,7 @@ std::string deliveryRndCreate(Integer w_id)
    return "delivery(" + std::to_string(w_id) + "," + std::to_string(carrier_id) + "," + std::to_string(currentTimestamp()) + ")";
 }
 
+// no updates
 void stockLevel(Integer w_id, Integer d_id, Integer threshold)
 {
    // printf("Call stockLevel\n");
@@ -801,19 +712,6 @@ void stockLevel(Integer w_id, Integer d_id, Integer threshold)
       auto end = utils::getTimePoint();
       txn_paymentbyname_latencies[0] += (end - start);
    }
-   //"SELECT COUNT(DISTINCT (S_I_ID)) AS STOCK_COUNT FROM orderline, stock WHERE OL_W_ID = ? AND OL_D_ID = ? AND OL_O_ID < ? AND OL_O_ID >=?
-   // AND
-   // S_W_ID = ? AND S_I_ID = OL_I_ID AND S_QUANTITY < ?"
-
-   /*
-    * http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-c_v5.11.0.pdf P 116
-    * EXEC SQL SELECT COUNT(DISTINCT (s_i_id)) INTO :stock_count
-         FROM order_line, stock
-         WHERE ol_w_id=:w_id AND
-         ol_d_id=:d_id AND ol_o_id<:o_id AND
-         ol_o_id>=:o_id-20 AND s_w_id=:w_id AND
-         s_i_id=ol_i_id AND s_quantity < :threshold;
-    */
 
    std::vector<Integer> items;
    items.reserve(100);
@@ -851,68 +749,9 @@ void stockLevel(Integer w_id, Integer d_id, Integer threshold)
    }
 }
 
-void stockLevelWithTrace(Integer w_id, Integer d_id, Integer threshold, std::vector<int> &trace_key_list)
-{
-   // printf("Call stockLevelWithTrace\n");
-   Integer o_id;
-   {
-      auto start = utils::getTimePoint();
-      o_id = district.lookupField({w_id, d_id}, &district_t::d_next_o_id);
-      auto end = utils::getTimePoint();
-      txn_paymentbyname_latencies[0] += (end - start);
-   }
-   //"SELECT COUNT(DISTINCT (S_I_ID)) AS STOCK_COUNT FROM orderline, stock WHERE OL_W_ID = ? AND OL_D_ID = ? AND OL_O_ID < ? AND OL_O_ID >=?
-   // AND
-   // S_W_ID = ? AND S_I_ID = OL_I_ID AND S_QUANTITY < ?"
-
-   /*
-    * http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-c_v5.11.0.pdf P 116
-    * EXEC SQL SELECT COUNT(DISTINCT (s_i_id)) INTO :stock_count
-         FROM order_line, stock
-         WHERE ol_w_id=:w_id AND
-         ol_d_id=:d_id AND ol_o_id<:o_id AND
-         ol_o_id>=:o_id-20 AND s_w_id=:w_id AND
-         s_i_id=ol_i_id AND s_quantity < :threshold;
-    */
-
-   std::vector<Integer> items;
-   items.reserve(100);
-   Integer min_ol_o_id = o_id - 20;
-   {
-      auto start = utils::getTimePoint();
-      orderline.scan({w_id, d_id, min_ol_o_id, minInteger}, [&](const orderline_t::Key &key, const orderline_t &rec)
-                     {
-         if (key.ol_w_id == w_id && key.ol_d_id == d_id && key.ol_o_id < o_id && key.ol_o_id >= min_ol_o_id) {
-            items.push_back(rec.ol_i_id);
-            return true;
-         }
-         return false; });
-      auto end = utils::getTimePoint();
-      txn_paymentbyname_latencies[1] += (end - start);
-      // [&]() { items.clear(); });
-   }
-   {
-      auto start = utils::getTimePoint();
-      std::sort(items.begin(), items.end());
-      std::unique(items.begin(), items.end());
-      auto end = utils::getTimePoint();
-      txn_paymentbyname_latencies[2] += (end - start);
-   }
-   unsigned count = 0;
-   {
-      auto start = utils::getTimePoint();
-      for (Integer i_id : items)
-      {
-         auto res_s_quantity = stock.lookupFieldWithTrace({w_id, i_id}, &stock_t::s_quantity, trace_key_list);
-         count += res_s_quantity < threshold;
-      }
-      auto end = utils::getTimePoint();
-      txn_paymentbyname_latencies[3] += (end - start);
-   }
-}
-
 void stockLevelRnd(Integer w_id)
 {
+   // std::cout<< "Call stockLevelRnd" << std::endl;
    stockLevel(w_id, urand(1, 10), urand(10, 20));
 }
 
@@ -921,6 +760,7 @@ std::string stockLevelRndCreate(Integer w_id)
    return "stockLevel(" + std::to_string(w_id) + "," + std::to_string(urand(1, 10)) + "," + std::to_string(urand(10, 20)) + ")";
 }
 
+// no updates
 void orderStatusId(Integer w_id, Integer d_id, Integer c_id)
 {
    // printf("Call orderStatusId\n");
@@ -993,88 +833,8 @@ void orderStatusId(Integer w_id, Integer d_id, Integer c_id)
    }
 }
 
-void orderStatusIdWithTrace(Integer w_id, Integer d_id, Integer c_id, std::vector<int> &trace_key_list)
-{
-   // printf("Call orderStatusIdWithTrace\n");
-   Varchar<16> c_first;
-   Varchar<2> c_middle;
-   Varchar<16> c_last;
-   Numeric c_balance;
-   customer.lookup1WithTrace(
-       {w_id, d_id, c_id}, [&](const customer_t &rec)
-       {
-      c_first = rec.c_first;
-      c_middle = rec.c_middle;
-      c_last = rec.c_last;
-      c_balance = rec.c_balance; },
-       trace_key_list);
-
-   Integer o_id = -1;
-   // -------------------------------------------------------------------------------------
-   // latest order id desc
-   if (FLAGS_order_wdc_index)
-   {
-      order_wdc.scanDesc({w_id, d_id, c_id, std::numeric_limits<Integer>::max()}, [&](const order_wdc_t::Key &key, const order_wdc_t &)
-                         {
-         assert(key.o_w_id == w_id);
-         assert(key.o_d_id == d_id);
-         assert(key.o_c_id == c_id);
-         o_id = key.o_id;
-         return false; });
-      // [] {});
-   }
-   else
-   {
-      order.scanDescWithTrace(
-          {w_id, d_id, std::numeric_limits<Integer>::max()}, [&](const order_t::Key &key, const order_t &rec)
-          {
-         if (key.o_w_id == w_id && key.o_d_id == d_id && rec.o_c_id == c_id) {
-            o_id = key.o_id;
-            return false;
-         }
-         return true; },
-          trace_key_list);
-      // [&]() {});
-   }
-   ensure(o_id > -1);
-   // -------------------------------------------------------------------------------------
-   Timestamp o_entry_d;
-   Integer o_carrier_id;
-
-   order.lookup1WithTrace(
-       {w_id, d_id, o_id}, [&](const order_t &rec)
-       {
-      o_entry_d = rec.o_entry_d;
-      o_carrier_id = rec.o_carrier_id; },
-       trace_key_list);
-   Integer ol_i_id;
-   Integer ol_supply_w_id;
-   Timestamp ol_delivery_d;
-   Numeric ol_quantity;
-   Numeric ol_amount;
-   {
-      // AAA: expensive
-      orderline.scan({w_id, d_id, o_id, minInteger}, [&](const orderline_t::Key &key, const orderline_t &rec)
-                     {
-         if (key.ol_w_id == w_id && key.ol_d_id == d_id && key.ol_o_id == o_id) {
-            ol_i_id = rec.ol_i_id;
-            ol_supply_w_id = rec.ol_supply_w_id;
-            ol_delivery_d = rec.ol_delivery_d;
-            ol_quantity = rec.ol_quantity;
-            ol_amount = rec.ol_amount;
-            return true;
-         }
-         return false; });
-      // [&]() {
-      //    // NOTHING
-      // });
-   }
-}
-
 void orderStatusName(Integer w_id, Integer d_id, Varchar<16> c_last)
 {
-   // printf("Call orderStatusName\n");
-
    std::vector<Integer> ids;
    customerwdl.scan({w_id, d_id, c_last, {}}, [&](const customer_wdl_t::Key &key, const customer_wdl_t &rec)
                     {
@@ -1131,70 +891,9 @@ void orderStatusName(Integer w_id, Integer d_id, Varchar<16> c_last)
    // });
 }
 
-void orderStatusNameWithTrace(Integer w_id, Integer d_id, Varchar<16> c_last, std::vector<int> &trace_key_list)
-{
-   // printf("Call orderStatusNameWithTrace\n");
-
-   std::vector<Integer> ids;
-   customerwdl.scan({w_id, d_id, c_last, {}}, [&](const customer_wdl_t::Key &key, const customer_wdl_t &rec)
-                    {
-      if (key.c_w_id == w_id && key.c_d_id == d_id && key.c_last == c_last) {
-         ids.push_back(rec.c_id);
-         return true;
-      }
-      return false; });
-   // [&]() { ids.clear(); });
-   unsigned c_count = ids.size();
-   if (c_count == 0)
-      return; // TODO: rollback
-   unsigned index = c_count / 2;
-   if ((c_count % 2) == 0)
-      index -= 1;
-   Integer c_id = ids[index];
-
-   Integer o_id = -1;
-   // latest order id desc
-   if (FLAGS_order_wdc_index)
-   {
-      order_wdc.scanDesc({w_id, d_id, c_id, std::numeric_limits<Integer>::max()}, [&](const order_wdc_t::Key &key, const order_wdc_t &)
-                         {
-         assert(key.o_w_id == w_id);
-         assert(key.o_d_id == d_id);
-         assert(key.o_c_id == c_id);
-         o_id = key.o_id;
-         return false; });
-      // [] {});
-   }
-   else
-   {
-      order.scanDescWithTrace(
-          {w_id, d_id, std::numeric_limits<Integer>::max()}, [&](const order_t::Key &key, const order_t &rec)
-          {
-         if (key.o_w_id == w_id && key.o_d_id == d_id && rec.o_c_id == c_id) {
-            o_id = key.o_id;
-            return false;
-         }
-         return true; },
-          trace_key_list);
-      // [&]() {});
-      ensure(o_id > -1);
-   }
-   // -------------------------------------------------------------------------------------
-   Timestamp ol_delivery_d;
-   orderline.scan({w_id, d_id, o_id, minInteger}, [&](const orderline_t::Key &key, const orderline_t &rec)
-                  {
-      if (key.ol_w_id == w_id && key.ol_d_id == d_id && key.ol_o_id == o_id) {
-         ol_delivery_d = rec.ol_delivery_d;
-         return true;
-      }
-      return false; });
-   // []() {
-   //    // NOTHING
-   // });
-}
-
 void orderStatusRnd(Integer w_id)
 {
+   // std::cout<< "Call orderStatusRnd" << std::endl;
    Integer d_id = urand(1, 10);
    if (urand(1, 100) <= 40)
    {
@@ -1220,7 +919,6 @@ std::string orderStatusRndCreate(Integer w_id)
       return "orderStatusName(" + std::to_string(w_id) + "," + std::to_string(d_id) + "," + genName(getNonUniformRandomLastNameForRun()).toString() + ")";
    }
 }
-
 void paymentById(Integer w_id,
                  Integer d_id,
                  Integer c_w_id,
@@ -1230,8 +928,11 @@ void paymentById(Integer w_id,
                  Numeric h_amount,
                  [[maybe_unused]] Timestamp datetime)
 {
-   // printf("Call paymentById\n");
-
+   // hold locks until commit
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_warehouse;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_district;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_customer;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_history;
    Varchar<10> w_name;
    Varchar<20> w_street_1;
    Varchar<20> w_street_2;
@@ -1248,8 +949,9 @@ void paymentById(Integer w_id,
       w_state = rec.w_state;
       w_zip = rec.w_zip;
       w_ytd = rec.w_ytd; });
-   warehouse.update1({w_id}, [&](warehouse_t &rec)
-                     { rec.w_ytd += h_amount; });
+   warehouse.update1(my_lock_warehouse, {w_id}, [&](warehouse_t &rec)
+                  { rec.w_ytd += h_amount; });
+   
    Varchar<10> d_name;
    Varchar<20> d_street_1;
    Varchar<20> d_street_2;
@@ -1258,16 +960,17 @@ void paymentById(Integer w_id,
    Varchar<9> d_zip;
    Numeric d_ytd;
    district.lookup1({w_id, d_id}, [&](const district_t &rec)
-                    {
+   {
       d_name = rec.d_name;
       d_street_1 = rec.d_street_1;
       d_street_2 = rec.d_street_2;
       d_city = rec.d_city;
       d_state = rec.d_state;
       d_zip = rec.d_zip;
-      d_ytd = rec.d_ytd; });
-   district.update1({w_id, d_id}, [&](district_t &rec)
-                    { rec.d_ytd += h_amount; });
+      d_ytd = rec.d_ytd; 
+   });
+   district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
+               { rec.d_ytd += h_amount; });
 
    Varchar<500> c_data;
    Varchar<2> c_credit;
@@ -1284,186 +987,43 @@ void paymentById(Integer w_id,
    Numeric c_new_balance = c_balance - h_amount;
    Numeric c_new_ytd_payment = c_ytd_payment + h_amount;
    Numeric c_new_payment_cnt = c_payment_cnt + 1;
-
    if (c_credit == "BC")
    {
       Varchar<500> c_new_data;
       auto numChars = snprintf(c_new_data.data, 500, "| %4d %2d %4d %2d %4d $%7.2f %lu %s%s %s", c_id, c_d_id, c_w_id, d_id, w_id, h_amount,
-                               h_date, w_name.toString().c_str(), d_name.toString().c_str(), c_data.toString().c_str());
+                              h_date, w_name.toString().c_str(), d_name.toString().c_str(), c_data.toString().c_str());
       c_new_data.length = numChars;
       if (c_new_data.length > 500)
          c_new_data.length = 500;
-      customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-                       {
-         rec.c_data = c_new_data;
-         rec.c_balance = c_new_balance;
-         rec.c_ytd_payment = c_new_ytd_payment;
-         rec.c_payment_cnt = c_new_payment_cnt; });
-      // WALUpdate4(customer_t, c_data, c_balance, c_ytd_payment, c_payment_cnt));
-   }
-   else
-   {
-      customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-                       {
-         rec.c_balance = c_new_balance;
-         rec.c_ytd_payment = c_new_ytd_payment;
-         rec.c_payment_cnt = c_new_payment_cnt; });
-      // WALUpdate3(customer_t, c_balance, c_ytd_payment, c_payment_cnt));
-   }
-
-   Varchar<24> h_new_data = Varchar<24>(w_name) || Varchar<24>("    ") || d_name;
-   Integer t_id = thread_id;
-   Integer h_id = variable_for_workload[thread_id]++;
-   history.insert({t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
-}
-
-void paymentByIdWithTrace(Integer w_id,
-                          Integer d_id,
-                          Integer c_w_id,
-                          Integer c_d_id,
-                          Integer c_id,
-                          Timestamp h_date,
-                          Numeric h_amount,
-                          [[maybe_unused]] Timestamp datetime, std::vector<int> &trace_key_list)
-{
-   // printf("Call paymentByIdWithTrace\n");
-
-   Varchar<10> w_name;
-   Varchar<20> w_street_1;
-   Varchar<20> w_street_2;
-   Varchar<20> w_city;
-   Varchar<2> w_state;
-   Varchar<9> w_zip;
-   Numeric w_ytd;
-   warehouse.lookup1({w_id}, [&](const warehouse_t &rec)
+      customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                      {
-      w_name = rec.w_name;
-      w_street_1 = rec.w_street_1;
-      w_street_2 = rec.w_street_2;
-      w_city = rec.w_city;
-      w_state = rec.w_state;
-      w_zip = rec.w_zip;
-      w_ytd = rec.w_ytd; });
-   warehouse.update1({w_id}, [&](warehouse_t &rec)
-                     { rec.w_ytd += h_amount; });
-   Varchar<10> d_name;
-   Varchar<20> d_street_1;
-   Varchar<20> d_street_2;
-   Varchar<20> d_city;
-   Varchar<2> d_state;
-   Varchar<9> d_zip;
-   Numeric d_ytd;
-   district.lookup1({w_id, d_id}, [&](const district_t &rec)
-                    {
-      d_name = rec.d_name;
-      d_street_1 = rec.d_street_1;
-      d_street_2 = rec.d_street_2;
-      d_city = rec.d_city;
-      d_state = rec.d_state;
-      d_zip = rec.d_zip;
-      d_ytd = rec.d_ytd; });
-   district.update1({w_id, d_id}, [&](district_t &rec)
-                    { rec.d_ytd += h_amount; });
-
-   Varchar<500> c_data;
-   Varchar<2> c_credit;
-   Numeric c_balance;
-   Numeric c_ytd_payment;
-   Numeric c_payment_cnt;
-   customer.lookup1WithTrace(
-       {c_w_id, c_d_id, c_id}, [&](const customer_t &rec)
-       {
-      c_data = rec.c_data;
-      c_credit = rec.c_credit;
-      c_balance = rec.c_balance;
-      c_ytd_payment = rec.c_ytd_payment;
-      c_payment_cnt = rec.c_payment_cnt; },
-       trace_key_list);
-   Numeric c_new_balance = c_balance - h_amount;
-   Numeric c_new_ytd_payment = c_ytd_payment + h_amount;
-   Numeric c_new_payment_cnt = c_payment_cnt + 1;
-
-   if (c_credit == "BC")
-   {
-      Varchar<500> c_new_data;
-      auto numChars = snprintf(c_new_data.data, 500, "| %4d %2d %4d %2d %4d $%7.2f %lu %s%s %s", c_id, c_d_id, c_w_id, d_id, w_id, h_amount,
-                               h_date, w_name.toString().c_str(), d_name.toString().c_str(), c_data.toString().c_str());
-      c_new_data.length = numChars;
-      if (c_new_data.length > 500)
-         c_new_data.length = 500;
-      customer.update1WithTrace(
-          {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-          {
          rec.c_data = c_new_data;
          rec.c_balance = c_new_balance;
          rec.c_ytd_payment = c_new_ytd_payment;
-         rec.c_payment_cnt = c_new_payment_cnt; },
-          trace_key_list);
+         rec.c_payment_cnt = c_new_payment_cnt; });
       // WALUpdate4(customer_t, c_data, c_balance, c_ytd_payment, c_payment_cnt));
    }
    else
    {
-      customer.update1WithTrace(
-          {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-          {
+      customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+                     {
          rec.c_balance = c_new_balance;
          rec.c_ytd_payment = c_new_ytd_payment;
-         rec.c_payment_cnt = c_new_payment_cnt; },
-          trace_key_list);
+         rec.c_payment_cnt = c_new_payment_cnt; });
       // WALUpdate3(customer_t, c_balance, c_ytd_payment, c_payment_cnt));
    }
 
    Varchar<24> h_new_data = Varchar<24>(w_name) || Varchar<24>("    ") || d_name;
    Integer t_id = thread_id;
    Integer h_id = variable_for_workload[thread_id]++;
-   history.insert({t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
+
+   history.insert(my_lock_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
+   my_lock_warehouse.clear();
+   my_lock_district.clear();
+   my_lock_customer.clear();
+   my_lock_history.clear();
+   std::cout << "paymentdf commit " << std::endl;
 }
-/*
-CREATE PROCEDURE paymentByName(
-    IN w_id INT,
-    IN d_id INT,
-    IN c_w_id INT,
-    IN c_d_id INT,
-    IN c_last VARCHAR(16),
-    IN h_date TIMESTAMP,
-    IN h_amount NUMERIC,
-    IN datetime TIMESTAMP
-)
-BEGIN
-    -- 1. 仓库更新
-    UPDATE warehouse SET w_ytd = w_ytd + h_amount WHERE w_id = w_id;
-
-    -- 2. 地区更新
-    UPDATE district SET d_ytd = d_ytd + h_amount WHERE w_id = w_id AND d_id = d_id;
-
-    -- 3. 顾客ID检索
-    DECLARE c_id INT;
-    SELECT c_id INTO c_id
-    FROM customer_wdl
-    WHERE c_w_id = c_w_id AND c_d_id = c_d_id AND c_last = c_last
-    LIMIT 1;
-
-    IF c_id IS NULL THEN
-        -- 回滚或处理事务中止的逻辑
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Customer not found';
-        -- 或者使用 ROLLBACK 语句进行回滚
-        -- ROLLBACK;
-    END IF;
-
-    -- 4. 顾客信息更新
-    UPDATE customer
-    SET
-        c_balance = c_balance - h_amount,
-        c_ytd_payment = c_ytd_payment + h_amount,
-        c_payment_cnt = c_payment_cnt + 1
-    WHERE c_w_id = c_w_id AND c_d_id = c_d_id AND c_id = c_id;
-
-    -- 5. 历史更新
-    INSERT INTO history (t_id, h_id, c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data)
-    VALUES (thread_id, variable_for_workload[thread_id]++, c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, CONCAT(w_name, '    ', d_name));
-
-END;
-*/
 
 void paymentByName(Integer w_id,
                    Integer d_id,
@@ -1474,6 +1034,12 @@ void paymentByName(Integer w_id,
                    Numeric h_amount,
                    [[maybe_unused]] Timestamp datetime)
 {
+   // hold locks until commit
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_warehouse;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_district;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_customer;
+   std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_history;
+
    Varchar<10> w_name;
    Varchar<20> w_street_1;
    Varchar<20> w_street_2;
@@ -1482,7 +1048,6 @@ void paymentByName(Integer w_id,
    Varchar<9> w_zip;
    Numeric w_ytd;
    {
-      // auto start = utils::getTimePoint();
       warehouse.lookup1({w_id}, [&](const warehouse_t &rec)
                         {
          w_name = rec.w_name;
@@ -1492,17 +1057,11 @@ void paymentByName(Integer w_id,
          w_state = rec.w_state;
          w_zip = rec.w_zip;
          w_ytd = rec.w_ytd; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[0] += (end - start);
    }
    {
-      // auto start = utils::getTimePoint();
-      warehouse.update1({w_id}, [&](warehouse_t &rec)
+      warehouse.update1(my_lock_warehouse, {w_id}, [&](warehouse_t &rec)
                         { rec.w_ytd += h_amount; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[1] += (end - start);
    }
-
    Varchar<10> d_name;
    Varchar<20> d_street_1;
    Varchar<20> d_street_2;
@@ -1525,11 +1084,8 @@ void paymentByName(Integer w_id,
       // txn_paymentbyname_latencies[2] += (end - start);
    }
    {
-      // auto start = utils::getTimePoint();
-      district.update1({w_id, d_id}, [&](district_t &rec)
+      district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
                        { rec.d_ytd += h_amount; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[3] += (end - start);
    }
    // Get customer id by name
    std::vector<Integer> ids;
@@ -1542,9 +1098,6 @@ void paymentByName(Integer w_id,
             return true;
          }
          return false; });
-      // [&]() { ids.clear(); });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[4] += (end - start);
    }
    unsigned c_count = ids.size();
    if (c_count == 0)
@@ -1579,7 +1132,6 @@ void paymentByName(Integer w_id,
    Numeric c_new_payment_cnt = c_payment_cnt + 1;
 
    {
-      // auto start = utils::getTimePoint();
       if (c_credit == "BC")
       {
          Varchar<500> c_new_data;
@@ -1588,7 +1140,7 @@ void paymentByName(Integer w_id,
          c_new_data.length = numChars;
          if (c_new_data.length > 500)
             c_new_data.length = 500;
-         customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+         customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                           {
             rec.c_data = c_new_data;
             rec.c_balance = c_new_balance;
@@ -1598,194 +1150,29 @@ void paymentByName(Integer w_id,
       }
       else
       {
-         customer.update1({c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+         customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                           {
             rec.c_balance = c_new_balance;
             rec.c_ytd_payment = c_new_ytd_payment;
             rec.c_payment_cnt = c_new_payment_cnt; });
-         // WALUpdate3(customer_t, c_balance, c_ytd_payment, c_payment_cnt));
       }
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[6] += (end - start);
    }
 
    Varchar<24> h_new_data = Varchar<24>(w_name) || Varchar<24>("    ") || d_name;
    Integer t_id = thread_id;
    Integer h_id = variable_for_workload[thread_id]++;
    {
-      // auto start = utils::getTimePoint();
-      history.insert({t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[7] += (end - start);
+      history.insert(my_lock_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
    }
-}
-
-void paymentByNameWithTrace(Integer w_id,
-                            Integer d_id,
-                            Integer c_w_id,
-                            Integer c_d_id,
-                            Varchar<16> c_last,
-                            Timestamp h_date,
-                            Numeric h_amount,
-                            [[maybe_unused]] Timestamp datetime, std::vector<int> &trace_key_list)
-{
-   // printf("Call paymentByNameWithTrace\n");
-   Varchar<10> w_name;
-   Varchar<20> w_street_1;
-   Varchar<20> w_street_2;
-   Varchar<20> w_city;
-   Varchar<2> w_state;
-   Varchar<9> w_zip;
-   Numeric w_ytd;
-   {
-      // auto start = utils::getTimePoint();
-      warehouse.lookup1({w_id}, [&](const warehouse_t &rec)
-                        {
-         w_name = rec.w_name;
-         w_street_1 = rec.w_street_1;
-         w_street_2 = rec.w_street_2;
-         w_city = rec.w_city;
-         w_state = rec.w_state;
-         w_zip = rec.w_zip;
-         w_ytd = rec.w_ytd; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[0] += (end - start);
-   }
-   {
-      // auto start = utils::getTimePoint();
-      warehouse.update1({w_id}, [&](warehouse_t &rec)
-                        { rec.w_ytd += h_amount; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[1] += (end - start);
-   }
-
-   Varchar<10> d_name;
-   Varchar<20> d_street_1;
-   Varchar<20> d_street_2;
-   Varchar<20> d_city;
-   Varchar<2> d_state;
-   Varchar<9> d_zip;
-   Numeric d_ytd;
-   {
-      // auto start = utils::getTimePoint();
-      district.lookup1({w_id, d_id}, [&](const district_t &rec)
-                       {
-         d_name = rec.d_name;
-         d_street_1 = rec.d_street_1;
-         d_street_2 = rec.d_street_2;
-         d_city = rec.d_city;
-         d_state = rec.d_state;
-         d_zip = rec.d_zip;
-         d_ytd = rec.d_ytd; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[2] += (end - start);
-   }
-   {
-      // auto start = utils::getTimePoint();
-      district.update1({w_id, d_id}, [&](district_t &rec)
-                       { rec.d_ytd += h_amount; });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[3] += (end - start);
-   }
-   // Get customer id by name
-   std::vector<Integer> ids;
-   {
-      // auto start = utils::getTimePoint();
-      customerwdl.scan({c_w_id, c_d_id, c_last, {}}, [&](const customer_wdl_t::Key &key, const customer_wdl_t &rec)
-                       {
-         if (key.c_w_id == c_w_id && key.c_d_id == c_d_id && key.c_last == c_last) {
-            ids.push_back(rec.c_id);
-            return true;
-         }
-         return false; });
-      // [&]() { ids.clear(); });
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[4] += (end - start);
-   }
-   unsigned c_count = ids.size();
-   if (c_count == 0)
-   {
-      delivery_aborts++;
-      return; // TODO: rollback
-   }
-   unsigned index = c_count / 2;
-   if ((c_count % 2) == 0)
-      index -= 1;
-   Integer c_id = ids[index];
-
-   Varchar<500> c_data;
-   Varchar<2> c_credit;
-   Numeric c_balance;
-   Numeric c_ytd_payment;
-   Numeric c_payment_cnt;
-   {
-      // auto start = utils::getTimePoint();
-      customer.lookup1WithTrace(
-          {c_w_id, c_d_id, c_id}, [&](const customer_t &rec)
-          {
-         c_data = rec.c_data;
-         c_credit = rec.c_credit;
-         c_balance = rec.c_balance;
-         c_ytd_payment = rec.c_ytd_payment;
-         c_payment_cnt = rec.c_payment_cnt; },
-          trace_key_list);
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[5] += (end - start);
-   }
-   Numeric c_new_balance = c_balance - h_amount;
-   Numeric c_new_ytd_payment = c_ytd_payment + h_amount;
-   Numeric c_new_payment_cnt = c_payment_cnt + 1;
-
-   {
-      // auto start = utils::getTimePoint();
-      if (c_credit == "BC")
-      {
-         Varchar<500> c_new_data;
-         auto numChars = snprintf(c_new_data.data, 500, "| %4d %2d %4d %2d %4d $%7.2f %lu %s%s %s", c_id, c_d_id, c_w_id, d_id, w_id,
-                                  h_amount, h_date, w_name.toString().c_str(), d_name.toString().c_str(), c_data.toString().c_str());
-         c_new_data.length = numChars;
-         if (c_new_data.length > 500)
-            c_new_data.length = 500;
-         customer.update1WithTrace(
-             {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-             {
-            rec.c_data = c_new_data;
-            rec.c_balance = c_new_balance;
-            rec.c_ytd_payment = c_new_ytd_payment;
-            rec.c_payment_cnt = c_new_payment_cnt; },
-             trace_key_list);
-         // WALUpdate4(customer_t, c_data, c_balance, c_ytd_payment, c_payment_cnt));
-      }
-      else
-      {
-         customer.update1WithTrace(
-             {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
-             {
-            rec.c_balance = c_new_balance;
-            rec.c_ytd_payment = c_new_ytd_payment;
-            rec.c_payment_cnt = c_new_payment_cnt; },
-             trace_key_list);
-         // WALUpdate3(customer_t, c_balance, c_ytd_payment, c_payment_cnt));
-      }
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[6] += (end - start);
-   }
-
-   Varchar<24> h_new_data = Varchar<24>(w_name) || Varchar<24>("    ") || d_name;
-   Integer t_id = thread_id;
-   Integer h_id = variable_for_workload[thread_id]++;
-   {
-      // auto start = utils::getTimePoint();
-      history.insert({t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
-      // auto end = utils::getTimePoint();
-      // txn_paymentbyname_latencies[7] += (end - start);
-   }
+   my_lock_warehouse.clear();
+   my_lock_district.clear();
+   my_lock_customer.clear();
+   my_lock_history.clear(); 
 }
 
 void paymentRnd(Integer w_id)
 {
-   // printf("call paymentRnd\n");
-
+   std::cout << "Call paymentRnd" << std::endl;
    Integer d_id = urand(1, 10);
    Integer c_w_id = w_id;
    Integer c_d_id = d_id;
@@ -1870,11 +1257,11 @@ int tx(Integer w_id)
    rnd -= 400;
    if (rnd < 400)
    {
-      deliveryRnd(w_id);
-      txns[transaction_types::DELIVERY]++;
-      auto end = utils::getTimePoint();
-      txn_latencies[transaction_types::DELIVERY] += (end - start);
-      return 2;
+      // deliveryRnd(w_id);
+      // txns[transaction_types::DELIVERY]++;
+      // auto end = utils::getTimePoint();
+      // txn_latencies[transaction_types::DELIVERY] += (end - start);
+      // return 2;
    }
    rnd -= 400;
    if (rnd < 400)

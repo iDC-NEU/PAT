@@ -17,3 +17,7 @@ new_data_ycsb
 result/
 validate_data
 Proxy_ycsb/backend/Proxy/TXN_LOG/
+fmt-master/
+.vscode/
+build/
+gflags/

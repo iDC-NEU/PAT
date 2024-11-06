@@ -121,14 +121,12 @@ void ExclusiveBFGuard::reclaim(){
 }
 // -------------------------------------------------------------------------------------
 ExclusiveBFGuard::~ExclusiveBFGuard() {
-
-
    if(g.state == STATE::INITIALIZED && g.latchState == LATCH_STATE::EXCLUSIVE){
       assert(g.frame->latch.isLatched());
       g.frame->latch.unlatchExclusive();
       g.state = STATE::UNINITIALIZED;
       g.latchState = LATCH_STATE::UNLATCHED;
-   }   
+   }  
 }
 // -------------------------------------------------------------------------------------
 // SharedBFGuard

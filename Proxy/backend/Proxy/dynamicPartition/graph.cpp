@@ -11,7 +11,7 @@ namespace Proxy
             {
                 if (a.find(elem.first) != a.end())
                 {
-                    count++;
+                    count+= elem.second;
                 }
             }
             return count;
@@ -403,7 +403,17 @@ namespace Proxy
                 if (i == size)
                     break;
             }
-            partmapB.insert(new_insert_keys.begin(), new_insert_keys.end());
+             for (const auto key : new_insert_keys)
+            {
+                if (partmapB.find(key.first) == partmapB.end())
+                {
+                    partmapB.insert(key);
+                }
+                else
+                {
+                    partmapB[key.first] = key.second;
+                }
+            }
             // for (const auto &pair : new_remove_keys)
             // {
             //     partmapB.erase(pair.first);

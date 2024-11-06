@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
    };
    using value = debug_row;
-   gflags::SetUsageMessage("OLAP Experimetn");
+   gflags::SetUsageMessage("OLAP Experiment");
    gflags::ParseCommandLineFlags(&argc, &argv, true);
    // -------------------------------------------------------------------------------------
    uint64_t KEYS = (FLAGS_OLAP_factor_mem_ssd * ((FLAGS_dramGB *1024*1024*1024)/ sizeof(value))) / FLAGS_worker;

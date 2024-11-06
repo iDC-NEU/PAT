@@ -330,179 +330,191 @@ void origin_tpcc_run(ScaleStore &db)
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
-                                          {
-            std::ofstream output(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i));                                 
-            running_threads_counter++;
-            thread_id = t_i + (db.getNodeID() * FLAGS_worker);
-            volatile u64 tx_acc = 0;
-            storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
-            barrier.wait();
-            while (keep_running) {
-               auto start = utils::getTimePoint();
-               uint32_t w_id;
-               if (FLAGS_tpcc_warehouse_affinity) {
-                  w_id = t_i + 1 + warehouse_range_node.begin;
-               } else if (FLAGS_tpcc_warehouse_locality) {
-                  w_id = urand(warehouse_range_node.begin + 1, warehouse_range_node.end);
-               } else {
-                  w_id = urand(1, FLAGS_tpcc_warehouse_count);
-                  if (w_id <= (uint32_t)warehouse_range_node.begin || (w_id > (uint32_t)warehouse_range_node.end)) remote_node_new_order++;
-               }
-               tx(w_id);
-               /*
-               if (FLAGS_tpcc_abort_pct && urand(0, 100) <= FLAGS_tpcc_abort_pct) {
-                  // abort
-               } else {
-                  // commit
-               }
-               */
-               auto end = utils::getTimePoint();
-               output << (end - start) << " ";
-               if(change_line[t_i]){
-                  output << std::endl;
-                  change_line[t_i] = false;
-               }
-               txn_per_thread[t_i]++;
-               threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
+      {
+         std::ofstream output(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i));                                 
+         running_threads_counter++;
+         thread_id = t_i + (db.getNodeID() * FLAGS_worker);
+         volatile u64 tx_acc = 0;
+         storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
+         barrier.wait();
+         while (keep_running) {
+            auto start = utils::getTimePoint();
+            uint32_t w_id;
+            if (FLAGS_tpcc_warehouse_affinity) {
+               w_id = t_i + 1 + warehouse_range_node.begin;
+            } else if (FLAGS_tpcc_warehouse_locality) {
+               w_id = urand(warehouse_range_node.begin + 1, warehouse_range_node.end);
+            } else {
+               w_id = urand(1, FLAGS_tpcc_warehouse_count);
+               if (w_id <= (uint32_t)warehouse_range_node.begin || (w_id > (uint32_t)warehouse_range_node.end)) remote_node_new_order++;
             }
+            tx(w_id);
+            /*
+            if (FLAGS_tpcc_abort_pct && urand(0, 100) <= FLAGS_tpcc_abort_pct) {
+               // abort
+            } else {
+               // commit
+            }
+            */
+            auto end = utils::getTimePoint();
+            output << (end - start) << " ";
+            if(change_line[t_i]){
+               output << std::endl;
+               change_line[t_i] = false;
+            }
+            txn_per_thread[t_i]++;
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
+         }
          if(FLAGS_nodes < 3){
-         sleep(5 * int(db.getNodeID() + 1));
-         switch (t_i)
+            sleep(5 * int(db.getNodeID() + 1));
+            switch (t_i)
+            {
+               case 0:
+                  if(!warehouse.traversed){
+                     warehouse.traverse_page();
+                     std::cout << "warehouse page traversed" << std::endl;
+                  }
+                  if(!district.traversed){
+                     district.traverse_page();
+                     std::cout << "district page traversed" << std::endl;
+                  }
+                  if(!history.traversed){
+                     history.traverse_page();
+                     std::cout << "history page traversed" << std::endl;
+                  }
+                  if(!item.traversed){
+                     item.traverse_page();
+                     std::cout << "item page traversed" << std::endl;
+                  }
+                  break;
+               case 1:
+                  if(!customer.traversed){
+                     customer.traverse_page();
+                     std::cout << "customer page traversed" << std::endl;
+                  }
+                  if(!customerwdl.traversed){
+                     customerwdl.traverse_page();
+                     std::cout << "customerwdl page traversed" << std::endl;
+                  }
+                  if(!stock.traversed){
+                     stock.traverse_page();
+                     std::cout << "stock page traversed" << std::endl;
+                  }
+                  break;
+                  break;
+               case 2:
+                  if(!neworder.traversed){
+                     neworder.traverse_page();
+                     std::cout << "neworder page traversed" << std::endl;
+                  }
+
+                  break;
+               case 3:
+                  if(!order.traversed){
+                     order.traverse_page();
+                     std::cout << "order page traversed" << std::endl;
+                  }
+                  if(!order_wdc.traversed){
+                     order_wdc.traverse_page();
+                     std::cout << "orderwdc page traversed" << std::endl;
+                  }
+                  break;
+            }
+         }
+         
+         tx_per_thread[t_i] = tx_acc;
+         remote_new_order_per_thread[t_i] = remote_new_order;
+         remote_tx_per_thread[t_i] = remote_node_new_order;
+         delivery_aborts_per_thread[t_i] = delivery_aborts;
+         int idx = 0;
+         for (auto& tx_count : txns)
+            txn_profile[t_i][idx++] = tx_count;
+         idx = 0;
+         for (auto& tx_l : txn_latencies) 
          {
-         case 0:
-            if(!warehouse.traversed){
-               warehouse.traverse_page();
-               std::cout << "warehouse page traversed" << std::endl;
-            }
-            if(!district.traversed){
-               district.traverse_page();
-               std::cout << "district page traversed" << std::endl;
-            }
-            if(!history.traversed){
-               history.traverse_page();
-               std::cout << "history page traversed" << std::endl;
-            }
-            if(!item.traversed){
-               item.traverse_page();
-               std::cout << "item page traversed" << std::endl;
-            }
-            break;
-         case 1:
-            if(!customer.traversed){
-               customer.traverse_page();
-               std::cout << "customer page traversed" << std::endl;
-            }
-            if(!customerwdl.traversed){
-               customerwdl.traverse_page();
-               std::cout << "customerwdl page traversed" << std::endl;
-            }
-            if(!stock.traversed){
-               stock.traverse_page();
-               std::cout << "stock page traversed" << std::endl;
-            }
-            break;
-            break;
-         case 2:
-            if(!neworder.traversed){
-               neworder.traverse_page();
-               std::cout << "neworder page traversed" << std::endl;
-            }
-
-            break;
-         case 3:
-            if(!order.traversed){
-               order.traverse_page();
-               std::cout << "order page traversed" << std::endl;
-            }
-            if(!order_wdc.traversed){
-               order_wdc.traverse_page();
-               std::cout << "orderwdc page traversed" << std::endl;
-            }
-            break;
+            txn_lat[t_i][idx] = (tx_l / (double)txn_profile[t_i][idx]);
+            idx++;
          }
-         }
-            tx_per_thread[t_i] = tx_acc;
-            remote_new_order_per_thread[t_i] = remote_new_order;
-            remote_tx_per_thread[t_i] = remote_node_new_order;
-            delivery_aborts_per_thread[t_i] = delivery_aborts;
-            int idx = 0;
-            for (auto& tx_count : txns)
-               txn_profile[t_i][idx++] = tx_count;
-            idx = 0;
-            for (auto& tx_l : txn_latencies) {
-               txn_lat[t_i][idx] = (tx_l / (double)txn_profile[t_i][idx]);
-               idx++;
-            }
 
-            idx = 0;
-            for (auto& tx_l : txn_paymentbyname_latencies) {
-               txn_pay_lat[t_i][idx] = ((tx_l) / (double)txn_profile[t_i][transaction_types::STOCK_LEVEL]);
-               idx++;
-            }
-            running_threads_counter--; });
+         idx = 0;
+         for (auto& tx_l : txn_paymentbyname_latencies) 
+         {
+            txn_pay_lat[t_i][idx] = ((tx_l) / (double)txn_profile[t_i][transaction_types::STOCK_LEVEL]);
+            idx++;
+         }
+         running_threads_counter--; 
+      });
    }
    auto last_router_statistics = std::chrono::high_resolution_clock::now();
    std::thread statistics([&]()
-                          {
-            uint64_t all_numbers=0;
-            float all_count = 0;
-            float trigger_count = 0;
-            uint64_t last_all_numbers=0;
-            sleep(1);
-            auto now_router_statistics = std::chrono::high_resolution_clock::now();
-            while(keep_running){
-               auto start = std::chrono::high_resolution_clock::now();
-               for (uint64_t i = 0; i < FLAGS_worker; i++)
-               {
-                  all_numbers += txn_per_thread[i];
-                  txn_per_thread[i] = 0;
-               }
-               now_router_statistics = std::chrono::high_resolution_clock::now();
-               [[maybe_unused]] auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now_router_statistics - last_router_statistics);
-               trigger_count += 1.0*duration.count()/1000000;
-               router_logger->info(fmt::format("all_router_number:{};increase_number:{};time:{}s;increase_number/time={}/s",all_numbers,all_numbers-last_all_numbers,1.0*duration.count()/1000000,(all_numbers-last_all_numbers)/(1.0*duration.count()/1000000)));
-               if(trigger_count > 10){
-                  all_count += trigger_count;
-                  router_logger->info(fmt::format("time:{}s; throughput = {}/s",trigger_count, all_numbers/all_count));
-                  trigger_count = 0;
-               }
-               last_all_numbers=all_numbers;
-               auto end = std::chrono::high_resolution_clock::now();
-               last_router_statistics=now_router_statistics;
-               duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+   {
+      uint64_t all_numbers=0;
+      float all_count = 0;
+      float trigger_count = 0;
+      uint64_t last_all_numbers=0;
+      sleep(1);
+      auto now_router_statistics = std::chrono::high_resolution_clock::now();
+      while(keep_running)
+      {
+         auto start = std::chrono::high_resolution_clock::now();
+         for (uint64_t i = 0; i < FLAGS_worker; i++)
+         {
+            all_numbers += txn_per_thread[i];
+            txn_per_thread[i] = 0;
+         }
+         now_router_statistics = std::chrono::high_resolution_clock::now();
+         [[maybe_unused]] auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now_router_statistics - last_router_statistics);
+         trigger_count += 1.0*duration.count()/1000000;
+         router_logger->info(fmt::format("all_router_number:{};increase_number:{};time:{}s;increase_number/time={}/s",all_numbers,all_numbers-last_all_numbers,1.0*duration.count()/1000000,(all_numbers-last_all_numbers)/(1.0*duration.count()/1000000)));
+         if(trigger_count > 10){
+            all_count += trigger_count;
+            router_logger->info(fmt::format("time:{}s; throughput = {}/s",trigger_count, all_numbers/all_count));
+            trigger_count = 0;
+         }
+         last_all_numbers=all_numbers;
+         auto end = std::chrono::high_resolution_clock::now();
+         last_router_statistics=now_router_statistics;
+         duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-               std::this_thread::sleep_for(std::chrono::microseconds(1000000) - duration);
-            } });
+         std::this_thread::sleep_for(std::chrono::microseconds(1000000) - duration);
+      } 
+   });
    statistics.detach();
-   std::thread data_consume([&]()
-                            {
-                           while(keep_running){
-  sleep(30);
-            double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
-   std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
-                           } });
-   data_consume.detach();
+   // Report data size
+   // std::thread data_consume([&]()
+   // {
+   //       while(keep_running)
+   //       {
+   //          sleep(30);
+   //          double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
+   //          std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
+   //       } 
+   // });
+   // data_consume.detach();
+
    std::thread start_txn_count([&]()
-                               {
-                           while(keep_running){
-  sleep(10);
-  for(int i = 0; i< int(FLAGS_worker); i++){
-   change_line[i] = true;
-  }
-                           } });
+   {
+      while(keep_running)
+      {
+         sleep(10);
+         for(int i = 0; i< int(FLAGS_worker); i++){
+            change_line[i] = true;
+         }                                 
+      } 
+   });
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
-   // keep_getting_sql = false;
    while (running_threads_counter)
    {
       _mm_pause();
    }
+   std::cout << "tpcc run over" << std::endl;
    sleep(5);
    db.getWorkerPool().joinAll();
    // -------------------------------------------------------------------------------------
    db.stopProfiler();
-
+   /*
    std::cout << "tx per thread " << std::endl;
    for (u64 t_i = 0; t_i < FLAGS_worker; t_i++)
    {
@@ -566,6 +578,7 @@ void origin_tpcc_run(ScaleStore &db)
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
    std::cout << "Starting hash table report "
              << "\n";
+   */
    db.getBuffermanager().reportHashTableStats();
 }
 
@@ -881,24 +894,28 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    // -------------------------------------------------------------------------------------
    // Join Threads
    // -------------------------------------------------------------------------------------
-   std::thread data_consume([&]()
-                            {
-                           while(keep_running){
-  sleep(30);
-            double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
-   std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
-                           } });
-   data_consume.detach();
+   // report data size
+   // std::thread data_consume([&]()
+   // {
+   //    while(keep_running){
+   //    sleep(30);
+   //    double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
+   //    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
+   //                         } 
+   // });
+   // data_consume.detach();
    std::thread start_txn_count([&]()
-                               {
-                           while(keep_running){
-  sleep(10);
-  for(int i = 0; i< int(FLAGS_worker); i++){
-   change_line[i] = true;
-  }
-                           } });
+   {
+      while(keep_running){
+         sleep(10);
+         for(int i = 0; i< int(FLAGS_worker); i++){
+            change_line[i] = true;
+         }
+      } 
+   });
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
+   std::cout << "tpcc run over" << std::endl;
    keep_running = false;
    // keep_getting_sql = false;
    while (running_threads_counter)
