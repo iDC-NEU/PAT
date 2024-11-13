@@ -466,7 +466,6 @@ restart:
       }
       else if (guard.frame->possession == POSSESSION::SHARED)
       {
-         is_local = true;
          //  Upgrade
          // -------------------------------------------------------------------------------------
          _mm_prefetch(&guard.frame->page->data[0], _MM_HINT_T0); // prefetch first cache line of page
@@ -480,6 +479,7 @@ restart:
             auto &shared = guard.frame->possessors.shared;
             if (guard.frame->state == BF_STATE::EVICTED)
             {
+               is_local = false;
                movePageRnd(shared, pageOffset, guard.frame->pVersion);
             }
             // -------------------------------------------------------------------------------------
@@ -488,6 +488,7 @@ restart:
          }
          else
          {
+            is_local = false;
             ensure(guard.frame->state == BF_STATE::EVICTED);
             auto &shared = guard.frame->possessors.shared;
             ensure(shared.any());
