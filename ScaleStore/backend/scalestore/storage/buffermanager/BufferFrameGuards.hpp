@@ -15,7 +15,6 @@ struct ExclusiveBFGuard {
    bool isleaf_;
    ExclusiveBFGuard();  // creates new page
    ExclusiveBFGuard(PID pid);
-   ExclusiveBFGuard(PID pid, bool isleaf);
    explicit ExclusiveBFGuard(NodeID remoteNodeId); // allocates page on remote node
    // -------------------------------------------------------------------------------------
    ~ExclusiveBFGuard();
@@ -71,8 +70,6 @@ struct SharedBFGuard {
    bool isleaf_;
    int is_in_mem_;
    SharedBFGuard(PID pid);
-   SharedBFGuard(PID pid, bool isleaf);
-   SharedBFGuard(PID pid, int &is_in_mem);
    ~SharedBFGuard();
    // -------------------------------------------------------------------------------------
    SharedBFGuard(SharedBFGuard&& sGuard);
@@ -113,8 +110,6 @@ struct OptimisticBFGuard {
    bool isleaf_;
    int is_in_mem_;
    OptimisticBFGuard(PID pid);
-   OptimisticBFGuard(PID pid, bool isleaf);
-   OptimisticBFGuard(PID pid, int &is_in_mem);
    // -------------------------------------------------------------------------------------
    OptimisticBFGuard(OptimisticBFGuard&& oGuard);
    OptimisticBFGuard& operator=(OptimisticBFGuard&& oGuard);

@@ -454,7 +454,7 @@ void newOrder(Integer w_id,
       Timestamp ol_delivery_d = 0; // NULL
       orderline.insert(my_lock_orderline, {w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
    }
-   std::cout << "newOrderRnd end" << std::endl;
+   // std::cout << "newOrderRnd end" << std::endl;
    // my_lock_district.clear();
    // my_lock_order.clear();
    // my_lock_neworder.clear();
@@ -1022,7 +1022,7 @@ void paymentById(Integer w_id,
    my_lock_district.clear();
    my_lock_customer.clear();
    my_lock_history.clear();
-   std::cout << "paymentdf commit " << std::endl;
+   // std::cout << "paymentdf commit " << std::endl;
 }
 
 void paymentByName(Integer w_id,
@@ -1284,32 +1284,31 @@ int txn_next_id = 0;
 std::string txCreate(Integer w_id)
 {
    // micro-optimized version of weighted distribution
-   int rnd = scalestore::utils::RandomGenerator::getRand(0, 10000);
+   int rnd = scalestore::utils::RandomGenerator::getRand(0, 8800);
    std::string sql = "[" + std::to_string(++txn_next_id) + "]";
    if (rnd < 4300)
    {
       txns[transaction_types::PAYMENT]++;
       return sql + paymentRndCreate(w_id);
-      ;
    }
-   rnd -= 4300;
-   if (rnd < 400)
-   {
-      txns[transaction_types::ORDER_STATUS]++;
-      return sql + orderStatusRndCreate(w_id);
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      txns[transaction_types::DELIVERY]++;
-      return sql + deliveryRndCreate(w_id);
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      return sql + stockLevelRndCreate(w_id);
-   }
-   rnd -= 400;
+   // rnd -= 4300;
+   // if (rnd < 400)
+   // {
+   //    txns[transaction_types::ORDER_STATUS]++;
+   //    return sql + orderStatusRndCreate(w_id);
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    txns[transaction_types::DELIVERY]++;
+   //    return sql + deliveryRndCreate(w_id);
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    return sql + stockLevelRndCreate(w_id);
+   // }
+   // rnd -= 400;
    txns[transaction_types::NEW_ORDER]++;
    return sql + newOrderRndCreate(w_id);
 }

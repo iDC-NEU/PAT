@@ -189,6 +189,28 @@ void caculate_txn_lantxncy(std::string path)
     system(rm_str.c_str());
 }
 
+void caculate_tpcc_txn_lantxncy(std::string path)
+{
+
+    // 输入文件和输出文件名
+    double percentile = 0.99;
+    std::string input_filename1 = path + "txn_lantency";
+    std::string output_filename1 = path + "txn_sort_lantency";
+    std::string output_count1 = path + "txn_sort_info";
+    std::string input_filename2 = path + "route_lantency";
+    std::string output_filename2 = path + "route_sort_lantency_tmp";
+    std::string output_filename3 = path + "route_sort_lantency";
+    std::string output_count2 = path + "route_sort_info";
+    sortLinesInFile(input_filename1, output_filename1);
+    calculateAndWriteDelays(output_filename1, output_count1, percentile);
+    mergeLinesToFile(input_filename2, output_filename2);
+    sortLinesInFile(output_filename2, output_filename3);
+    calculateAndWriteDelays(output_filename3, output_count2, percentile);
+    std::string rm_str = "rm -rf " + output_filename2;
+    system(rm_str.c_str());
+}
+
+
 void calculate_remote(std::string path, int nodes)
 {
     // 打开输出文件

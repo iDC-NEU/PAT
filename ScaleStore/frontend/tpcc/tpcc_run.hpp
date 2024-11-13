@@ -615,18 +615,24 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    time_logger->flush_on(spdlog::level::info);
    time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
    std::vector<std::ofstream> outputs;
+   std::vector<std::ofstream> access_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
+      access_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/access_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
-                                          {                           
+                                          {
+         db.getBuffermanager().local_timer.insert({std::this_thread::get_id(), Timer()});        
+         db.getBuffermanager().remote_timer.insert({std::this_thread::get_id(), Timer()});                        
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
+         Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
+         Timer *remote_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -639,8 +645,15 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
                outputs[t_i] << (end - start) << " ";
+               if(functionName == "newOrder"){
+                  access_times[t_i] <<  local_timer->elapsedMilliseconds() << " "
+                  << remote_timer->elapsedMilliseconds() << " ";
+               }
+               local_timer->reset();
+               remote_timer->reset();
                if(change_line[t_i]){
                   outputs[t_i] << std::endl;
+                  access_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }
                if (db.getNodeID() == 0)
@@ -663,7 +676,7 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                         db.set_customer_update_ready(false);
                         db.customer_clear();
                      }
-                     if (!warehouse.created && db.stock_created())
+                     if (!warehouse.created && db.warehouse_created())
                      {
                         time_logger->info(fmt::format("start create warehouse partitioner"));
                         auto time_start = utils::getTimePoint();
@@ -962,9 +975,11 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    std::string currentFile = __FILE__;
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
    std::vector<std::ofstream> outputs;
+   std::vector<std::ofstream> access_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
+      access_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/access_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
@@ -974,6 +989,8 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
+         Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
+         Timer *remote_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -987,8 +1004,15 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
                outputs[t_i] << (end - start) << " ";
+               if(functionName == "newOrder"){
+                  access_times[t_i] <<  local_timer->elapsedMilliseconds() << " "
+                  << remote_timer->elapsedMilliseconds() << " ";
+               }
+               local_timer->reset();
+               remote_timer->reset();
                if(change_line[t_i]){
                   outputs[t_i] << std::endl;
+                  access_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }
                threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);

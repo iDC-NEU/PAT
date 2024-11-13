@@ -332,7 +332,7 @@ int txn_next_id = 0;
 std::string txCreate(Integer w_id)
 {
    // micro-optimized version of weighted distribution
-   int rnd = Proxy::utils::RandomGenerator::getRand(0, 10000);
+   int rnd = Proxy::utils::RandomGenerator::getRand(0, 8800);
    std::string sql = "[" + std::to_string(++txn_next_id) + "]";
    if (rnd < 4300)
    {
@@ -340,24 +340,24 @@ std::string txCreate(Integer w_id)
       return sql + paymentRndCreate(w_id);
       ;
    }
-   rnd -= 4300;
-   if (rnd < 400)
-   {
-      txns[transaction_types::ORDER_STATUS]++;
-      return sql + orderStatusRndCreate(w_id);
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      txns[transaction_types::DELIVERY]++;
-      return sql + deliveryRndCreate(w_id);
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      return sql + stockLevelRndCreate(w_id);
-   }
-   rnd -= 400;
+   // rnd -= 4300;
+   // if (rnd < 400)
+   // {
+   //    txns[transaction_types::ORDER_STATUS]++;
+   //    return sql + orderStatusRndCreate(w_id);
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    txns[transaction_types::DELIVERY]++;
+   //    return sql + deliveryRndCreate(w_id);
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    return sql + stockLevelRndCreate(w_id);
+   // }
+   // rnd -= 400;
    txns[transaction_types::NEW_ORDER]++;
    return sql + newOrderRndCreate(w_id);
 }

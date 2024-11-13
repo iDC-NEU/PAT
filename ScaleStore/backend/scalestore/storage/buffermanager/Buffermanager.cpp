@@ -322,8 +322,8 @@ namespace scalestore
             {
                // 设置定时器时间间隔为 20 秒
                std::chrono::seconds interval(10);
-               leaf_logger->info(fmt::format("remote_count ={}; increase_count ={}/s",leaf_remote_count, double(leaf_remote_count-leaf_last_count)/10));
-               leaf_last_count = leaf_remote_count;
+               leaf_logger->info(fmt::format("remote_count ={}; increase_count ={}/s",remote_count, double(remote_count-last_count)/10));
+               last_count = remote_count;
                catch_logger->info(fmt::format("ssd_io_count ={}; ssd_increase_count ={}/s",ssd_io_count, double(ssd_io_count-ssd_last_count)/10));
                ssd_last_count = ssd_io_count;
                std::this_thread::sleep_for(interval);

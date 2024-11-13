@@ -84,8 +84,8 @@ constexpr auto ACTIVE_LOG_LEVEL = LOG_LEVEL::RELEASE;
 
 const std::vector<std::vector<std::string>> NODES{//the last of row is proxy
     {""},                                                                                              // 0 to allow direct offset
-    {"10.10.10.1", "10.10.10.1"},                                                                                  // 1
-    {"10.10.10.1", "10.10.10.1", "10.10.10.1"},                                                                     // 2
+    {"10.0.0.87", "10.0.0.87"},                                                                                  // 1
+    {"10.0.0.87", "10.0.0.88", "10.0.0.89"},                                                                     // 2
     {"10.0.0.87", "10.0.0.88", "10.0.0.90", "10.0.0.89"},                                              // 3
     {"10.0.0.87", "10.0.0.88", "10.0.0.90", "10.0.0.91", "10.0.0.89"},                              // 4
     {"10.0.0.87", "10.0.0.88", "10.0.0.90", "10.0.0.91", "10.0.0.92", "10.0.0.89"},                  // 5
@@ -94,7 +94,7 @@ const std::vector<std::vector<std::string>> NODES{//the last of row is proxy
 };
 const std::vector<std::vector<uint64_t>> NODESport{
     {},                                                                                              // 0 to allow direct offset
-    {1400, 1401},                                                                                  // 1
+    {1500, 1401},                                                                                  // 1
     {1400, 1500, 1401},
     {1400, 1500, 1402, 1401},
     {1400, 1500, 1402, 1502, 1401},

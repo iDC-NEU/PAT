@@ -29,11 +29,6 @@ ExclusiveBFGuard::ExclusiveBFGuard(PID pid){
    g.frame->dirty = true;
 };
 
-ExclusiveBFGuard::ExclusiveBFGuard(PID pid, bool isleaf){
-   isleaf_ = isleaf;
-   g = BM::global->fix(pid, Exclusive(), isleaf);
-   g.frame->dirty = true;
-};
 ExclusiveBFGuard::ExclusiveBFGuard(ExclusiveBFGuard&& xGuard) {
    g = std::move(xGuard.g);
 }
@@ -56,7 +51,7 @@ ExclusiveBFGuard::ExclusiveBFGuard(SharedBFGuard&& sGuard){
    // fix again
    // check version
    // check pointer
-   g =  BM::global->fix(pid, Exclusive(), isleaf_);
+   g =  BM::global->fix(pid, Exclusive());
    ensure(g.state == STATE::INITIALIZED);
    // check ptr could be changed due to remote 
    if((&getFrame() != &sGuard.getFrame())){
@@ -88,7 +83,7 @@ ExclusiveBFGuard::ExclusiveBFGuard(OptimisticBFGuard&& oGuard) {
    if (!oGuard.retry()) {
       g.state = STATE::INITIALIZED;
       // -------------------------------------------------------------------------------------
-      g = BM::global->fix(pid, Exclusive(), isleaf_);
+      g = BM::global->fix(pid, Exclusive());
       ensure(g.state == STATE::INITIALIZED);
       ensure(g.latchState == LATCH_STATE::EXCLUSIVE);
       // -------------------------------------------------------------------------------------
@@ -131,24 +126,13 @@ ExclusiveBFGuard::~ExclusiveBFGuard() {
 // -------------------------------------------------------------------------------------
 // SharedBFGuard
 // -------------------------------------------------------------------------------------
-SharedBFGuard::SharedBFGuard(PID pid, bool isleaf)
-{
-   isleaf_ = isleaf;
-   int is_in_mem;
-   g = BM::global->fix(pid, Shared(), isleaf, is_in_mem);
-   is_in_mem_ = is_in_mem;
-};
+
 
 SharedBFGuard::SharedBFGuard(PID pid)
 {
    g = BM::global->fix(pid, Shared());
 };
 
-SharedBFGuard::SharedBFGuard(PID pid, int &is_in_mem)
-{
-   g = BM::global->fix(pid, Shared(), is_in_mem);
-   is_in_mem_ = is_in_mem;
-};
 
 // -------------------------------------------------------------------------------------
 SharedBFGuard::SharedBFGuard(SharedBFGuard&& sGuard) {
@@ -209,22 +193,7 @@ SharedBFGuard::~SharedBFGuard(){
    }
 
 }
-// -------------------------------------------------------------------------------------
-// OptimisticBFGuard
-// -------------------------------------------------------------------------------------
-OptimisticBFGuard::OptimisticBFGuard(PID pid, bool isleaf)
-{
-   isleaf_ = isleaf;
-   int is_in_mem;
-   g = BM::global->fix(pid, Optimistic(), isleaf, is_in_mem);
-   is_in_mem_ = is_in_mem;
-};
 
-OptimisticBFGuard::OptimisticBFGuard(PID pid, int &is_in_mem)
-{
-   g = BM::global->fix(pid, Optimistic(), is_in_mem);
-   is_in_mem_ = is_in_mem;
-};
 
 OptimisticBFGuard::OptimisticBFGuard(PID pid)
 {

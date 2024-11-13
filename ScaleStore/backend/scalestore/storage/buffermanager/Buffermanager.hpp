@@ -25,6 +25,43 @@
 
 namespace scalestore
 {
+
+struct Timer {
+    std::chrono::high_resolution_clock::time_point start_time;
+    std::chrono::milliseconds total_duration{0};  // 累计的时间，单位为毫秒
+    bool running = false;  // 标志计时器是否在运行
+
+    // 开始计时或继续计时
+    void start() {
+        if (!running) {  // 如果计时器没有运行
+            start_time = std::chrono::high_resolution_clock::now();
+            running = true;
+        }
+    }
+
+    // 停止计时并累加时间
+    void stop() {
+        if (running) {
+            auto end_time = std::chrono::high_resolution_clock::now();
+            total_duration += std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+            running = false;
+        }
+    }
+
+    // 重置计时器，参数决定是否清零累计时间
+    void reset(bool clear_total = false) {
+        if (clear_total) {
+            total_duration = std::chrono::milliseconds(0);
+        }
+        start_time = std::chrono::high_resolution_clock::now();
+        running = false;
+    }
+
+    // 获取累计的时间（毫秒）
+    long long elapsedMilliseconds() const {
+        return total_duration.count();
+    }
+};
 namespace profiling
 {
 struct BMCounters;
@@ -79,9 +116,11 @@ class Buffermanager
   public:
    std::shared_ptr<spdlog::logger> leaf_logger;
    std::shared_ptr<spdlog::logger> catch_logger;
-   int leaf_remote_count = 0;
+   std::unordered_map<std::thread::id, Timer> local_timer;
+   std::unordered_map<std::thread::id, Timer> remote_timer;
+   int remote_count = 0;
    int index_last_count = 0;
-   int leaf_last_count = 0;
+   int last_count = 0;
    int index_remote_count = 0;
    int ssd_io_count=0;
    int ssd_last_count = 0;
@@ -127,13 +166,9 @@ class Buffermanager
    inline uint64_t getGlobalEpoch() { return globalEpoch.load(); }
    // -------------------------------------------------------------------------------------
    template <typename ACCESS>
-   Guard fix(PID pid, ACCESS functor, [[maybe_unused]]bool isleaf, [[maybe_unused]]int &is_in_mem);
-   template <typename ACCESS>
    Guard fix(PID pid, ACCESS functor);
    template <typename ACCESS>
    Guard fix(PID pid, ACCESS functor, [[maybe_unused]]int &is_in_mem);
-   template <typename ACCESS>
-   Guard fix(PID pid, ACCESS functor, [[maybe_unused]]bool isleaf);
    // -------------------------------------------------------------------------------------
    BufferFrame& newPage();
    BufferFrame& newRemotePage(NodeID nodeId);  // allocates page on a remote BM
