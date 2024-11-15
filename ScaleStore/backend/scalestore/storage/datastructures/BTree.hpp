@@ -1724,6 +1724,157 @@ namespace scalestore
             ensure(false);
             return false;
          }
+         
+         template <class Fn>
+         bool lookup_opt(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, Key k, Fn &&read_function)
+         {
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
+            using Inner = BTreeInner<Key>;
+            using Leaf = BTreeLeaf<Key, Value>;
+         restart:
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
+            OptimisticBFGuard g_parent(entryPage);
+            // -------------------------------------------------------------------------------------
+            auto *entry = g_parent.asPtr<BTreeEntry>(0);
+            if (g_parent.retry())
+               goto restart;
+            ensure(entry);
+            PID currentPID = entry->root;
+            uint64_t height = entry->height;
+            uint64_t currentLevel = 0;
+            NodeBase *node = nullptr;
+            // -------------------------------------------------------------------------------------
+            while (currentLevel < height)
+            {
+               // get current node from PID
+               OptimisticBFGuard g_node(currentPID);
+               if (g_parent.retry())
+                  goto restart;
+               node = g_node.asPtr<NodeBase>(0);
+               if (g_node.retry())
+                  goto restart; // check inner
+               ensure(node->type == PageType::BTreeInner);
+               auto &inner = *reinterpret_cast<Inner *>(node);
+               // -------------------------------------------------------------------------------------
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               if (g_parent.retry())
+                  goto restart;
+               currentPID = inner.children[inner.lowerBoundBF(k)];
+               if (g_node.retry())
+                  goto restart; // check inner
+               g_parent = std::move(g_node);
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               currentLevel++;
+            }
+            // -------------------------------------------------------------------------------------
+            // Leaf
+            // -------------------------------------------------------------------------------------
+         restartLeaf:
+
+            bool has_locked = false;
+            for (auto& xg_node : my_lock){
+               if (xg_node.g.frame->pid == currentPID) {
+                  ensure(xg_node.getFrame().latch.isLatched());
+                  has_locked = true;
+                  node = xg_node.asPtr<NodeBase>(0);
+                  auto &leaf = *reinterpret_cast<Leaf *>(node);
+                  if (g_parent.retry())
+                     goto restart;
+                  if (xg_node.retry())
+                  {
+                     goto restartLeaf;
+                  }
+                  // -------------------------------------------------------------------------------------
+                  uint64_t pos = leaf.lowerBound(k);
+                  if ((pos < leaf.count) && (leaf.keys[pos] == k))
+                  {
+                     read_function(leaf.payloads[pos]); // pass value to function
+                     if (g_parent.retry())
+                        goto restart;
+                     if (xg_node.retry())
+                     {
+                        goto restartLeaf;
+                     }
+                     return true;
+                  }
+                  if (g_parent.retry())
+                     goto restart;
+                  if (xg_node.retry())
+                  {
+                     goto restartLeaf;
+                  }
+               }
+            }
+            if (!has_locked)
+            {
+               OptimisticBFGuard og_node(currentPID);
+               // -------------------------------------------------------------------------------------
+               node = og_node.asPtr<NodeBase>(0);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               if (og_node.retry())
+               {
+                  goto restartLeaf;
+               }
+               // -------------------------------------------------------------------------------------
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  read_function(leaf.payloads[pos]); // pass value to function
+                  if (g_parent.retry())
+                     goto restart;
+                  if (og_node.retry())
+                  {
+                     goto restartLeaf;
+                  }
+                  return true;
+               }
+               if (g_parent.retry())
+                  goto restart;
+               if (og_node.retry())
+               {
+                  goto restartLeaf;
+               }
+            }
+            // OptimisticBFGuard og_node(currentPID);
+            // // -------------------------------------------------------------------------------------
+            // node = og_node.asPtr<NodeBase>(0);
+            // // -------------------------------------------------------------------------------------
+            // auto &leaf = *reinterpret_cast<Leaf *>(node);
+            // if (g_parent.retry())
+            //    goto restart;
+            // if (og_node.retry())
+            // {
+            //    goto restartLeaf;
+            // }
+            // // -------------------------------------------------------------------------------------
+            // uint64_t pos = leaf.lowerBound(k);
+            // if ((pos < leaf.count) && (leaf.keys[pos] == k))
+            // {
+            //    read_function(leaf.payloads[pos]); // pass value to function
+            //    if (g_parent.retry())
+            //       goto restart;
+            //    if (og_node.retry())
+            //    {
+            //       goto restartLeaf;
+            //    }
+            //    return true;
+            // }
+            // if (g_parent.retry())
+            //    goto restart;
+            // if (og_node.retry())
+            // {
+            //    goto restartLeaf;
+            // }
+            std::cout << k;
+            ensure(false);
+            return false;
+         }
+
 
          bool lookup_opt(Key k, Value &returnValue)
          {

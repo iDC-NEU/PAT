@@ -411,7 +411,7 @@ void newOrder(Integer w_id,
       } 
       else
       {
-         stock.lookup1({w_id, itemid}, [&](const stock_t &rec)
+         stock.lookup1(my_lock_stock, {w_id, itemid}, [&](const stock_t &rec)
          {
             switch (d_id) {
                case 1:

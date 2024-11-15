@@ -382,6 +382,14 @@ struct ScaleStoreAdapter
       ensure(res);
    }
 
+   template <class Fn>
+   void lookup1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, const typename Record::Key &key, const Fn &fn)
+   {
+      BTree tree(tree_pid);
+      const auto res = tree.lookup_opt(my_lock, key, fn);
+      ensure(res);
+   }
+
    bool erase(const typename Record::Key &key)
    {
       BTree tree(tree_pid);
