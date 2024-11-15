@@ -328,6 +328,7 @@ restart:
    {
       // ------------------------------------------------------------------------------------->
       is_local = false;
+      remote_count++;
       ensure(guard.frame);
       ensure(guard.frame->state == BF_STATE::IO_RDMA);
       ensure(FLAGS_nodes > 1);
@@ -474,12 +475,12 @@ restart:
          {
             // -------------------------------------------------------------------------------------
             // -------------------------------------------------------------------------------------
+            is_local = false;
             guard.frame->pVersion++;
             guard.frame->possessors.shared.reset(nodeId);
             auto &shared = guard.frame->possessors.shared;
             if (guard.frame->state == BF_STATE::EVICTED)
             {
-               is_local = false;
                movePageRnd(shared, pageOffset, guard.frame->pVersion);
             }
             // -------------------------------------------------------------------------------------

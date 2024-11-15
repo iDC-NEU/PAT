@@ -21,3 +21,4 @@ fmt-master/
 .vscode/
 build/
 gflags/
+data_tpcc/

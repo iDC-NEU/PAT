@@ -27,8 +27,9 @@ namespace scalestore
 {
 
 struct Timer {
+    // 使用高精度时钟，单位为微秒
     std::chrono::high_resolution_clock::time_point start_time;
-    std::chrono::milliseconds total_duration{0};  // 累计的时间，单位为毫秒
+    std::chrono::nanoseconds total_duration{0};  // 累计的时间，初始化为0微秒
     bool running = false;  // 标志计时器是否在运行
 
     // 开始计时或继续计时
@@ -43,7 +44,7 @@ struct Timer {
     void stop() {
         if (running) {
             auto end_time = std::chrono::high_resolution_clock::now();
-            total_duration += std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+            total_duration += std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
             running = false;
         }
     }
@@ -51,7 +52,7 @@ struct Timer {
     // 重置计时器，参数决定是否清零累计时间
     void reset(bool clear_total = false) {
         if (clear_total) {
-            total_duration = std::chrono::milliseconds(0);
+            total_duration = std::chrono::microseconds(0);
         }
         start_time = std::chrono::high_resolution_clock::now();
         running = false;
@@ -59,6 +60,16 @@ struct Timer {
 
     // 获取累计的时间（毫秒）
     long long elapsedMilliseconds() const {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(total_duration).count();
+    }
+
+    // 获取累计的时间（微秒）
+    long long elapsedMicroseconds() const {
+        return std::chrono::duration_cast<std::chrono::microseconds>(total_duration).count();
+    }
+
+    // 获取累计的时间（纳秒）
+    long long elapsedNanoseconds() const {
         return total_duration.count();
     }
 };

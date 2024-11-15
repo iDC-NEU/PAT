@@ -330,7 +330,7 @@ void origin_tpcc_run(ScaleStore &db)
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
-      {
+                                          {
          std::ofstream output(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i));                                 
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
@@ -442,12 +442,11 @@ void origin_tpcc_run(ScaleStore &db)
             txn_pay_lat[t_i][idx] = ((tx_l) / (double)txn_profile[t_i][transaction_types::STOCK_LEVEL]);
             idx++;
          }
-         running_threads_counter--; 
-      });
+         running_threads_counter--; });
    }
    auto last_router_statistics = std::chrono::high_resolution_clock::now();
    std::thread statistics([&]()
-   {
+                          {
       uint64_t all_numbers=0;
       float all_count = 0;
       float trigger_count = 0;
@@ -477,8 +476,7 @@ void origin_tpcc_run(ScaleStore &db)
          duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
          std::this_thread::sleep_for(std::chrono::microseconds(1000000) - duration);
-      } 
-   });
+      } });
    statistics.detach();
    // Report data size
    // std::thread data_consume([&]()
@@ -488,20 +486,19 @@ void origin_tpcc_run(ScaleStore &db)
    //          sleep(30);
    //          double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    //          std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
-   //       } 
+   //       }
    // });
    // data_consume.detach();
 
    std::thread start_txn_count([&]()
-   {
+                               {
       while(keep_running)
       {
          sleep(10);
          for(int i = 0; i< int(FLAGS_worker); i++){
             change_line[i] = true;
          }                                 
-      } 
-   });
+      } });
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;
@@ -590,6 +587,7 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    std::atomic<u64> running_threads_counter = 0;
    std::string configuration;
    bool change_line[FLAGS_worker];
+   bool count_ready = false;
    for (int i = 0; i < int(FLAGS_worker); i++)
    {
       change_line[i] = false;
@@ -615,11 +613,13 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    time_logger->flush_on(spdlog::level::info);
    time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
    std::vector<std::ofstream> outputs;
-   std::vector<std::ofstream> access_times;
+   std::vector<std::ofstream> neworder_times;
+   std::vector<std::ofstream> payment_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
-      access_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/access_worker_" + std::to_string(t_i)));
+      payment_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/payment_worker_" + std::to_string(t_i)));
+      neworder_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/neworder_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
@@ -632,7 +632,7 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
          Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
-         Timer *remote_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
+         Timer *remote_timer =  &db.getBuffermanager().remote_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -641,19 +641,32 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                std::string functionName = extractFunctionName(sql);
                std::vector<std::string> parameters;
                extractParameters(sql, ',', parameters);
-
+               local_timer->reset(true);
+               remote_timer->reset(true);
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
-               outputs[t_i] << (end - start) << " ";
-               if(functionName == "newOrder"){
-                  access_times[t_i] <<  local_timer->elapsedMilliseconds() << " "
-                  << remote_timer->elapsedMilliseconds() << " ";
+               if (count_ready)
+               {
+                  outputs[t_i] << (end - start) << " ";
+                  if (functionName == "newOrder")
+                  {
+                     neworder_times[t_i] << (end - start) << " "
+                                         << local_timer->elapsedMicroseconds() << " "
+                                         << remote_timer->elapsedMicroseconds() << " ";
+                  }
+                  if (functionName == "paymentById" || functionName == "paymentByName")
+                  {
+                     payment_times[t_i] << (end - start) << " "
+                                        << local_timer->elapsedMicroseconds() << " "
+                                        << remote_timer->elapsedMicroseconds() << " ";
+                  }
                }
-               local_timer->reset();
-               remote_timer->reset();
-               if(change_line[t_i]){
+               local_timer->reset(true);
+               remote_timer->reset(true);
+               if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
-                  access_times[t_i] << std::endl;
+                  payment_times[t_i] << std::endl;
+                  neworder_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }
                if (db.getNodeID() == 0)
@@ -914,18 +927,30 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    //    sleep(30);
    //    double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
    //    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
-   //                         } 
+   //                         }
    // });
    // data_consume.detach();
    std::thread start_txn_count([&]()
-   {
+                               {
+      int time_count = 0;
       while(keep_running){
          sleep(10);
          for(int i = 0; i< int(FLAGS_worker); i++){
-            change_line[i] = true;
+            if (time_count != 200)
+            {
+               change_line[i] = true;
+            }
          }
-      } 
-   });
+         time_count += 10;
+         if (time_count == 200)
+         {
+            count_ready = true;
+         }
+         else
+         {
+            count_ready = false;
+         }
+      } });
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    std::cout << "tpcc run over" << std::endl;
@@ -954,6 +979,7 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    auto &catalog = db.getCatalog();
    std::atomic<u64> running_threads_counter = 0;
    bool change_line[FLAGS_worker];
+   bool count_ready = false;
    for (int i = 0; i < int(FLAGS_worker); i++)
    {
       change_line[i] = false;
@@ -974,12 +1000,14 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    TPCC_workloadInfo experimentInfo{"TPCC", (uint64_t)warehouseCount, configuration};
    std::string currentFile = __FILE__;
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
+   std::vector<std::ofstream> neworder_times;
    std::vector<std::ofstream> outputs;
-   std::vector<std::ofstream> access_times;
+   std::vector<std::ofstream> payment_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
-      access_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/access_worker_" + std::to_string(t_i)));
+      payment_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/payment_worker_" + std::to_string(t_i)));
+      neworder_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/neworder_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
@@ -990,7 +1018,7 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
          Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
-         Timer *remote_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
+         Timer *remote_timer =  &db.getBuffermanager().remote_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -1000,19 +1028,32 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                std::string functionName = extractFunctionName(sql);
                std::vector<std::string> parameters;
                extractParameters(sql, ',', parameters);
-
+               local_timer->reset(true);
+               remote_timer->reset(true);
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
-               outputs[t_i] << (end - start) << " ";
-               if(functionName == "newOrder"){
-                  access_times[t_i] <<  local_timer->elapsedMilliseconds() << " "
-                  << remote_timer->elapsedMilliseconds() << " ";
+               if (count_ready)
+               {
+                  outputs[t_i] << (end - start) << " ";
+                  if (functionName == "newOrder")
+                  {
+                     neworder_times[t_i] << (end - start) << " "
+                                         << local_timer->elapsedMicroseconds() << " "
+                                         << remote_timer->elapsedMicroseconds() << " ";
+                  }
+                  if (functionName == "paymentById" || functionName == "paymentByName")
+                  {
+                     payment_times[t_i] << (end - start) << " "
+                                        << local_timer->elapsedMicroseconds() << " "
+                                        << remote_timer->elapsedMicroseconds() << " ";
+                  }
                }
-               local_timer->reset();
-               remote_timer->reset();
-               if(change_line[t_i]){
+               local_timer->reset(true);
+               remote_timer->reset(true);
+               if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
-                  access_times[t_i] << std::endl;
+                  payment_times[t_i] << std::endl;
+                  neworder_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }
                threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
@@ -1121,12 +1162,27 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    data_consume.detach();
    std::thread start_txn_count([&]()
                                {
-                           while(keep_running){
-  sleep(10);
-  for(int i = 0; i< int(FLAGS_worker); i++){
-   change_line[i] = true;
-  }
-                           } });
+                                 int time_count = 0;
+                                 while (keep_running)
+                                 {
+                                    sleep(10);
+                                    for (int i = 0; i < int(FLAGS_worker); i++)
+                                    {
+                                       if (time_count != 200)
+                                       {
+                                          change_line[i] = true;
+                                       }
+                                    }
+                                    time_count += 10;
+                                    if (time_count == 200)
+                                    {
+                                       count_ready = true;
+                                    }
+                                    else{
+                                       count_ready = false;
+                                    }
+                                 }
+                            });
    start_txn_count.detach();
    sleep(FLAGS_TPCC_run_for_seconds);
    keep_running = false;

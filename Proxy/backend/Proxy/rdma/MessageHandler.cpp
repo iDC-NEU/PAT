@@ -39,6 +39,8 @@ namespace Proxy
             graph_number_per_thread.push_back(0);
             random_number_per_thread.push_back(0);
             outputs.push_back(std::ofstream(abstract_filename + "../TXN_LOG/worker_" + std::to_string(i)));
+            neworder_time.push_back(std::ofstream(abstract_filename + "../TXN_LOG/neworder_worker_" + std::to_string(i)));
+            payment_time.push_back(std::ofstream(abstract_filename + "../TXN_LOG/payment_worker_" + std::to_string(i)));
             mail_mtxs.push_back(new std::mutex());
          }
          // partition mailboxes
@@ -274,6 +276,12 @@ namespace Proxy
                   router_number_per_thread[i] = 0;
                }
                all_count += 10;
+               if(all_count == 200){
+                  count_ready = true;
+               }
+               else{
+                  count_ready = false;
+               }
                router_logger.info(fmt::format("time:{}s; avg_throughput = {}/s; all_route_number= {}", all_count, (all_numbers - last_all_numbers) / float(10), all_numbers));
                router_logger.info(fmt::format("random_route_number:{}; graph_route_number:{}", random_numbers, graph_numbers));
                router_logger.info(fmt::format("transfer_count: {}", router.DyPartitioner.transfer_count));
@@ -659,20 +667,31 @@ namespace Proxy
                   if (routerCach[clientId] == 0)
                   {
                      bool ishash = false;
+                     std::string functionname = extractFunctionName(sql);
                      auto router_start = Proxy::utils::getTimePoint();
                      std::vector<router::TxnNode> txnnodelist;
                      gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
                      bool isroute = false;
                      destNodeId = router.router(txnnodelist, t_i, true, isroute);
                      auto router_end = Proxy::utils::getTimePoint();
-                     if (router.metis)
+                     if (router.metis && count_ready)
                      {
                         outputs[t_i] << (router_end - router_start) << " ";
+                        if(functionname == "newOrder"){
+                           neworder_time[t_i] << (router_end - router_start) << " ";
+                        }
+                        if(functionname == "paymentById" || functionname == "paymentByName"){
+                           payment_time[t_i] << (router_end - router_start) << " ";
+                        }
                         tx_acc++;
                      }
                      if(tx_acc > 10000){
                         outputs[t_i] << std::endl;
+                        payment_time[t_i] << std::endl;
+                        neworder_time[t_i] << std::endl;
                         outputs[t_i].flush();
+                        payment_time[t_i].flush();
+                        neworder_time[t_i].flush();
                         tx_acc = 0;
                      }
                      if (isroute)
