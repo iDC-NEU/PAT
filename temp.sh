@@ -1,0 +1,1 @@
+git remote remove origin && git remote add origin git@github.com:koha233/AffinityDB.git && git pull origin rc

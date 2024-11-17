@@ -322,10 +322,10 @@ struct ScaleStoreAdapter
    }
    
    // hold lock
-   void insert(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, const typename Record::Key &rec_key, const Record &record)
+   void insert(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &rec_key, const Record &record)
    {
       BTree tree(tree_pid);
-      tree.insert(my_lock, rec_key, record);
+      tree.insert(my_lock, hash_page, rec_key, record);
    }
 
    template <class Fn>
@@ -366,10 +366,10 @@ struct ScaleStoreAdapter
    }
 
    template <class Fn>
-   void update1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, const typename Record::Key &key, const Fn &fn)
+   void update1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key, const Fn &fn)
    {
       BTree tree(tree_pid);
-      auto res = tree.lookupAndUpdate(my_lock, key, [&](Record &value)
+      auto res = tree.lookupAndUpdate(my_lock, hash_page, key, [&](Record &value)
                                       { fn(value); });
       ensure(res);
    }
@@ -383,10 +383,10 @@ struct ScaleStoreAdapter
    }
 
    template <class Fn>
-   void lookup1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, const typename Record::Key &key, const Fn &fn)
+   void lookup1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key, const Fn &fn)
    {
       BTree tree(tree_pid);
-      const auto res = tree.lookup_opt(my_lock, key, fn);
+      const auto res = tree.lookup_opt(my_lock, hash_page, key, fn);
       ensure(res);
    }
 
@@ -397,10 +397,10 @@ struct ScaleStoreAdapter
       return res;
    }
 
-   bool erase(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, const typename Record::Key &key)
+   bool erase(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key)
    {
       BTree tree(tree_pid);
-      const auto res = tree.remove(my_lock, key);
+      const auto res = tree.remove(my_lock, hash_page, key);
       return res;
    }
 

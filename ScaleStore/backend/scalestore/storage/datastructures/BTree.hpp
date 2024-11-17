@@ -1021,8 +1021,8 @@ namespace scalestore
             // -------------------------------------------------------------------------------------
             leaf.insert(k, v);
          }
-         
-         void insert(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, Key k, Value v)
+
+         void insert(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, Value v)
          {
             // -------------------------------------------------------------------------------------
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
@@ -1093,46 +1093,36 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
             bool has_locked = false;
-            for (auto& xg_node : my_lock)
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
             {
-               if (xg_node.g.frame->pid == currentPID)
+               has_locked = true;
+               // -------------------------------------------------------------------------------------
+               auto &xg_node =  my_lock[hash_page[currentPID]];
+               node = xg_node.asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (leaf.isFull())
                {
-                  if (xg_node.retry())
-                     goto restart;
-                  ensure(xg_node.getFrame().latch.isLatched());
-                  has_locked = true;
-                  // -------------------------------------------------------------------------------------
-                  node = xg_node.asPtr<NodeBase>(0);
-                  ensure(node->type == PageType::BTreeLeaf);
-                  // -------------------------------------------------------------------------------------
-                  auto &leaf = *reinterpret_cast<Leaf *>(node);
-                  if (g_parent.retry())
+                  ExclusiveBFGuard xg_parent(std::move(g_parent));
+                  if (xg_parent.retry())
                      goto restart;
                   // -------------------------------------------------------------------------------------
-                  // Split Leaf
-                  // -------------------------------------------------------------------------------------
-                  if (leaf.isFull())
+                  Key sep;
+                  PID newLeaf = leaf.split(sep);
+                  if (xg_parent.getFrame().pid == entryPage)
                   {
-                     ExclusiveBFGuard xg_parent(std::move(g_parent));
-                     if (xg_parent.retry())
-                        goto restart;
-                     // -------------------------------------------------------------------------------------
-                     Key sep;
-                     PID newLeaf = leaf.split(sep);
-                     if (xg_parent.getFrame().pid == entryPage)
-                     {
-                        // make new root
-                        makeRoot(sep, xg_node.getFrame().pid, newLeaf, xg_parent);
-                     }
-                     else
-                     {
-                        xg_parent.as<Inner>(0).insert(sep, newLeaf);
-                     }
-                     goto restart;
+                     // make new root
+                     makeRoot(sep, xg_node.getFrame().pid, newLeaf, xg_parent);
                   }
-                  // -------------------------------------------------------------------------------------
-                  leaf.insert(k, v);
+                  else
+                  {
+                     xg_parent.as<Inner>(0).insert(sep, newLeaf);
+                  }
+                  goto restart;
                }
+               // -------------------------------------------------------------------------------------
+               leaf.insert(k, v);
             }
             if (!has_locked)
             {
@@ -1171,6 +1161,7 @@ namespace scalestore
                }
                // -------------------------------------------------------------------------------------
                leaf.insert(k, v);
+               hash_page.insert({xg_node.g.frame->pid, hash_page.size()});
                my_lock.push_back(std::move(xg_node));
             }
          }
@@ -1300,8 +1291,8 @@ namespace scalestore
             auto removed = leaf.remove(k);
             return removed;
          }
-         
-         bool remove(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, Key k)
+
+         bool remove(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k)
          {
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
@@ -1363,7 +1354,7 @@ namespace scalestore
                   ExclusiveBFGuard xg_right(pid_right);
                   if (xg_right.retry())
                      goto restart;
-                  
+
                   auto &right = xg_right.as<Leaf>(0);
                   // check if right fits into current node
                   // if (leaf.count + right.count >= Leaf::maxEntries)
@@ -1399,10 +1390,11 @@ namespace scalestore
                goto restart;
 
             auto removed = leaf.remove(k);
+            hash_page.insert({xg_node.g.frame->pid, hash_page.size()});
             my_lock.push_back(std::move(xg_node));
             return removed;
          }
-                  
+
          // -------------------------------------------------------------------------------------
          // latches the leaf exclusive and executes the callback
          // -------------------------------------------------------------------------------------
@@ -1472,8 +1464,8 @@ namespace scalestore
             ensure(false);
             return false;
          }
-         
-         bool lookupAndUpdate(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, Key k, std::function<void(Value &value)> callback)
+
+         bool lookupAndUpdate(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, std::function<void(Value &value)> callback)
          {
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
@@ -1519,28 +1511,25 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
             bool has_locked = false;
-            for (auto& xg_node : my_lock){
-               if (xg_node.g.frame->pid == currentPID) {
-                  ensure(xg_node.getFrame().latch.isLatched());
-                  has_locked = true;
-                  // -------------------------------------------------------------------------------------
-                  node = xg_node.asPtr<NodeBase>(0);
-                  ensure(node->type == PageType::BTreeLeaf);
-                  // -------------------------------------------------------------------------------------
-                  auto &leaf = *reinterpret_cast<Leaf *>(node);
-                  if (g_parent.retry())
-                     goto restart;
-                  uint64_t pos = leaf.lowerBound(k);
-                  if ((pos < leaf.count) && (leaf.keys[pos] == k))
-                  {
-                     callback(leaf.payloads[pos]);
-                     return true;
-                  }
-                  break;
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
+            {
+               has_locked = true;
+               // -------------------------------------------------------------------------------------
+               node = my_lock[hash_page[currentPID]].asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  callback(leaf.payloads[pos]);
+                  return true;
                }
             }
             if (!has_locked)
-            { 
+            {
                ExclusiveBFGuard xg_node(currentPID);
                if (xg_node.retry())
                   goto restart;
@@ -1556,6 +1545,7 @@ namespace scalestore
                if ((pos < leaf.count) && (leaf.keys[pos] == k))
                {
                   callback(leaf.payloads[pos]);
+                  hash_page.insert({currentPID, hash_page.size()});
                   my_lock.push_back(std::move(xg_node));
                   return true;
                }
@@ -1565,7 +1555,7 @@ namespace scalestore
             return false;
          }
 
-      // -------------------------------------------------------------------------------------
+         // -------------------------------------------------------------------------------------
          // Lookup (leaf is shared latched)
          // -------------------------------------------------------------------------------------
          bool lookup(Key k, Value &returnValue)
@@ -1724,9 +1714,9 @@ namespace scalestore
             ensure(false);
             return false;
          }
-         
+
          template <class Fn>
-         bool lookup_opt(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, Key k, Fn &&read_function)
+         bool lookup_opt(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, Fn &&read_function)
          {
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
             using Inner = BTreeInner<Key>;
@@ -1772,39 +1762,18 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
          restartLeaf:
-
             bool has_locked = false;
-            for (auto& xg_node : my_lock){
-               if (xg_node.g.frame->pid == currentPID) {
-                  ensure(xg_node.getFrame().latch.isLatched());
-                  has_locked = true;
-                  node = xg_node.asPtr<NodeBase>(0);
-                  auto &leaf = *reinterpret_cast<Leaf *>(node);
-                  if (g_parent.retry())
-                     goto restart;
-                  if (xg_node.retry())
-                  {
-                     goto restartLeaf;
-                  }
-                  // -------------------------------------------------------------------------------------
-                  uint64_t pos = leaf.lowerBound(k);
-                  if ((pos < leaf.count) && (leaf.keys[pos] == k))
-                  {
-                     read_function(leaf.payloads[pos]); // pass value to function
-                     if (g_parent.retry())
-                        goto restart;
-                     if (xg_node.retry())
-                     {
-                        goto restartLeaf;
-                     }
-                     return true;
-                  }
-                  if (g_parent.retry())
-                     goto restart;
-                  if (xg_node.retry())
-                  {
-                     goto restartLeaf;
-                  }
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
+            {
+               has_locked = true;
+               node = my_lock[hash_page[currentPID]].asPtr<NodeBase>(0);
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               // -------------------------------------------------------------------------------------
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  read_function(leaf.payloads[pos]); // pass value to function
+                  return true;
                }
             }
             if (!has_locked)
@@ -1874,7 +1843,6 @@ namespace scalestore
             ensure(false);
             return false;
          }
-
 
          bool lookup_opt(Key k, Value &returnValue)
          {

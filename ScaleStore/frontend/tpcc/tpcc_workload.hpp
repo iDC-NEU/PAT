@@ -305,8 +305,13 @@ void newOrder(Integer w_id,
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_order_wdc;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_stock;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_orderline;
-   
-   district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
+   std::unordered_map<PID, int, PIDHash> hash_district;
+   std::unordered_map<PID, int, PIDHash> hash_order;
+   std::unordered_map<PID, int, PIDHash> hash_neworder;
+   std::unordered_map<PID, int, PIDHash> hash_order_wdc;
+   std::unordered_map<PID, int, PIDHash> hash_stock;
+   std::unordered_map<PID, int, PIDHash> hash_orderline;
+   district.update1(my_lock_district, hash_district, {w_id, d_id}, [&](district_t &rec)
    {
          d_tax = rec.d_tax;
          o_id = rec.d_next_o_id++; 
@@ -319,21 +324,63 @@ void newOrder(Integer w_id,
 
    Numeric cnt = lineNumbers.size();
    Integer carrier_id = 0; /*null*/
-   order.insert(my_lock_order, {w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local});
+   order.insert(my_lock_order, hash_order, {w_id, d_id, o_id}, {c_id, timestamp, carrier_id, cnt, all_local});
    if (FLAGS_order_wdc_index)
    {
-      order_wdc.insert(my_lock_order_wdc, {w_id, d_id, c_id, o_id}, {});
+      order_wdc.insert(my_lock_order_wdc, hash_order_wdc, {w_id, d_id, c_id, o_id}, {});
    }
-   neworder.insert(my_lock_neworder, {w_id, d_id, o_id}, {});
+   neworder.insert(my_lock_neworder, hash_neworder, {w_id, d_id, o_id}, {});
 
    // sort by key, to lock in order
    std::map<stock_t::Key, Integer> ordered_key;
+   std::vector<Varchar<24>> s_dists;
+   for (unsigned i = 0; i < lineNumbers.size(); i++){
+      s_dists.push_back(Varchar<24>());
+      Integer itemid = itemids[i];
+      stock.lookup1({w_id, itemid}, [&](const stock_t &rec)
+         {
+            switch (d_id) {
+               case 1:
+                  s_dists[i] = rec.s_dist_01;
+                  break;
+               case 2:
+                  s_dists[i] = rec.s_dist_02;
+                  break;
+               case 3:
+                  s_dists[i] = rec.s_dist_03;
+                  break;
+               case 4:
+                  s_dists[i] = rec.s_dist_04;
+                  break;
+               case 5:
+                  s_dists[i] = rec.s_dist_05;
+                  break;
+               case 6:
+                  s_dists[i] = rec.s_dist_06;
+                  break;
+               case 7:
+                  s_dists[i] = rec.s_dist_07;
+                  break;
+               case 8:
+                  s_dists[i] = rec.s_dist_08;
+                  break;
+               case 9:
+                  s_dists[i] = rec.s_dist_09;
+                  break;
+               case 10:
+                  s_dists[i] = rec.s_dist_10;
+                  break;
+               default:
+                  throw;
+            } 
+         });
+   }
    for (unsigned i = 0; i < lineNumbers.size(); i++)
    {
       Integer qty = qtys[i];
       ordered_key[{supwares[i], itemids[i]}] = qty;
    }
-   std::map<stock_t::Key, stock_t> stockWriteSet;
+   std::unordered_map<stock_t::Key, stock_t, key_hash> stockWriteSet;
    // for (unsigned i = 0; i < lineNumbers.size(); i++)
    for (const auto& [key, value] : ordered_key)
    {
@@ -349,7 +396,7 @@ void newOrder(Integer w_id,
       //    // rec.s_ytd += qty;
       // });
       // stock.update1(my_lock_stock, {supwares[i], itemids[i]}, [&](stock_t &rec)
-      stock.update1(my_lock_stock, key, [&](stock_t &rec)
+      stock.update1(my_lock_stock, hash_stock, key, [&](stock_t &rec)
       {
          auto& s_quantity = rec.s_quantity;
          s_quantity = (s_quantity >= qty + 10) ? s_quantity - qty : s_quantity + 91 - qty;
@@ -411,49 +458,15 @@ void newOrder(Integer w_id,
       } 
       else
       {
-         stock.lookup1(my_lock_stock, {w_id, itemid}, [&](const stock_t &rec)
-         {
-            switch (d_id) {
-               case 1:
-                  s_dist = rec.s_dist_01;
-                  break;
-               case 2:
-                  s_dist = rec.s_dist_02;
-                  break;
-               case 3:
-                  s_dist = rec.s_dist_03;
-                  break;
-               case 4:
-                  s_dist = rec.s_dist_04;
-                  break;
-               case 5:
-                  s_dist = rec.s_dist_05;
-                  break;
-               case 6:
-                  s_dist = rec.s_dist_06;
-                  break;
-               case 7:
-                  s_dist = rec.s_dist_07;
-                  break;
-               case 8:
-                  s_dist = rec.s_dist_08;
-                  break;
-               case 9:
-                  s_dist = rec.s_dist_09;
-                  break;
-               case 10:
-                  s_dist = rec.s_dist_10;
-                  break;
-               default:
-                  throw;
-            } 
-         });
+         s_dist = s_dists[i];
       }
-
       Numeric ol_amount = qty * i_price * (1.0 + w_tax + d_tax) * (1.0 - c_discount);
       Timestamp ol_delivery_d = 0; // NULL
-      orderline.insert(my_lock_orderline, {w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
+      std::cout<<"lock_orderline" <<std::endl;
+      orderline.insert(my_lock_orderline, hash_orderline, {w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
+      std::cout<<"lock_done" <<std::endl;
    }
+   std::cout<<"lock_ed" <<std::endl;
    // std::cout << "newOrderRnd end" << std::endl;
    // my_lock_district.clear();
    // my_lock_order.clear();
@@ -495,7 +508,7 @@ void newOrderRnd(Integer w_id)
    {
       Integer supware = w_id;
 
-      if (urand(1, 100) < (Integer)(FLAGS_distribution_rate/10) && FLAGS_distribution)
+      if (urand(1, 100) < 10)
       { // remote transaction
          supware = urandexcept(1, warehouseCount, w_id);
          // remote_new_order++;
@@ -585,6 +598,10 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
    std::map<order_t::Key, order_t> orderWriteSet;
    std::map<orderline_t::Key, orderline_t> orderlineWriteSet;
    std::map<customer_t::Key, customer_t> customerWriteSet;
+   std::unordered_map<PID, int, PIDHash> hash_order;
+   std::unordered_map<PID, int, PIDHash> hash_neworder;
+   std::unordered_map<PID, int, PIDHash> hash_customer;
+   std::unordered_map<PID, int, PIDHash> hash_orderline;
 
    for (Integer d_id = 1; d_id <= 10; d_id++)
    {
@@ -611,7 +628,7 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
          //    // label remove
          //    neworderWriteSet[{w_id, d_id, o_id}] = true;
          // }
-         [[maybe_unused]] const auto ret = neworder.erase(my_lock_neworder, {w_id, d_id, o_id});
+         [[maybe_unused]] const auto ret = neworder.erase(my_lock_neworder, hash_neworder, {w_id, d_id, o_id});
       }
       Integer ol_cnt = 0;
       Integer c_id = 0;
@@ -643,7 +660,7 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
          continue;
       }
       
-      order.update1(my_lock_order, {w_id, d_id, o_id}, [&](order_t &rec)
+      order.update1(my_lock_order, hash_neworder, {w_id, d_id, o_id}, [&](order_t &rec)
                     { rec.o_carrier_id = carrier_id; });
       // -------------------------------------------------------------------------------------
       // First check if all orderlines have been inserted, a hack because of the missing transaction and concurrency control
@@ -668,13 +685,13 @@ void delivery(Integer w_id, Integer carrier_id, Timestamp datetime)
       Numeric ol_total = 0;
       for (Integer ol_number = 1; ol_number <= ol_cnt; ol_number++)
       {
-         orderline.update1(my_lock_orderline, {w_id, d_id, o_id, ol_number}, [&](orderline_t &rec)
+         orderline.update1(my_lock_orderline, hash_neworder, {w_id, d_id, o_id, ol_number}, [&](orderline_t &rec)
          {
             ol_total += rec.ol_amount;
             rec.ol_delivery_d = datetime; 
          });
       }
-      customer.update1(my_lock_customer, {w_id, d_id, c_id}, [&](customer_t &rec)
+      customer.update1(my_lock_customer, hash_neworder, {w_id, d_id, c_id}, [&](customer_t &rec)
       {
          rec.c_balance += ol_total;
          rec.c_delivery_cnt++; 
@@ -933,6 +950,10 @@ void paymentById(Integer w_id,
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_district;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_customer;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_history;
+   std::unordered_map<PID, int, PIDHash> hash_district;
+   std::unordered_map<PID, int, PIDHash> hash_warehouse;
+   std::unordered_map<PID, int, PIDHash> hash_customer;
+   std::unordered_map<PID, int, PIDHash> hash_history;
    Varchar<10> w_name;
    Varchar<20> w_street_1;
    Varchar<20> w_street_2;
@@ -949,7 +970,7 @@ void paymentById(Integer w_id,
       w_state = rec.w_state;
       w_zip = rec.w_zip;
       w_ytd = rec.w_ytd; });
-   warehouse.update1(my_lock_warehouse, {w_id}, [&](warehouse_t &rec)
+   warehouse.update1(my_lock_warehouse, hash_warehouse, {w_id}, [&](warehouse_t &rec)
                   { rec.w_ytd += h_amount; });
    
    Varchar<10> d_name;
@@ -969,7 +990,7 @@ void paymentById(Integer w_id,
       d_zip = rec.d_zip;
       d_ytd = rec.d_ytd; 
    });
-   district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
+   district.update1(my_lock_district, hash_district, {w_id, d_id}, [&](district_t &rec)
                { rec.d_ytd += h_amount; });
 
    Varchar<500> c_data;
@@ -995,7 +1016,7 @@ void paymentById(Integer w_id,
       c_new_data.length = numChars;
       if (c_new_data.length > 500)
          c_new_data.length = 500;
-      customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+      customer.update1(my_lock_customer, hash_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                      {
          rec.c_data = c_new_data;
          rec.c_balance = c_new_balance;
@@ -1005,7 +1026,7 @@ void paymentById(Integer w_id,
    }
    else
    {
-      customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+      customer.update1(my_lock_customer, hash_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                      {
          rec.c_balance = c_new_balance;
          rec.c_ytd_payment = c_new_ytd_payment;
@@ -1017,7 +1038,7 @@ void paymentById(Integer w_id,
    Integer t_id = thread_id;
    Integer h_id = variable_for_workload[thread_id]++;
 
-   history.insert(my_lock_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
+   history.insert(my_lock_history, hash_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
    my_lock_warehouse.clear();
    my_lock_district.clear();
    my_lock_customer.clear();
@@ -1039,6 +1060,10 @@ void paymentByName(Integer w_id,
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_district;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_customer;
    std::vector<scalestore::storage::ExclusiveBFGuard> my_lock_history;
+   std::unordered_map<PID, int, PIDHash> hash_district;
+   std::unordered_map<PID, int, PIDHash> hash_warehouse;
+   std::unordered_map<PID, int, PIDHash> hash_customer;
+   std::unordered_map<PID, int, PIDHash> hash_history;
 
    Varchar<10> w_name;
    Varchar<20> w_street_1;
@@ -1059,7 +1084,7 @@ void paymentByName(Integer w_id,
          w_ytd = rec.w_ytd; });
    }
    {
-      warehouse.update1(my_lock_warehouse, {w_id}, [&](warehouse_t &rec)
+      warehouse.update1(my_lock_warehouse, hash_warehouse, {w_id}, [&](warehouse_t &rec)
                         { rec.w_ytd += h_amount; });
    }
    Varchar<10> d_name;
@@ -1084,7 +1109,7 @@ void paymentByName(Integer w_id,
       // txn_paymentbyname_latencies[2] += (end - start);
    }
    {
-      district.update1(my_lock_district, {w_id, d_id}, [&](district_t &rec)
+      district.update1(my_lock_district, hash_district, {w_id, d_id}, [&](district_t &rec)
                        { rec.d_ytd += h_amount; });
    }
    // Get customer id by name
@@ -1140,7 +1165,7 @@ void paymentByName(Integer w_id,
          c_new_data.length = numChars;
          if (c_new_data.length > 500)
             c_new_data.length = 500;
-         customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+         customer.update1(my_lock_customer, hash_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                           {
             rec.c_data = c_new_data;
             rec.c_balance = c_new_balance;
@@ -1150,7 +1175,7 @@ void paymentByName(Integer w_id,
       }
       else
       {
-         customer.update1(my_lock_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
+         customer.update1(my_lock_customer, hash_customer, {c_w_id, c_d_id, c_id}, [&](customer_t &rec)
                           {
             rec.c_balance = c_new_balance;
             rec.c_ytd_payment = c_new_ytd_payment;
@@ -1162,7 +1187,7 @@ void paymentByName(Integer w_id,
    Integer t_id = thread_id;
    Integer h_id = variable_for_workload[thread_id]++;
    {
-      history.insert(my_lock_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
+      history.insert(my_lock_history, hash_history, {t_id, h_id}, {c_id, c_d_id, c_w_id, d_id, w_id, datetime, h_amount, h_new_data});
    }
    my_lock_warehouse.clear();
    my_lock_district.clear();
@@ -1177,7 +1202,7 @@ void paymentRnd(Integer w_id)
    Integer c_w_id = w_id;
    Integer c_d_id = d_id;
 
-   if (urand(1, 100) > (Integer)(100-FLAGS_distribution_rate * 1.5) && FLAGS_distribution)
+   if (urand(1, 100) > 90)
    {
       c_w_id = urandexcept(1, warehouseCount, w_id);
       c_d_id = urand(1, 10);
@@ -1235,7 +1260,7 @@ std::string paymentRndCreate(Integer w_id)
 int tx(Integer w_id)
 {
    // micro-optimized version of weighted distribution
-   int rnd = scalestore::utils::RandomGenerator::getRand(0, 10000);
+   int rnd = scalestore::utils::RandomGenerator::getRand(0, 8800);
    auto start = utils::getTimePoint();
    if (rnd < 4300)
    {
@@ -1245,34 +1270,34 @@ int tx(Integer w_id)
       txn_latencies[transaction_types::PAYMENT] += (end - start);
       return 0;
    }
-   rnd -= 4300;
-   if (rnd < 400)
-   {
-      orderStatusRnd(w_id);
-      txns[transaction_types::ORDER_STATUS]++;
-      auto end = utils::getTimePoint();
-      txn_latencies[transaction_types::ORDER_STATUS] += (end - start);
-      return 1;
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      // deliveryRnd(w_id);
-      // txns[transaction_types::DELIVERY]++;
-      // auto end = utils::getTimePoint();
-      // txn_latencies[transaction_types::DELIVERY] += (end - start);
-      // return 2;
-   }
-   rnd -= 400;
-   if (rnd < 400)
-   {
-      stockLevelRnd(w_id);
-      txns[transaction_types::STOCK_LEVEL]++;
-      auto end = utils::getTimePoint();
-      txn_latencies[transaction_types::STOCK_LEVEL] += (end - start);
-      return 3;
-   }
-   rnd -= 400;
+   // rnd -= 4300;
+   // if (rnd < 400)
+   // {
+   //    orderStatusRnd(w_id);
+   //    txns[transaction_types::ORDER_STATUS]++;
+   //    auto end = utils::getTimePoint();
+   //    txn_latencies[transaction_types::ORDER_STATUS] += (end - start);
+   //    return 1;
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    // deliveryRnd(w_id);
+   //    // txns[transaction_types::DELIVERY]++;
+   //    // auto end = utils::getTimePoint();
+   //    // txn_latencies[transaction_types::DELIVERY] += (end - start);
+   //    // return 2;
+   // }
+   // rnd -= 400;
+   // if (rnd < 400)
+   // {
+   //    stockLevelRnd(w_id);
+   //    txns[transaction_types::STOCK_LEVEL]++;
+   //    auto end = utils::getTimePoint();
+   //    txn_latencies[transaction_types::STOCK_LEVEL] += (end - start);
+   //    return 3;
+   // }
+   // rnd -= 400;
    newOrderRnd(w_id);
    txns[transaction_types::NEW_ORDER]++;
    auto end = utils::getTimePoint();
