@@ -231,13 +231,11 @@ restart:
          guard.frame->epoch = globalEpoch.load();
       if (is_local)
       {
-         local_timer[std::this_thread::get_id()].stop();
-         remote_timer[std::this_thread::get_id()].reset(false);
+         local_timer[std::this_thread::get_id()].stop(true);
       }
       else
       {
          local_timer[std::this_thread::get_id()].reset(false);
-         remote_timer[std::this_thread::get_id()].stop();
       }
       return guard;
    }
@@ -603,13 +601,11 @@ restart:
    }
    if (is_local)
    {
-      local_timer[std::this_thread::get_id()].stop();
-      remote_timer[std::this_thread::get_id()].reset(false);
+      local_timer[std::this_thread::get_id()].stop(true);
    }
    else
    {
-      local_timer[std::this_thread::get_id()].reset(false);
-      remote_timer[std::this_thread::get_id()].stop();
+      local_timer[std::this_thread::get_id()].stop(false);
    }
    // -------------------------------------------------------------------------------------
    return guard;
