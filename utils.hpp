@@ -168,7 +168,7 @@ void mergeLinesToFile(const std::string &input_filename, const std::string &outp
     std::cout << "文件已成功合并并保存为 " << output_filename << std::endl;
 }
 
-void caculate_txn_lantxncy(std::string path)
+void caculate_router_lantency(std::string path)
 {
 
     // 输入文件和输出文件名
@@ -187,7 +187,26 @@ void caculate_txn_lantxncy(std::string path)
     calculateAndWriteDelays(output_filename3, output_count2, percentile);
     std::string rm_str = "rm -rf " + output_filename2;
     system(rm_str.c_str());
+    rm_str = "rm -rf " + output_filename3;
+    system(rm_str.c_str());
 }
+
+void caculate_tpcc_txn_lantxncy(std::string path)
+{
+
+    // 输入文件和输出文件名
+    double percentile = 0.99;
+    std::string input_filename1 = path + "txn_lantency";
+    std::string output_filename1 = path + "txn_sort_lantency";
+    std::string output_count1 = path + "txn_sort_info";
+    sortLinesInFile(input_filename1, output_filename1);
+    calculateAndWriteDelays(output_filename1, output_count1, percentile);
+    std::string rm_str = "rm -rf " + output_filename1;
+    system(rm_str.c_str());
+    rm_str = "rm -rf " + input_filename1;
+    system(rm_str.c_str());
+}
+
 
 void calculate_remote(std::string path, int nodes)
 {
@@ -258,107 +277,199 @@ void calculate_remote(std::string path, int nodes)
     std::cout << "统计结果已成功保存到 " << output_filename << std::endl;
 }
 
-void calculate_remote_batch(int nodes)
+void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)
 {
-    std::string path1 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/无分布式/2/";
-    calculate_remote(path1, nodes);
-    std::string path2 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/原版tpcc/2/";
-    calculate_remote(path2, nodes);
-    std::string path3 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式30/2/";
-    calculate_remote(path3, nodes);
-    std::string path4 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式50/2/";
-    calculate_remote(path4, nodes);
-    std::string path5 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/无分布式/2/";
-    calculate_remote(path5, nodes);
-    std::string path6 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/原版tpcc/2/";
-    calculate_remote(path6, nodes);
-    std::string path7 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式30/2/";
-    calculate_remote(path7, nodes);
-    std::string path8 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式50/2/";
-    calculate_remote(path8, nodes);
-    std::string path11 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/无分布式/2/";
-    calculate_remote(path11, nodes);
-    std::string path12 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
-    calculate_remote(path12, nodes);
-    std::string path13 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式30/2/";
-    calculate_remote(path13, nodes);
-    std::string path14 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式50/2/";
-    calculate_remote(path14, nodes);
-    std::string path15 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/无分布式/2/";
-    calculate_remote(path15, nodes);
-    std::string path16 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
-    calculate_remote(path16, nodes);
-    std::string path17 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式30/2/";
-    calculate_remote(path17, nodes);
-    std::string path18 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式50/2/";
-    calculate_remote(path18, nodes);
-    std::string path21 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/无分布式/2/";
-    calculate_remote(path21, nodes);
-    std::string path22 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
-    calculate_remote(path22, nodes);
-    std::string path23 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式30/2/";
-    calculate_remote(path23, nodes);
-    std::string path24 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式50/2/";
-    calculate_remote(path24, nodes);
-    std::string path25 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/无分布式/2/";
-    calculate_remote(path25, nodes);
-    std::string path26 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
-    calculate_remote(path26, nodes);
-    std::string path27 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式30/2/";
-    calculate_remote(path27, nodes);
-    std::string path28 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式50/2/";
-    calculate_remote(path28, nodes);
+    // 打开所有输入文件
+    std::vector<std::ifstream> inputFiles;
+    for (const auto &filename : filenames)
+    {
+        std::ifstream inputFile(filename);
+        if (!inputFile.is_open())
+        {
+            std::cerr << "Failed to open input file: " << filename << std::endl;
+            return;
+        }
+        inputFiles.push_back(std::move(inputFile));
+    }
+
+    std::ofstream outputFile(outputFilename);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "Failed to open output file." << std::endl;
+        return;
+    }
+
+    bool allFilesHaveData = true;
+
+    while (allFilesHaveData)
+    {
+        allFilesHaveData = false;
+        std::string mergedLine;
+
+        for (auto &inputFile : inputFiles)
+        {
+            std::string line;
+            if (std::getline(inputFile, line))
+            {
+                if (!mergedLine.empty())
+                {
+                    mergedLine += " "; // 可以根据需要更改分隔符
+                }
+                mergedLine += line;
+                allFilesHaveData = true;
+            }
+        }
+
+        if (allFilesHaveData)
+        {
+            outputFile << mergedLine << std::endl;
+        }
+    }
+
+    for (auto &inputFile : inputFiles)
+    {
+        inputFile.close();
+    }
+
+    outputFile.close();
 }
-void lantency_batch(int nodes)
+
+void handle_tpcc_txn(std::string &path, int num_nodes)
 {
-    std::string path1 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/无分布式/2/";
-    caculate_txn_lantxncy(path1);
-    std::string path2 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/原版tpcc/2/";
-    caculate_txn_lantxncy(path2);
-    std::string path3 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式30/2/";
-    caculate_txn_lantxncy(path3);
-    std::string path4 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/随机路由/分布式50/2/";
-    caculate_txn_lantxncy(path4);
-    std::string path5 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/无分布式/2/";
-    caculate_txn_lantxncy(path5);
-    std::string path6 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/原版tpcc/2/";
-    caculate_txn_lantxncy(path6);
-    std::string path7 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式30/2/";
-    caculate_txn_lantxncy(path7);
-    std::string path8 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/无图划分路由/哈希路由/分布式50/2/";
-    caculate_txn_lantxncy(path8);
-    std::string path11 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/无分布式/2/";
-    caculate_txn_lantxncy(path11);
-    std::string path12 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/原版tpcc/2/";
-    caculate_txn_lantxncy(path12);
-    std::string path13 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式30/2/";
-    caculate_txn_lantxncy(path13);
-    std::string path14 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/无codesign/分布式50/2/";
-    caculate_txn_lantxncy(path14);
-    std::string path15 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/无分布式/2/";
-    caculate_txn_lantxncy(path15);
-    std::string path16 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/原版tpcc/2/";
-    caculate_txn_lantxncy(path16);
-    std::string path17 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式30/2/";
-    caculate_txn_lantxncy(path17);
-    std::string path18 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/静态/有codesign/分布式50/2/";
-    caculate_txn_lantxncy(path18);
-    std::string path21 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/无分布式/2/";
-    caculate_txn_lantxncy(path21);
-    std::string path22 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/原版tpcc/2/";
-    caculate_txn_lantxncy(path22);
-    std::string path23 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式30/2/";
-    caculate_txn_lantxncy(path23);
-    std::string path24 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/无codesign/分布式50/2/";
-    caculate_txn_lantxncy(path24);
-    std::string path25 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/无分布式/2/";
-    caculate_txn_lantxncy(path25);
-    std::string path26 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/原版tpcc/2/";
-    caculate_txn_lantxncy(path26);
-    std::string path27 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式30/2/";
-    caculate_txn_lantxncy(path27);
-    std::string path28 = "/root/home/AffinityDB/data3/" + std::to_string(nodes) + "nodes/图划分路由/动态/有codesign/分布式50/2/";
-    caculate_txn_lantxncy(path28);
+    std::vector<std::string> neworder_filenames;
+    std::vector<std::string> txn_filenames;
+    std::vector<std::string> proxy_file;
+
+    // Add worker files for each node
+    for (int i = 0; i < num_nodes; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            neworder_filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/neworder_worker_" + std::to_string(j));
+            txn_filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
+        }
+    }
+
+    // Add proxy worker files
+    for (int i = 0; i < num_nodes * 4; i++)
+    {
+        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
+    }
+
+    std::string neworder_outputFilename = path + "neworder_lantency";
+    std::string txn_outputFilename = path + "txn_lantency";
+    mergeFiles(neworder_filenames, neworder_outputFilename);
+    mergeFiles(txn_filenames, txn_outputFilename);
+
+    std::string outputproxy = path + "route_lantency";
+    mergeFiles(proxy_file, outputproxy);
+}
+
+void handle_txn(std::string &path, int num_nodes)
+{
+    std::vector<std::string> filenames;
+    std::vector<std::string> proxy_file;
+
+    // Add worker files for each node
+    for (int i = 0; i < num_nodes; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
+        }
+    }
+
+    // Add proxy worker files
+    for (int i = 0; i < num_nodes * 4; i++)
+    {
+        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
+    }
+
+    std::string outputFilename = path + "txn_lantency";
+    mergeFiles(filenames, outputFilename);
+
+    std::string outputproxy = path + "route_lantency";
+    mergeFiles(proxy_file, outputproxy);
+}
+
+
+double calculatePercentile(const std::vector<double>& data, double percentile) {
+    if (data.empty()) return 0.0;
+    int index = static_cast<int>(percentile * data.size());
+    return data[index];
+}
+
+// 计算统计信息
+void calculateStatistics(const std::vector<double>& data, double& min, double& max, double& mean, double& p, double percentile) {
+    if (data.empty()) return;
+
+    double sum = 0;
+    min = std::numeric_limits<double>::max();
+    max = std::numeric_limits<double>::lowest();
+
+    for (double value : data) {
+        sum += value;
+        if (value < min) min = value;
+        if (value > max) max = value;
+    }
+    mean = sum / data.size();
+
+    // 排序并计算90分位数
+    std::vector<double> sorted_data = data;
+    std::sort(sorted_data.begin(), sorted_data.end());
+    p = calculatePercentile(sorted_data, percentile);
+}
+
+// 读取数据、计算统计信息并写入文件
+bool processtpccData(const std::string& input_file, const std::string& output_file) {
+    std::ifstream file(input_file);
+    if (!file.is_open()) {
+        std::cerr << "无法打开输入文件！" << std::endl;
+        return false;
+    }
+
+    std::vector<double> total_delays, local_delays, remote_delays;
+    double total, local, remote;
+    double percentle = 0.99;
+
+    // 读取文件并解析数据
+    while (file >> total >> local >> remote) {
+        total_delays.push_back(total);
+        local_delays.push_back(local);
+        remote_delays.push_back(remote);
+    }
+    file.close();
+
+    // 计算总延迟的统计信息
+    double min_total, max_total, mean_total, p_total;
+    calculateStatistics(total_delays, min_total, max_total, mean_total, p_total, percentle);
+
+    // 计算本地访问延迟的统计信息
+    double min_local, max_local, mean_local, p_local;
+    calculateStatistics(local_delays, min_local, max_local, mean_local, p_local, percentle);
+
+    // 计算远程访问延迟的统计信息
+    double min_remote, max_remote, mean_remote, p_remote;
+    calculateStatistics(remote_delays, min_remote, max_remote, mean_remote, p_remote, percentle);
+
+    // 写入结果到输出文件
+    std::ofstream output(output_file);
+    if (!output.is_open()) {
+        std::cerr << "无法打开输出文件！" << std::endl;
+        return false;
+    }
+
+    output << "总延迟的平均值: " << mean_total << ", 最小值: " << min_total
+           << ", 最大值: " << max_total << ", 99分位数: " << p_total << std::endl;
+
+    output << "本地访问延迟的平均值: " << mean_local << ", 最小值: " << min_local
+           << ", 最大值: " << max_local << ", 99分位数: " << p_local << std::endl;
+
+    output << "远程访问延迟的平均值: " << mean_remote << ", 最小值: " << min_remote
+           << ", 最大值: " << max_remote << ", 99分位数: " << p_remote << std::endl;
+
+    output.close();
+    return true;
 }
 
 // int main()
