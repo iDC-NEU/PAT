@@ -485,7 +485,7 @@ namespace scalestore
             std::queue<PID> traverse_queue;
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -502,7 +502,7 @@ namespace scalestore
             while (true)
             {
                PID currentPID = traverse_queue.front();
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                node = g_node.asPtr<NodeBase>(0);
                if (node->type == PageType::BTreeLeaf)
                {
@@ -539,7 +539,7 @@ namespace scalestore
             output << "max_entries: " << Leaf::maxEntries << std::endl;
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -554,7 +554,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -589,7 +589,7 @@ namespace scalestore
          // -------------------------------------------------------------------------------------
          leaf_restart:
             // std::cout << "leaf_restart: " << std::endl;
-            OptimisticBFGuard xg_node(currentPID, true);
+            OptimisticBFGuard xg_node(currentPID);
             if (xg_node.retry())
                goto restart;
             // -------------------------------------------------------------------------------------
@@ -645,7 +645,7 @@ namespace scalestore
             int retry_count = 0;
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -662,7 +662,7 @@ namespace scalestore
             while (true)
             {
                PID currentPID = traverse_queue.front();
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                node = g_node.asPtr<NodeBase>(0);
                if (node->type == PageType::BTreeLeaf)
                {
@@ -686,8 +686,7 @@ namespace scalestore
             while (traverse_queue.size() != 0)
             {
                auto currentPID = traverse_queue.front();
-               int is_in_mem = 2;
-               OptimisticBFGuard xg_node(currentPID, is_in_mem);
+               OptimisticBFGuard xg_node(currentPID);
                if (xg_node.retry())
                {
                   retry_count++;
@@ -720,7 +719,7 @@ namespace scalestore
                return;
             }
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -735,7 +734,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -795,7 +794,7 @@ namespace scalestore
             {
                return;
             }
-            ExclusiveBFGuard xg_node(currentPID, true);
+            ExclusiveBFGuard xg_node(currentPID);
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
@@ -852,7 +851,7 @@ namespace scalestore
                      {
                         PID pid_left = xg_parent.as<Inner>(0).children[pos - 1];
                         ensure(!(pid_left == currentPID));
-                        ExclusiveBFGuard xg_left(pid_left, true);
+                        ExclusiveBFGuard xg_left(pid_left);
                         if (xg_left.retry())
                            goto leaf_restart;
                         auto &left = xg_left.as<Leaf>(0);
@@ -891,7 +890,7 @@ namespace scalestore
                         {
                            PID pid_left = xg_parent.as<Inner>(0).children[pos - 1];
                            ensure(!(pid_left == currentPID));
-                           ExclusiveBFGuard xg_left(pid_left, true);
+                           ExclusiveBFGuard xg_left(pid_left);
                            if (xg_left.retry())
                               goto restart;
                            auto &left = xg_left.as<Leaf>(0);
@@ -925,7 +924,7 @@ namespace scalestore
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -939,7 +938,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -986,7 +985,7 @@ namespace scalestore
             // -------------------------------------------------------------------------------------
             // Leaf
             // -------------------------------------------------------------------------------------
-            ExclusiveBFGuard xg_node(currentPID, true);
+            ExclusiveBFGuard xg_node(currentPID);
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
@@ -1023,6 +1022,149 @@ namespace scalestore
             leaf.insert(k, v);
          }
 
+         void insert(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, Value v)
+         {
+            // -------------------------------------------------------------------------------------
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
+            // -------------------------------------------------------------------------------------
+            using Inner = BTreeInner<Key>;
+            using Leaf = BTreeLeaf<Key, Value>;
+         restart:
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
+            OptimisticBFGuard g_parent(entryPage);
+            // -------------------------------------------------------------------------------------
+            auto *entry = g_parent.asPtr<BTreeEntry>(0);
+            if (g_parent.retry())
+               goto restart;
+            ensure(entry);
+            PID currentPID = entry->root;
+            uint64_t height = entry->height;
+            uint64_t currentLevel = 0;
+            NodeBase *node = nullptr;
+            // -------------------------------------------------------------------------------------
+            while (currentLevel < height)
+            {
+               // get current node from PID
+               OptimisticBFGuard g_node(currentPID);
+               if (g_parent.retry())
+                  goto restart;
+               node = g_node.asPtr<NodeBase>(0);
+               if (g_node.retry())
+                  goto restart; // check inner
+               ensure(node->type == PageType::BTreeInner);
+               auto &inner = *reinterpret_cast<Inner *>(node);
+               // -------------------------------------------------------------------------------------
+               // split
+               // -----------------------------------------------------------------------------------
+               if (inner.isFull())
+               {
+                  ExclusiveBFGuard xg_parent(std::move(g_parent));
+                  if (xg_parent.retry())
+                     goto restart;
+                  ExclusiveBFGuard xg_node(std::move(g_node));
+                  if (xg_node.retry())
+                     goto restart;
+                  Key sep;
+                  PID newInner = inner.split(sep);
+                  if (xg_parent.getFrame().pid == entryPage)
+                  {
+                     makeRoot(sep, g_node.getFrame().pid, newInner, xg_parent);
+                  }
+                  else
+                  {
+                     xg_parent.as<Inner>(0).insert(sep, newInner);
+                  }
+                  goto restart;
+               }
+               // -------------------------------------------------------------------------------------
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               if (g_parent.retry())
+                  goto restart;
+               currentPID = inner.children[inner.lowerBoundBF(k)];
+               if (g_node.retry())
+                  goto restart; // check inner
+               g_parent = std::move(g_node);
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               currentLevel++;
+            }
+            // -------------------------------------------------------------------------------------
+            // Leaf
+            // -------------------------------------------------------------------------------------
+            bool has_locked = false;
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
+            {
+               has_locked = true;
+               // -------------------------------------------------------------------------------------
+               auto &xg_node =  my_lock[hash_page[currentPID]];
+               node = xg_node.asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (leaf.isFull())
+               {
+                  ExclusiveBFGuard xg_parent(std::move(g_parent));
+                  if (xg_parent.retry())
+                     goto restart;
+                  // -------------------------------------------------------------------------------------
+                  Key sep;
+                  PID newLeaf = leaf.split(sep);
+                  if (xg_parent.getFrame().pid == entryPage)
+                  {
+                     // make new root
+                     makeRoot(sep, xg_node.getFrame().pid, newLeaf, xg_parent);
+                  }
+                  else
+                  {
+                     xg_parent.as<Inner>(0).insert(sep, newLeaf);
+                  }
+                  goto restart;
+               }
+               // -------------------------------------------------------------------------------------
+               leaf.insert(k, v);
+            }
+            if (!has_locked)
+            {
+               ExclusiveBFGuard xg_node(currentPID);
+               if (xg_node.retry())
+                  goto restart;
+               ensure(xg_node.getFrame().latch.isLatched());
+               // -------------------------------------------------------------------------------------
+               node = xg_node.asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               // -------------------------------------------------------------------------------------
+               // Split Leaf
+               // -------------------------------------------------------------------------------------
+               if (leaf.isFull())
+               {
+                  ExclusiveBFGuard xg_parent(std::move(g_parent));
+                  if (xg_parent.retry())
+                     goto restart;
+                  // -------------------------------------------------------------------------------------
+                  Key sep;
+                  PID newLeaf = leaf.split(sep);
+                  if (xg_parent.getFrame().pid == entryPage)
+                  {
+                     // make new root
+                     makeRoot(sep, xg_node.getFrame().pid, newLeaf, xg_parent);
+                  }
+                  else
+                  {
+                     xg_parent.as<Inner>(0).insert(sep, newLeaf);
+                  }
+                  goto restart;
+               }
+               // -------------------------------------------------------------------------------------
+               leaf.insert(k, v);
+               hash_page.insert({xg_node.g.frame->pid, hash_page.size()});
+               my_lock.push_back(std::move(xg_node));
+            }
+         }
          // -------------------------------------------------------------------------------------
          // latches the leaf exclusive and removes the key
          // -------------------------------------------------------------------------------------
@@ -1031,14 +1173,14 @@ namespace scalestore
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
                goto restart;
             ensure(entry);
             PID rootPid = entry->root;
-            OptimisticBFGuard g_node(rootPid, false);
+            OptimisticBFGuard g_node(rootPid);
             if (g_parent.retry())
                goto restart;
             // -------------------------------------------------------------------------------------
@@ -1060,7 +1202,7 @@ namespace scalestore
                   goto restart; // check inner
 
                g_parent = std::move(g_node);
-               g_node = OptimisticBFGuard(nextPid, false);
+               g_node = OptimisticBFGuard(nextPid);
                node = g_node.asPtr<NodeBase>(0);
                if (g_node.retry())
                   goto restart; // check inner
@@ -1086,7 +1228,7 @@ namespace scalestore
                {
                   // get right node
                   PID pid_right = inner.children[pos + 1];
-                  ExclusiveBFGuard xg_right(pid_right, true);
+                  ExclusiveBFGuard xg_right(pid_right);
                   if (xg_right.retry())
                      goto restart;
                   auto &right = xg_right.as<Leaf>(0);
@@ -1149,6 +1291,110 @@ namespace scalestore
             auto removed = leaf.remove(k);
             return removed;
          }
+
+         bool remove(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k)
+         {
+            using Inner = BTreeInner<Key>;
+            using Leaf = BTreeLeaf<Key, Value>;
+         restart:
+            OptimisticBFGuard g_parent(entryPage);
+            // -------------------------------------------------------------------------------------
+            auto *entry = g_parent.asPtr<BTreeEntry>(0);
+            if (g_parent.retry())
+               goto restart;
+            ensure(entry);
+            PID rootPid = entry->root;
+            OptimisticBFGuard g_node(rootPid);
+            if (g_parent.retry())
+               goto restart;
+            // -------------------------------------------------------------------------------------
+            // Inner
+            // -------------------------------------------------------------------------------------
+            auto *node = g_node.asPtr<NodeBase>(0);
+            if (g_node.retry())
+               goto restart; // check inner
+            // -------------------------------------------------------------------------------------
+            while (node->type == PageType::BTreeInner)
+            {
+               auto &inner = *reinterpret_cast<Inner *>(node);
+               // -------------------------------------------------------------------------------------
+               if (g_parent.retry())
+                  goto restart;
+
+               PID nextPid = inner.children[inner.lowerBound(k)];
+               if (g_node.retry())
+                  goto restart; // check inner
+
+               g_parent = std::move(g_node);
+               g_node = OptimisticBFGuard(nextPid);
+               node = g_node.asPtr<NodeBase>(0);
+               if (g_node.retry())
+                  goto restart; // check inner
+            }
+            // -------------------------------------------------------------------------------------
+            // Leaf
+            // -------------------------------------------------------------------------------------
+            auto &leaf = *reinterpret_cast<Leaf *>(node);
+            // merge leaf if underfull
+            // check if we have a parent and if leaf is underflow
+            if (leaf.isUnderflow() && (g_parent.getFrame().pid != entryPage))
+            {
+               ExclusiveBFGuard xg_parent(std::move(g_parent));
+               if (xg_parent.retry())
+                  goto restart;
+               ExclusiveBFGuard xg_node(std::move(g_node));
+               if (xg_node.retry())
+                  goto restart;
+               auto &inner = xg_parent.as<Inner>(0);
+               auto pos = inner.lowerBound(k);
+               if ((inner.count >= 2) && ((pos + 1) < inner.count))
+               {
+                  // get right node
+                  PID pid_right = inner.children[pos + 1];
+                  ExclusiveBFGuard xg_right(pid_right);
+                  if (xg_right.retry())
+                     goto restart;
+
+                  auto &right = xg_right.as<Leaf>(0);
+                  // check if right fits into current node
+                  // if (leaf.count + right.count >= Leaf::maxEntries)
+                  if (leaf.count + right.count >= Leaf::maxEntries - 1 || leaf.partition_id != right.partition_id)
+                  {
+                     // does not fit therefore remove key and return
+                     auto removed = leaf.remove(k);
+                     return removed;
+                  }
+                  // left fits into leaf
+                  leaf.setFences(leaf.fenceKeys.getLower(), right.fenceKeys.getUpper());
+                  memcpy(leaf.keys + leaf.count, right.keys, sizeof(Key) * right.count);
+                  memcpy(leaf.payloads + leaf.count, right.payloads, sizeof(Value) * right.count);
+                  // adjust count
+                  leaf.count += right.count;
+                  inner.remove(pos);
+                  xg_right.reclaim();
+               }
+
+               auto removed = leaf.remove(k);
+               return removed;
+            }
+
+            ExclusiveBFGuard xg_node(std::move(g_node));
+            if (xg_node.retry())
+            {
+               goto restart;
+            }
+            ensure(xg_node.getFrame().latch.isLatched());
+            // -------------------------------------------------------------------------------------
+            // release parent lock
+            if (g_parent.retry())
+               goto restart;
+
+            auto removed = leaf.remove(k);
+            hash_page.insert({xg_node.g.frame->pid, hash_page.size()});
+            my_lock.push_back(std::move(xg_node));
+            return removed;
+         }
+
          // -------------------------------------------------------------------------------------
          // latches the leaf exclusive and executes the callback
          // -------------------------------------------------------------------------------------
@@ -1157,7 +1403,7 @@ namespace scalestore
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -1173,7 +1419,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1197,7 +1443,7 @@ namespace scalestore
             // -------------------------------------------------------------------------------------
             // Leaf
             // -------------------------------------------------------------------------------------
-            ExclusiveBFGuard xg_node(currentPID, true);
+            ExclusiveBFGuard xg_node(currentPID);
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
@@ -1219,6 +1465,96 @@ namespace scalestore
             return false;
          }
 
+         bool lookupAndUpdate(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, std::function<void(Value &value)> callback)
+         {
+            using Inner = BTreeInner<Key>;
+            using Leaf = BTreeLeaf<Key, Value>;
+         restart:
+            OptimisticBFGuard g_parent(entryPage);
+            // -------------------------------------------------------------------------------------
+            auto *entry = g_parent.asPtr<BTreeEntry>(0);
+            if (g_parent.retry())
+               goto restart;
+            ensure(entry);
+            PID currentPID = entry->root;
+            uint64_t height = entry->height;
+            uint64_t currentLevel = 0;
+            NodeBase *node = nullptr;
+            // -------------------------------------------------------------------------------------
+            // Inner
+            // -------------------------------------------------------------------------------------
+            while (currentLevel < height)
+            {
+               // get current node from PID
+               OptimisticBFGuard g_node(currentPID);
+               if (g_parent.retry())
+                  goto restart;
+               node = g_node.asPtr<NodeBase>(0);
+               if (g_node.retry())
+                  goto restart; // check inner
+               ensure(node->type == PageType::BTreeInner);
+               auto &inner = *reinterpret_cast<Inner *>(node);
+               // -------------------------------------------------------------------------------------
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               if (g_parent.retry())
+                  goto restart;
+               currentPID = inner.children[inner.lowerBoundBF(k)];
+               if (g_node.retry())
+                  goto restart; // check inner
+               g_parent = std::move(g_node);
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               currentLevel++;
+            }
+            // -------------------------------------------------------------------------------------
+            // Leaf
+            // -------------------------------------------------------------------------------------
+            bool has_locked = false;
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
+            {
+               has_locked = true;
+               // -------------------------------------------------------------------------------------
+               node = my_lock[hash_page[currentPID]].asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  callback(leaf.payloads[pos]);
+                  return true;
+               }
+            }
+            if (!has_locked)
+            {
+               ExclusiveBFGuard xg_node(currentPID);
+               if (xg_node.retry())
+                  goto restart;
+               ensure(xg_node.getFrame().latch.isLatched());
+               // -------------------------------------------------------------------------------------
+               node = xg_node.asPtr<NodeBase>(0);
+               ensure(node->type == PageType::BTreeLeaf);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  callback(leaf.payloads[pos]);
+                  hash_page.insert({currentPID, hash_page.size()});
+                  my_lock.push_back(std::move(xg_node));
+                  return true;
+               }
+            }
+            std::cout << k;
+            ensure(false);
+            return false;
+         }
+
          // -------------------------------------------------------------------------------------
          // Lookup (leaf is shared latched)
          // -------------------------------------------------------------------------------------
@@ -1227,7 +1563,7 @@ namespace scalestore
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -1242,7 +1578,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1273,7 +1609,7 @@ namespace scalestore
                   goto restart;  // check inner
             SharedBFGuard sg_node(std::move(leaf_g));
             */
-            SharedBFGuard sg_node(currentPID, true);
+            SharedBFGuard sg_node(currentPID);
             if (sg_node.retry())
             {
                goto restart;
@@ -1305,7 +1641,7 @@ namespace scalestore
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -1319,7 +1655,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1344,7 +1680,7 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
          restartLeaf:
-            OptimisticBFGuard og_node(currentPID, true);
+            OptimisticBFGuard og_node(currentPID);
             // -------------------------------------------------------------------------------------
             node = og_node.asPtr<NodeBase>(0);
             // -------------------------------------------------------------------------------------
@@ -1379,14 +1715,15 @@ namespace scalestore
             return false;
          }
 
-         bool lookup_opt(Key k, Value &returnValue)
+         template <class Fn>
+         bool lookup_opt(std::vector<scalestore::storage::ExclusiveBFGuard> &my_lock, std::unordered_map<PID, int, PIDHash> &hash_page, Key k, Fn &&read_function)
          {
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
-            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
          restart:
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -1400,7 +1737,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID, false);
+               OptimisticBFGuard g_node(currentPID);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1425,7 +1762,135 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
          restartLeaf:
-            OptimisticBFGuard og_node(currentPID, true);
+            bool has_locked = false;
+            if (!hash_page.empty() && hash_page.find(currentPID) != hash_page.end())
+            {
+               has_locked = true;
+               node = my_lock[hash_page[currentPID]].asPtr<NodeBase>(0);
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               // -------------------------------------------------------------------------------------
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  read_function(leaf.payloads[pos]); // pass value to function
+                  return true;
+               }
+            }
+            if (!has_locked)
+            {
+               OptimisticBFGuard og_node(currentPID);
+               // -------------------------------------------------------------------------------------
+               node = og_node.asPtr<NodeBase>(0);
+               // -------------------------------------------------------------------------------------
+               auto &leaf = *reinterpret_cast<Leaf *>(node);
+               if (g_parent.retry())
+                  goto restart;
+               if (og_node.retry())
+               {
+                  goto restartLeaf;
+               }
+               // -------------------------------------------------------------------------------------
+               uint64_t pos = leaf.lowerBound(k);
+               if ((pos < leaf.count) && (leaf.keys[pos] == k))
+               {
+                  read_function(leaf.payloads[pos]); // pass value to function
+                  if (g_parent.retry())
+                     goto restart;
+                  if (og_node.retry())
+                  {
+                     goto restartLeaf;
+                  }
+                  return true;
+               }
+               if (g_parent.retry())
+                  goto restart;
+               if (og_node.retry())
+               {
+                  goto restartLeaf;
+               }
+            }
+            // OptimisticBFGuard og_node(currentPID);
+            // // -------------------------------------------------------------------------------------
+            // node = og_node.asPtr<NodeBase>(0);
+            // // -------------------------------------------------------------------------------------
+            // auto &leaf = *reinterpret_cast<Leaf *>(node);
+            // if (g_parent.retry())
+            //    goto restart;
+            // if (og_node.retry())
+            // {
+            //    goto restartLeaf;
+            // }
+            // // -------------------------------------------------------------------------------------
+            // uint64_t pos = leaf.lowerBound(k);
+            // if ((pos < leaf.count) && (leaf.keys[pos] == k))
+            // {
+            //    read_function(leaf.payloads[pos]); // pass value to function
+            //    if (g_parent.retry())
+            //       goto restart;
+            //    if (og_node.retry())
+            //    {
+            //       goto restartLeaf;
+            //    }
+            //    return true;
+            // }
+            // if (g_parent.retry())
+            //    goto restart;
+            // if (og_node.retry())
+            // {
+            //    goto restartLeaf;
+            // }
+            std::cout << k;
+            ensure(false);
+            return false;
+         }
+
+         bool lookup_opt(Key k, Value &returnValue)
+         {
+            using Inner = BTreeInner<Key>;
+            using Leaf = BTreeLeaf<Key, Value>;
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
+         restart:
+            threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_restarted);
+            OptimisticBFGuard g_parent(entryPage);
+            // -------------------------------------------------------------------------------------
+            auto *entry = g_parent.asPtr<BTreeEntry>(0);
+            if (g_parent.retry())
+               goto restart;
+            ensure(entry);
+            PID currentPID = entry->root;
+            uint64_t height = entry->height;
+            uint64_t currentLevel = 0;
+            NodeBase *node = nullptr;
+            // -------------------------------------------------------------------------------------
+            while (currentLevel < height)
+            {
+               // get current node from PID
+               OptimisticBFGuard g_node(currentPID);
+               if (g_parent.retry())
+                  goto restart;
+               node = g_node.asPtr<NodeBase>(0);
+               if (g_node.retry())
+                  goto restart; // check inner
+               ensure(node->type == PageType::BTreeInner);
+               auto &inner = *reinterpret_cast<Inner *>(node);
+               // -------------------------------------------------------------------------------------
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               if (g_parent.retry())
+                  goto restart;
+               currentPID = inner.children[inner.lowerBoundBF(k)];
+               if (g_node.retry())
+                  goto restart; // check inner
+               g_parent = std::move(g_node);
+               ensure(g_node.g.latchState != LATCH_STATE::EXCLUSIVE);
+               // -------------------------------------------------------------------------------------
+               currentLevel++;
+            }
+            // -------------------------------------------------------------------------------------
+            // Leaf
+            // -------------------------------------------------------------------------------------
+         restartLeaf:
+            OptimisticBFGuard og_node(currentPID);
             // -------------------------------------------------------------------------------------
             node = og_node.asPtr<NodeBase>(0);
             // -------------------------------------------------------------------------------------
@@ -1597,14 +2062,14 @@ namespace scalestore
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
-            OptimisticBFGuard g_parent(entryPage, false);
+            OptimisticBFGuard g_parent(entryPage);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
                goto restart;
             ensure(entry);
             PID rootPid = entry->root;
-            OptimisticBFGuard g_node(rootPid, false);
+            OptimisticBFGuard g_node(rootPid);
             if (g_parent.retry())
                goto restart;
             // -------------------------------------------------------------------------------------
@@ -1626,7 +2091,7 @@ namespace scalestore
                   goto restart; // check inner
 
                g_parent = std::move(g_node);
-               g_node = OptimisticBFGuard(nextPid, false);
+               g_node = OptimisticBFGuard(nextPid);
                node = g_node.asPtr<NodeBase>(0);
                if (g_node.retry())
                   goto restart; // check inner

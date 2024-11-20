@@ -1,6 +1,34 @@
 #pragma once
 #include "types.hpp"
 #include <iostream>
+// 结合模板化处理不同类型的哈希计算
+struct key_hash
+{
+   template <typename T>
+   size_t operator()(const T &key) const
+   {
+      size_t h = 0;
+      // 遍历 key.get_values() 返回的每个值
+      for (const auto &val : key.get_values())
+      {
+         // 如果 val 是 Varchar 类型，逐字符计算哈希
+         if constexpr (std::is_same_v<decltype(val), Varchar<16>>)
+         {
+            for (size_t i = 0; i < 16; ++i)
+            {
+               h ^= std::hash<char>{}(val.data[i]) + 0x9e3779b9 + (h << 6) + (h >> 2); // 哈希合并
+            }
+         }
+         else if constexpr (std::is_same_v<decltype(val), Integer>)
+         {
+            // 如果 val 是 Integer 类型，直接使用哈希
+            h ^= std::hash<Integer>{}(val) + 0x9e3779b9 + (h << 6) + (h >> 2);
+         }
+      }
+      return h;
+   }
+};
+
 struct warehouse_t
 {
    static constexpr int id = 0;
@@ -23,6 +51,10 @@ struct warehouse_t
       {
          os << "w_id: " << order.w_id << std::endl;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {w_id};
       }
    };
    Varchar<10> w_name;
@@ -85,6 +117,10 @@ struct district_t
          os << "d_w_id: " << district.d_w_id << "d_id: " << district.d_id << std::endl;
          return os;
       }
+      std::vector<Integer> get_values() const
+      {
+         return {d_w_id, d_w_id};
+      }
    };
    Varchar<10> d_name;
    Varchar<20> d_street_1;
@@ -141,6 +177,10 @@ struct customer_t
       {
          os << "c_w_id: " << customer.c_w_id << " c_d_id: " << customer.c_d_id << " c_id: " << customer.c_id << std::endl;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {c_w_id, c_d_id, c_id};
       }
    };
    Varchar<16> c_first;
@@ -206,6 +246,18 @@ struct customer_wdl_t
          os << order.c_d_id;
          return os;
       }
+      // 获取所有值，用于哈希
+      std::vector<Integer> get_values() const
+      {
+         std::vector<Integer> values = {c_w_id, c_d_id};
+         // Varchar 类型的字段需要转换成相应的整数表示
+         for (size_t i = 0; i < 16; ++i)
+         {
+            values.push_back(static_cast<Integer>(c_last.data[i]));
+            values.push_back(static_cast<Integer>(c_first.data[i]));
+         }
+         return values;
+      }
    };
    Integer c_id;
 };
@@ -239,6 +291,10 @@ struct history_t
       {
          os << order.h_pk;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {thread_id, h_pk};
       }
    };
    Integer h_c_id;
@@ -305,6 +361,10 @@ struct neworder_t
          os << "no_w_id: " << neworder.no_w_id << " no_d_id: " << neworder.no_d_id << " no_o_id: " << neworder.no_o_id << std::endl;
          return os;
       }
+      std::vector<Integer> get_values() const
+      {
+         return {no_w_id, no_d_id, no_o_id};
+      }
    };
 };
 
@@ -353,6 +413,10 @@ struct order_t
       {
          os << "o_w_id: " << order.o_w_id << " o_d_id: " << order.o_d_id << " o_id: " << order.o_id << std::endl;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {o_w_id, o_d_id, o_id};
       }
    };
    Integer o_c_id;
@@ -406,6 +470,10 @@ struct order_wdc_t
       {
          os << item.o_id;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {o_w_id, o_d_id, o_c_id, o_id};
       }
    };
 };
@@ -472,6 +540,10 @@ struct orderline_t
             << " ol_o_id: " << orderline.ol_o_id << " ol_number: " << orderline.ol_number << std::endl;
          return os;
       }
+      std::vector<Integer> get_values() const
+      {
+         return {ol_w_id, ol_d_id, ol_o_id, ol_number};
+      }
    };
    Integer ol_i_id;
    Integer ol_supply_w_id;
@@ -497,6 +569,10 @@ struct item_t
       {
          os << item.i_id;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {i_id};
       }
    };
    Integer i_im_id;
@@ -544,6 +620,10 @@ struct stock_t
       {
          os << "s_w_id: " << stock.s_w_id << "s_i_id: " << stock.s_i_id << std::endl;
          return os;
+      }
+      std::vector<Integer> get_values() const
+      {
+         return {s_w_id, s_i_id};
       }
    };
    Numeric s_quantity;
