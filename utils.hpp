@@ -197,16 +197,11 @@ void caculate_tpcc_txn_lantxncy(std::string path)
     std::string input_filename1 = path + "txn_lantency";
     std::string output_filename1 = path + "txn_sort_lantency";
     std::string output_count1 = path + "txn_sort_info";
-    std::string input_filename2 = path + "route_lantency";
-    std::string output_filename2 = path + "route_sort_lantency_tmp";
-    std::string output_filename3 = path + "route_sort_lantency";
-    std::string output_count2 = path + "route_sort_info";
     sortLinesInFile(input_filename1, output_filename1);
     calculateAndWriteDelays(output_filename1, output_count1, percentile);
-    mergeLinesToFile(input_filename2, output_filename2);
-    sortLinesInFile(output_filename2, output_filename3);
-    calculateAndWriteDelays(output_filename3, output_count2, percentile);
-    std::string rm_str = "rm -rf " + output_filename2;
+    std::string rm_str = "rm -rf " + output_filename1;
+    system(rm_str.c_str());
+    std::string rm_str = "rm -rf " + input_filename1;
     system(rm_str.c_str());
 }
 
@@ -340,7 +335,7 @@ void mergeFiles(const std::vector<std::string> &filenames, const std::string &ou
 void handle_tpcc_txn(std::string &path, int num_nodes)
 {
     std::vector<std::string> neworder_filenames;
-    std::vector<std::string> payment_filenames;
+    std::vector<std::string> txn_filenames;
     std::vector<std::string> proxy_file;
 
     // Add worker files for each node
@@ -349,7 +344,7 @@ void handle_tpcc_txn(std::string &path, int num_nodes)
         for (int j = 0; j < 4; j++)
         {
             neworder_filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/neworder_worker_" + std::to_string(j));
-            payment_filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/payment_worker_" + std::to_string(j));
+            txn_filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
         }
     }
 
@@ -360,9 +355,9 @@ void handle_tpcc_txn(std::string &path, int num_nodes)
     }
 
     std::string neworder_outputFilename = path + "neworder_lantency";
-    std::string payment_outputFilename = path + "payment_lantency";
+    std::string payment_outputFilename = path + "txn_lantency";
     mergeFiles(neworder_filenames, neworder_outputFilename);
-    mergeFiles(payment_filenames, payment_outputFilename);
+    mergeFiles(txn_filenames, payment_outputFilename);
 
     std::string outputproxy = path + "route_lantency";
     mergeFiles(proxy_file, outputproxy);

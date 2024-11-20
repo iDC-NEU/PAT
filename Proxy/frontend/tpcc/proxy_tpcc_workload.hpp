@@ -340,24 +340,24 @@ std::string txCreate(Integer w_id)
       return sql + paymentRndCreate(w_id);
       ;
    }
-   // rnd -= 4300;
-   // if (rnd < 400)
-   // {
-   //    txns[transaction_types::ORDER_STATUS]++;
-   //    return sql + orderStatusRndCreate(w_id);
-   // }
-   // rnd -= 400;
-   // if (rnd < 400)
-   // {
-   //    txns[transaction_types::DELIVERY]++;
-   //    return sql + deliveryRndCreate(w_id);
-   // }
-   // rnd -= 400;
-   // if (rnd < 400)
-   // {
-   //    return sql + stockLevelRndCreate(w_id);
-   // }
-   // rnd -= 400;
+   rnd -= 4300;
+   if (rnd < 400)
+   {
+      txns[transaction_types::ORDER_STATUS]++;
+      return sql + orderStatusRndCreate(w_id);
+   }
+   rnd -= 400;
+   if (rnd < 400)
+   {
+      txns[transaction_types::DELIVERY]++;
+      return sql + deliveryRndCreate(w_id);
+   }
+   rnd -= 400;
+   if (rnd < 400)
+   {
+      return sql + stockLevelRndCreate(w_id);
+   }
+   rnd -= 400;
    txns[transaction_types::NEW_ORDER]++;
    return sql + newOrderRndCreate(w_id);
 }

@@ -614,11 +614,9 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
    std::vector<std::ofstream> outputs;
    std::vector<std::ofstream> neworder_times;
-   std::vector<std::ofstream> payment_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
-      payment_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/payment_worker_" + std::to_string(t_i)));
       neworder_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/neworder_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
@@ -654,18 +652,11 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                                          << local_timer->elapsedMicroseconds() << " "
                                          << remote_timer->elapsedMicroseconds() << " ";
                   }
-                  if (functionName == "paymentById" || functionName == "paymentByName")
-                  {
-                     payment_times[t_i] << (end - start) << " "
-                                        << local_timer->elapsedMicroseconds() << " "
-                                        << remote_timer->elapsedMicroseconds() << " ";
-                  }
                }
                local_timer->reset(true);
                remote_timer->reset(true);
                if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
-                  payment_times[t_i] << std::endl;
                   neworder_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }
@@ -1002,11 +993,9 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
    std::vector<std::ofstream> neworder_times;
    std::vector<std::ofstream> outputs;
-   std::vector<std::ofstream> payment_times;
    for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
    {
       outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
-      payment_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/payment_worker_" + std::to_string(t_i)));
       neworder_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/neworder_worker_" + std::to_string(t_i)));
    }
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
@@ -1041,18 +1030,11 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                                          << local_timer->elapsedMicroseconds() << " "
                                          << remote_timer->elapsedMicroseconds() << " ";
                   }
-                  if (functionName == "paymentById" || functionName == "paymentByName")
-                  {
-                     payment_times[t_i] << (end - start) << " "
-                                        << local_timer->elapsedMicroseconds() << " "
-                                        << remote_timer->elapsedMicroseconds() << " ";
-                  }
                }
                local_timer->reset(true);
                remote_timer->reset(true);
                if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
-                  payment_times[t_i] << std::endl;
                   neworder_times[t_i] << std::endl;
                   change_line[t_i] = false;
                }

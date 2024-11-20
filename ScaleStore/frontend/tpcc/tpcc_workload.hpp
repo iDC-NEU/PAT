@@ -462,11 +462,8 @@ void newOrder(Integer w_id,
       }
       Numeric ol_amount = qty * i_price * (1.0 + w_tax + d_tax) * (1.0 - c_discount);
       Timestamp ol_delivery_d = 0; // NULL
-      std::cout<<"lock_orderline" <<std::endl;
       orderline.insert(my_lock_orderline, hash_orderline, {w_id, d_id, o_id, lineNumber}, {itemid, supware, ol_delivery_d, qty, ol_amount, s_dist});
-      std::cout<<"lock_done" <<std::endl;
    }
-   std::cout<<"lock_ed" <<std::endl;
    // std::cout << "newOrderRnd end" << std::endl;
    // my_lock_district.clear();
    // my_lock_order.clear();

@@ -292,13 +292,9 @@ int main() {
     // 计算事务延迟和远程数据
     std::string neworder_input = path + "neworder_lantency";
     std::string neworder_output = path + "neworder_info";
-    std::string payment_input = path + "payment_lantency";
-    std::string payment_output = path + "payment_info";
     processtpccData(neworder_input, neworder_output);
-    processtpccData(payment_input, payment_output);
+    caculate_tpcc_txn_lantxncy(path);
     std::string rm_txn = "rm -rf " + neworder_input;
-    system(rm_txn.c_str());
-    rm_txn = "rm -rf " + payment_input;
     system(rm_txn.c_str());
     caculate_router_lantency(path);
     calculate_remote(path, num_nodes);
