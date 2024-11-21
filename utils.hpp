@@ -187,6 +187,8 @@ void caculate_router_lantency(std::string path)
     calculateAndWriteDelays(output_filename3, output_count2, percentile);
     std::string rm_str = "rm -rf " + output_filename2;
     system(rm_str.c_str());
+    rm_str = "rm -rf " + input_filename2;
+    system(rm_str.c_str());
     rm_str = "rm -rf " + output_filename3;
     system(rm_str.c_str());
 }

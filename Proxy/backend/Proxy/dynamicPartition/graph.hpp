@@ -55,6 +55,7 @@ namespace Proxy
             const std::unordered_map<int, std::unordered_map<int, int>> get_graph();
             Graph &operator=(const Graph &other);
             void add_edge(int v_i, int v_j, double weight);
+            void sub_edge(int v_i, int v_j, double weight);
             void add_node(int vid) { graph_.insert({vid, std::unordered_map<int, int>()}); }
             bool has_node(int vid);
             void remove_node(int vid) { graph_.erase(vid); }
@@ -120,6 +121,7 @@ namespace Proxy
             Graph &get_graph() { return G; }
             void cleargraph() { G.clear(); }
             void generate_stamps(const std::vector<TxnNode> &txn_node_list);
+            void delete_stamps(const std::vector<TxnNode> &txn_node_list);
             void start_epoch_partition();
             void clear_epoch_set() { epoch_vids.clear(); }
             int get_epoch_set_size() { return epoch_vids.size(); }
