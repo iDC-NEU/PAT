@@ -288,7 +288,6 @@ void consistencyCheck(ScaleStore &db)
 
 template <class Record>
 void get_txn_pageids(std::unordered_map<u64, int> &tmp_map, ScaleStoreAdapter<Record> &adapter){
-   adapter.get_page_ids();
    for(const auto& page_ids : adapter.page_map){
       tmp_map.insert({page_ids.first, page_ids.second});
    }
@@ -329,6 +328,8 @@ void origin_tpcc_run(ScaleStore &db)
    std::string currentFile = __FILE__;
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
    std::string logFilePath = abstract_filename + "../../Logs/origin_Log." + std::to_string(db.getNodeID()) + "txt";
+   std::string pageFilePath = abstract_filename + "../../Logs/page_Log.txt";
+   std::ofstream page_output(pageFilePath);
    std::shared_ptr<spdlog::logger> router_logger = spdlog::basic_logger_mt("router_logger", logFilePath);
    router_logger->set_level(spdlog::level::info);
    router_logger->flush_on(spdlog::level::info);
@@ -369,6 +370,10 @@ void origin_tpcc_run(ScaleStore &db)
             get_txn_pageids(tmp_map, neworder);
             get_txn_pageids(tmp_map, item);
             get_txn_pageids(tmp_map, stock);
+            for(const auto tmp_pair : tmp_map){
+               page_output<< tmp_pair.first << " " << tmp_pair.second << " ";
+            }
+            page_output<< std::endl;
             page_graph.push_back(tmp_map);
             /*
             if (FLAGS_tpcc_abort_pct && urand(0, 100) <= FLAGS_tpcc_abort_pct) {

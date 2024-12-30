@@ -255,13 +255,6 @@ struct ScaleStoreAdapter
       output<< "increase_count: " << tree.increase_count << std::endl;
       output<< "new_page_count: " << tree.increase_count + size << std::endl;
    }
-   void get_page_ids(){
-      BTree tree(tree_pid);
-      for(const auto& page_id : tree.page_ids){
-         page_map.insert({page_id, type});
-      }
-      tree.page_ids.clear();
-   }
 
    void traverse_tree()
    {
@@ -348,6 +341,9 @@ struct ScaleStoreAdapter
    {
       BTree tree(tree_pid);
       tree.insert(rec_key, record);
+      for(const auto &tmp_pair : tree.page_ids){
+         page_map.insert({tmp_pair, type});
+      }
    }
    
    // hold lock
@@ -380,6 +376,9 @@ struct ScaleStoreAdapter
       Field local_f;
       auto res = tree.lookup_opt(key, [&](Record &value)
                                  { local_f = value.*f; });
+      for(const auto &tmp_pair : tree.page_ids){
+         page_map.insert({tmp_pair, type});
+      }
       ensure(res);
       return local_f;
    }
@@ -391,6 +390,9 @@ struct ScaleStoreAdapter
       BTree tree(tree_pid);
       auto res = tree.lookupAndUpdate(key, [&](Record &value)
                                       { fn(value); });
+      for(const auto &tmp_pair : tree.page_ids){
+         page_map.insert({tmp_pair, type});
+      }
       ensure(res);
    }
 
@@ -409,7 +411,9 @@ struct ScaleStoreAdapter
       BTree tree(tree_pid);
       const auto res = tree.lookup_opt(key, fn);
       ensure(res);
-      tree.page_ids.clear();
+      for(const auto &tmp_pair : tree.page_ids){
+         page_map.insert({tmp_pair, type});
+      }
    }
 
    template <class Fn>
@@ -424,6 +428,9 @@ struct ScaleStoreAdapter
    {
       BTree tree(tree_pid);
       const auto res = tree.remove(key);
+            for(const auto &tmp_pair : tree.page_ids){
+         page_map.insert({tmp_pair, type});
+      }
       return res;
    }
 
