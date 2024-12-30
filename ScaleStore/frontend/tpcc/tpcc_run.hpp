@@ -312,6 +312,14 @@ void origin_tpcc_run(ScaleStore &db)
    bool change_line[FLAGS_worker];
    std::string configuration;
    std::vector<std::unordered_map<u64, int>> page_graph;
+   warehouse.page_map.clear();
+   district.page_map.clear();
+   order.page_map.clear();
+   customer.page_map.clear();
+   neworder.page_map.clear();
+   stock.page_map.clear();
+   item.page_map.clear();
+   orderline.page_map.clear();
    if (FLAGS_tpcc_warehouse_affinity)
    {
       configuration = "warehouse_affinity";
