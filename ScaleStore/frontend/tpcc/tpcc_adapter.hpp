@@ -81,9 +81,11 @@ struct ScaleStoreAdapter
    std::string name;
    PID tree_pid;
    bool created = false;
+   int type = -1;
    bool traversed = false;
    std::map<Integer, Integer> *partition_map;
    std::unordered_map<Integer, Integer> *update_map;
+   std::unordered_map<u64, int> page_map;
    ScaleStoreAdapter(){};
    ScaleStoreAdapter(ScaleStore &db, std::string name) : name(name)
    {
@@ -93,6 +95,38 @@ struct ScaleStoreAdapter
          db.createBTree<typename Record::Key, Record>();
       }
       tree_pid = catalog.getCatalogEntry(Record::id).pid;
+      switch (name)
+      {
+      case "warehouse":
+         type = 0;
+         break;
+      case "district":
+         type = 1;
+         break;
+      case "customer":
+         type = 2;
+         break;
+      case "history":
+         type = 3;
+         break;
+      case "neworder":
+         type = 4;
+         break;
+      case "order":
+         type = 5;
+         break;
+      case "orderline":
+         type = 6;
+         break;
+      case "item":
+         type = 7;
+         break;     
+      case "stock":
+         type = 8;
+         break;                          
+      default:
+         break;
+      }
    };
 
    void create_partitioner()
@@ -233,6 +267,12 @@ struct ScaleStoreAdapter
       output<< "increase_count: " << tree.increase_count << std::endl;
       output<< "new_page_count: " << tree.increase_count + size << std::endl;
    }
+   void get_page_ids(){
+      for(const auto& page_id : tree.page_ids){
+         page_map.insert({page_id, type});
+      }
+      tree.page_ids.clear();
+   }
 
    void traverse_tree()
    {
@@ -364,6 +404,7 @@ struct ScaleStoreAdapter
       BTree tree(tree_pid);
       const auto res = tree.lookup_opt(key, fn);
       ensure(res);
+      tree.page_ids.clear();
    }
 
    bool erase(const typename Record::Key &key)

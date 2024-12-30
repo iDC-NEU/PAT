@@ -191,6 +191,15 @@ void excuteFunctionCall(const std::string &functionName, const std::vector<std::
    }
 }
 
+template <class Record>
+void get_txn_pageids(std::unordered_map<u64, int> &tmp_map, ScaleStoreAdapter<Record> &adapter){
+   adapter.get_page_ids();
+   for(const auto& page_ids : adapter.page_map){
+      tmp_map.insert{page_ids.first, page_ids.second};
+   }
+   adapter.page_map.clear();
+}
+
 void consistencyCheck(ScaleStore &db)
 {
    db.getWorkerPool().scheduleJobSync(0, [&]()
@@ -301,6 +310,7 @@ void origin_tpcc_run(ScaleStore &db)
    u64 txn_lat[FLAGS_worker][transaction_types::MAX];
    u64 txn_pay_lat[FLAGS_worker][10];
    bool change_line[FLAGS_worker];
+   std::vector<std::unordered_map<u64, int>> page_graph;
    std::string configuration;
    if (FLAGS_tpcc_warehouse_affinity)
    {
@@ -349,6 +359,16 @@ void origin_tpcc_run(ScaleStore &db)
                   if (w_id <= (uint32_t)warehouse_range_node.begin || (w_id > (uint32_t)warehouse_range_node.end)) remote_node_new_order++;
                }
                tx(w_id);
+               std::unordered_map<u64, int> &tmp_map;
+               get_txn_pageids(tmp_map, warehouse);
+               get_txn_pageids(tmp_map, district);
+               get_txn_pageids(tmp_map, customer);
+               get_txn_pageids(tmp_map, order);
+               get_txn_pageids(tmp_map, orderline);
+               get_txn_pageids(tmp_map, neworder);
+               get_txn_pageids(tmp_map, item);
+               get_txn_pageids(tmp_map, stock);
+               page_graph.push_back(tmp_map);
                /*
                if (FLAGS_tpcc_abort_pct && urand(0, 100) <= FLAGS_tpcc_abort_pct) {
                   // abort

@@ -79,7 +79,9 @@
         "filesystem": "cpp",
         "*.tpp": "cpp",
         "future": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "strstream": "cpp",
+        "cfenv": "cpp"
     },
     "cmake.sourceDirectory": "/root/home/AffinityDB/Proxy"
 }

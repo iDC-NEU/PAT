@@ -7,6 +7,7 @@
 // -------------------------------------------------------------------------------------
 #include <optional>
 #include <experimental/source_location>
+#include <unordered_set>
 // -------------------------------------------------------------------------------------
 namespace scalestore
 {
@@ -427,6 +428,7 @@ namespace scalestore
       {
          PID entryPage;
          int32_t increase_count = 0;
+         std::unordered_set<u64> page_ids;
          struct BTreeEntry
          {
             PID root = EMPTY_PID;
@@ -995,6 +997,7 @@ namespace scalestore
             ensure(node->type == PageType::BTreeLeaf);
             // -------------------------------------------------------------------------------------
             auto &leaf = *reinterpret_cast<Leaf *>(node);
+            page_ids.insert(currentPID.id);
             if (g_parent.retry())
                goto restart;
             // -------------------------------------------------------------------------------------
@@ -1069,6 +1072,7 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
             auto &leaf = *reinterpret_cast<Leaf *>(node);
+            page_ids.insert(currentPID.id);
             // merge leaf if underfull
             // check if we have a parent and if leaf is underflow
             if (leaf.isUnderflow() && (g_parent.getFrame().pid != entryPage))
@@ -1201,6 +1205,7 @@ namespace scalestore
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
+            page_ids.insert(currentPID.id);
             // -------------------------------------------------------------------------------------
             node = xg_node.asPtr<NodeBase>(0);
             ensure(node->type == PageType::BTreeLeaf);
@@ -1278,6 +1283,7 @@ namespace scalestore
             {
                goto restart;
             }
+            page_ids.insert(currentPID.id);
             node = &sg_node.as<NodeBase>(0);
             ensure(!sg_node.getFrame().latch.isLatched());
             auto &leaf = *reinterpret_cast<Leaf *>(node);
@@ -1355,6 +1361,7 @@ namespace scalestore
             {
                goto restartLeaf;
             }
+            page_ids.insert(currentPID.id);
             // -------------------------------------------------------------------------------------
             uint64_t pos = leaf.lowerBound(k);
             if ((pos < leaf.count) && (leaf.keys[pos] == k))
@@ -1438,6 +1445,7 @@ namespace scalestore
             }
             // -------------------------------------------------------------------------------------
             uint64_t pos = leaf.lowerBound(k);
+            page_ids.insert(currentPID.id);
             returnValue = leaf.payloads[pos];
             if ((pos < leaf.count) && (leaf.keys[pos] == k))
             {
