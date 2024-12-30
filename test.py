@@ -1,4 +1,6 @@
 import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
 from collections import defaultdict
 
 def build_graph_from_file(file_path):
@@ -34,20 +36,36 @@ def build_graph_from_file(file_path):
 
     return graph, page_id_mapping
 
+def plot_graph_heatmap(graph, page_id_mapping):
+    # 构建权重矩阵
+    num_pages = len(page_id_mapping)
+    adjacency_matrix = np.zeros((num_pages, num_pages))
+
+    # 填充权重矩阵
+    for (node1, node2, data) in graph.edges(data=True):
+        weight = data['weight']
+        adjacency_matrix[node1][node2] = weight
+        adjacency_matrix[node2][node1] = weight  # 因为是无向图，所以对称
+
+    # 绘制热图
+    plt.figure(figsize=(8, 6))
+    plt.imshow(adjacency_matrix, cmap='YlGnBu', interpolation='nearest')
+    plt.colorbar(label="Weight")
+
+    # 设置坐标轴标签
+    plt.xticks(np.arange(num_pages), [f"{key}" for key in page_id_mapping.keys()], rotation=90)
+    plt.yticks(np.arange(num_pages), [f"{key}" for key in page_id_mapping.keys()])
+
+    plt.title("Page Access Heatmap")
+    plt.xlabel("Page ID")
+    plt.ylabel("Page ID")
+
+    plt.tight_layout()
+    plt.show()
+
 # 示例：读取文件并生成图
-file_path = "transactions.txt"  # 替换为实际文件路径
+file_path = "/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs/page_Log.txt"  # 替换为实际文件路径
 graph, page_id_mapping = build_graph_from_file(file_path)
 
-# 保存图为 GML 格式
-nx.write_gml(graph, "graph.gml")
-
-# 如果需要其他格式，可以取消注释以下行：
-# 保存为 GraphML 格式
-# nx.write_graphml(graph, "graph.graphml")
-# 保存为边列表格式
-# nx.write_edgelist(graph, "graph.edgelist", data=["weight"])
-
-# 打印 page_id 映射
-print("\nPage ID Mapping:")
-for original_id, new_id in page_id_mapping.items():
-    print(f"Original ID {original_id} mapped to {new_id}")
+# 绘制热图
+plot_graph_heatmap(graph, page_id_mapping)
