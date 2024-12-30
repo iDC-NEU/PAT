@@ -1183,6 +1183,7 @@ namespace scalestore
                goto restart;
             ensure(entry);
             PID rootPid = entry->root;
+            PID id;
             OptimisticBFGuard g_node(rootPid);
             if (g_parent.retry())
                goto restart;
@@ -1209,12 +1210,13 @@ namespace scalestore
                node = g_node.asPtr<NodeBase>(0);
                if (g_node.retry())
                   goto restart; // check inner
+               id = nextPid;
             }
             // -------------------------------------------------------------------------------------
             // Leaf
             // -------------------------------------------------------------------------------------
             auto &leaf = *reinterpret_cast<Leaf *>(node);
-            page_ids.insert(currentPID.id);
+            page_ids.insert(id);
             // merge leaf if underfull
             // check if we have a parent and if leaf is underflow
             if (leaf.isUnderflow() && (g_parent.getFrame().pid != entryPage))

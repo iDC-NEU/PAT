@@ -95,37 +95,25 @@ struct ScaleStoreAdapter
          db.createBTree<typename Record::Key, Record>();
       }
       tree_pid = catalog.getCatalogEntry(Record::id).pid;
-      switch (name)
+      std::unordered_map<std::string, int> type_map = {
+          {"warehouse", 0},
+          {"district", 1},
+          {"customer", 2},
+          {"history", 3},
+          {"neworder", 4},
+          {"order", 5},
+          {"orderline", 6},
+          {"item", 7},
+          {"stock", 8}};
+
+      auto it = type_map.find(name);
+      if (it != type_map.end())
       {
-      case "warehouse":
-         type = 0;
-         break;
-      case "district":
-         type = 1;
-         break;
-      case "customer":
-         type = 2;
-         break;
-      case "history":
-         type = 3;
-         break;
-      case "neworder":
-         type = 4;
-         break;
-      case "order":
-         type = 5;
-         break;
-      case "orderline":
-         type = 6;
-         break;
-      case "item":
-         type = 7;
-         break;     
-      case "stock":
-         type = 8;
-         break;                          
-      default:
-         break;
+         type = it->second;
+      }
+      else
+      {
+         // Default case
       }
    };
 
@@ -268,6 +256,7 @@ struct ScaleStoreAdapter
       output<< "new_page_count: " << tree.increase_count + size << std::endl;
    }
    void get_page_ids(){
+      BTree tree(tree_pid);
       for(const auto& page_id : tree.page_ids){
          page_map.insert({page_id, type});
       }
