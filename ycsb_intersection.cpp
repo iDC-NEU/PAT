@@ -221,7 +221,7 @@ int main()
     std::string filename1 = "./ycsb_config.ini";
     std::string filename2 = "./proxy_ycsb_config.ini";
     std::string path;
-    std::string start = "new_data_ycsb/";
+    std::string start = "result/ycsb/hot_page_300/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "", subpath7 = "";
 
     // 读取INI文件并存储到字典中
@@ -235,19 +235,36 @@ int main()
     // 获取路由模式参数
     if (params2["route_mode"] == "1")
     {
-        subpath2 = "无图划分路由/";
-        subpath3 = "随机路由/";
+        subpath2 = "random/";
     }
     else if (params2["route_mode"] == "2")
     {
-        subpath2 = "无图划分路由/";
-        subpath3 = "哈希路由/";
+        subpath2 = "warehouse/";
     }
     else
     {
-        subpath2 = "图划分路由/";
-        subpath3 = params2["partition_mode"] == "1" ? "静态/" : "动态/";
-        subpath4 = params["use-codesign"] == "false" ? "无codesign/" : "有codesign/";
+        if (params2["partition_mode"] == "1")
+        {
+            if (params["use-codesign"] == "false")
+            {
+                subpath2 = "static/";
+            }
+            else
+            {
+                subpath2 = "static+rfs/";
+            }
+        }
+        else
+        {
+            if (params["use-codesign"] == "false")
+            {
+                subpath2 = "dynamic/";
+            }
+            else
+            {
+                subpath2 = "dynamic+rfs/";
+            }
+        }
     }
     subpath5 = "读" + params2["YCSB_read_ratio"] + "/";
     // 获取分布式参数
@@ -272,6 +289,10 @@ int main()
     {
         subpath7 = "3/";
     }
+    if (start == "result/ycsb/read_write/")
+    {
+        subpath7 = params2["write_weight"] + "/";
+    }
 
     // 构建完整路径
     path = start + subpath1 + subpath2 + subpath3 + subpath4 + subpath5 + subpath6 + subpath7;
@@ -289,30 +310,30 @@ int main()
     // 定义 SCP 命令模板
     std::vector<std::string> scp_commands;
     scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/");
-    //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
+    // scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
     scp_commands.push_back("cp -r ScaleStore/Logs " + path + "node1/");
-    //scp_commands.push_back("cp -r ScaleStore/TXN_LOG " + path + "node1/");
+    // scp_commands.push_back("cp -r ScaleStore/TXN_LOG " + path + "node1/");
 
     // 添加更多节点的 SCP 命令
     if (num_nodes >= 3)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/Logs " + path + "node3/");
-        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
+        // scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
     }
     if (num_nodes >= 4)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/Logs " + path + "node4/");
-        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
+        // scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
     }
     if (num_nodes >= 5)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/Logs " + path + "node5/");
-        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
+        // scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
     }
     if (num_nodes == 6)
     {
         scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/Logs " + path + "node6/");
-        //scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
+        // scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
     }
 
     // 添加代理的 SCP 命令
@@ -350,6 +371,8 @@ int main()
         std::string rm_file = "rm -rf " + path + "proxy/TXN_LOG";
         system(rm_file.c_str());
     }
+    std::string rm_tmp_sort = "rm " + path + "route_lantency && rm " + path + "route_sort_lantency";
+    system(rm_tmp_sort.c_str());
 
     return 0;
 }

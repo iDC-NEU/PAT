@@ -216,8 +216,11 @@ namespace Proxy
             
 
             if(!router.DyPartitioner.has_send_metis){
-               std::cout<<"send_ycsb_map"<<std::endl;   
-               send_map_to_node(&router.DyPartitioner.ycsb_map,outcoming,MESSAGE_TYPE::RouterMap_metis_ycsb);
+               std::cout<<"send_ycsb_map"<<std::endl;
+               if(!router.DyPartitioner.ycsb_map.empty()){
+                  router.writeToFile(&router.DyPartitioner.ycsb_map, "/root/home/AffinityDB/Proxy_ycsb/backend/Proxy/Logs/ycsb_map");
+                  send_map_to_node(&router.DyPartitioner.ycsb_map,outcoming,MESSAGE_TYPE::RouterMap_metis_ycsb);
+               }   
                // std::cout<<"send_orderline"<<std::endl;   
                // send_map_to_node(&router.DyPartitioner.orderline_map,outcoming,MESSAGE_TYPE::RouterMap_metis_orderline);                 
                router.DyPartitioner.has_send_metis=true;
@@ -228,7 +231,9 @@ namespace Proxy
             {
                std::cout << "send_dynamic" << std::endl;
                router.DyPartitioner.partition_mutex.lock();
-               send_map_to_node(&router.DyPartitioner.ycsb_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_ycsb);
+               if(!router.DyPartitioner.ycsb_insert_keys.empty()){
+                  send_map_to_node(&router.DyPartitioner.ycsb_insert_keys, outcoming, MESSAGE_TYPE::RouterMap_dynamic_ycsb);
+               }
                router.DyPartitioner.has_send_new_insert_keys = true;
                router.DyPartitioner.partition_mutex.unlock();
             }
@@ -246,6 +251,7 @@ namespace Proxy
             uint64_t random_numbers=0;
             uint64_t last_all_numbers=0;
             sleep(10);
+            overall_time +=10;
             while(true){
                auto start = std::chrono::high_resolution_clock::now();
 
@@ -270,6 +276,10 @@ namespace Proxy
                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
                std::this_thread::sleep_for(std::chrono::seconds(10) - duration);
+               overall_time +=10;
+               if(overall_time == 50){
+                  txn_logger.info("start workloadchange");
+               }
             } });
          statistics.detach();
          // -------------------------------------------------------------------------------------
@@ -413,18 +423,37 @@ namespace Proxy
                            random_number_per_thread[destNodeId]++;
                         break;
                      }
+                  if(FLAGS_ycsb_hot_page){
+                     ycsb.key_transfer(keylist);
+                  }
                   auto &keyMessagetoDispatch = *MessageFabric::createMessage<TxnKeysMessage>(ctx.outcoming, MESSAGE_TYPE::TxnKeys, keylist, clientId);
                   bool isDispatch = false;
                   while (!isDispatch)
                   {
                      isDispatch = dispatcherKey(destNodeId, keyMessagetoDispatch, clientId, &mailboxes[mailboxIdx]);
                   }
+                  if(FLAGS_ycsb_hot_page){
+                     ycsb.key_transfer_back(keylist);
+                  }
                   if (FLAGS_route_mode == 3)
                   {
                      router.pushToQueue(keylist);
                   }
                   router_number_per_thread[destNodeId] += 1;
-                  keylist = ycsb.ycsb_keys_create(partition_id);
+                  if(FLAGS_ycsb_workload_change && overall_time > 50){
+                        keylist = ycsb.ycsb_workload_change(partition_id);
+                  }
+                  else
+                  {
+                     if (FLAGS_ycsb_hot_page)
+                     {
+                        keylist = ycsb.ycsb_hot_page(partition_id);
+                     }
+                     else
+                     {
+                        keylist = ycsb.ycsb_keys_create(partition_id);
+                     }
+                  }
                }
                mailboxIdx = ++startPosition;
          }

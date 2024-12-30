@@ -65,7 +65,7 @@ namespace Proxy
         public:
             StampInfo() {}
             StampInfo(idx_t n) { stamp_number_ = n; }
-            ~StampInfo(){};
+            ~StampInfo() {};
             int w_id() const { return w_id_; }
             int stamp_number() const { return stamp_number_; }
             int all_count() const { return all_count_; }
@@ -141,7 +141,6 @@ namespace Proxy
             std::unordered_set<idx_t> epoch_vids; // 记录每个epoch需要划分的节点
 
         public:
-
             /*int get_wid(int key)
             {
                 int offset = key - customer_offset;
@@ -200,19 +199,24 @@ namespace Proxy
             void get_partition(const std::vector<idx_t> &parts, const std::unordered_map<idx_t, idx_t> &vertix_map)
             {
                 int i = 0;
-                cluster.clear();
-                cluster.reserve(partition_num);
-                for (int j = 0; j < partition_num; j++)
-                {
-                    std::unordered_set<idx_t> part;
-                    cluster.push_back(part);
-                }
                 for (const auto part_id : parts)
                 {
+                    int key = 0;
                     int stamp_id = vertix_map.at(i);
                     cluster[part_id].insert(stamp_id);
                     partmapA.insert({stamp_id, part_id});
-                    int key = stamp_id * FLAGS_stamp_len;
+                    if (FLAGS_ycsb_hot_page)
+                    {
+                        if(stamp_id < FLAGS_ycsb_hot_page_size){
+                            key = stamp_id;
+                        }
+                        else{
+                            key = (stamp_id - FLAGS_ycsb_hot_page_size) * FLAGS_stamp_len;
+                        }
+                    }
+                    else{
+                        key = stamp_id * FLAGS_stamp_len;
+                    }                
                     ycsb_map.insert({key, part_id});
                     i++;
                 }

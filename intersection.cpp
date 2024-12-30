@@ -111,89 +111,6 @@ void handle_page(std::string path)
     output << "ratio : " << float(a) / b * 100 << "%" << endl;
 }
 
-void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)
-{
-    // 打开所有输入文件
-    std::vector<std::ifstream> inputFiles;
-    for (const auto &filename : filenames)
-    {
-        std::ifstream inputFile(filename);
-        if (!inputFile.is_open())
-        {
-            std::cerr << "Failed to open input file: " << filename << std::endl;
-            return;
-        }
-        inputFiles.push_back(std::move(inputFile));
-    }
-
-    std::ofstream outputFile(outputFilename);
-    if (!outputFile.is_open())
-    {
-        std::cerr << "Failed to open output file." << std::endl;
-        return;
-    }
-
-    bool allFilesHaveData = true;
-
-    while (allFilesHaveData)
-    {
-        allFilesHaveData = false;
-        std::string mergedLine;
-
-        for (auto &inputFile : inputFiles)
-        {
-            std::string line;
-            if (std::getline(inputFile, line))
-            {
-                if (!mergedLine.empty())
-                {
-                    mergedLine += " "; // 可以根据需要更改分隔符
-                }
-                mergedLine += line;
-                allFilesHaveData = true;
-            }
-        }
-
-        if (allFilesHaveData)
-        {
-            outputFile << mergedLine << std::endl;
-        }
-    }
-
-    for (auto &inputFile : inputFiles)
-    {
-        inputFile.close();
-    }
-
-    outputFile.close();
-}
-
-void handle_txn(std::string &path, int num_nodes)
-{
-    std::vector<std::string> filenames;
-    std::vector<std::string> proxy_file;
-
-    // Add worker files for each node
-    for (int i = 0; i < num_nodes; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
-        }
-    }
-
-    // Add proxy worker files
-    for (int i = 0; i < num_nodes * 4; i++)
-    {
-        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
-    }
-
-    std::string outputFilename = path + "txn_lantency";
-    mergeFiles(filenames, outputFilename);
-
-    std::string outputproxy = path + "route_lantency";
-    mergeFiles(proxy_file, outputproxy);
-}
 
 std::unordered_map<std::string, std::string> readINIFile(const std::string &filename)
 {
@@ -241,7 +158,7 @@ int main() {
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "result/new_read_write/";
+    std::string start = "data_tpcc/lantency/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "";
 
     // 读取INI文件并存储到字典中
@@ -252,32 +169,47 @@ int main() {
     int num_nodes = std::stoi(params["nodes"]);
     subpath1 = std::to_string(num_nodes) + "nodes/";
 
-    // 获取路由模式参数
-    if (params2["route_mode"] == "1") {
-        subpath2 = "无图划分路由/";
-        subpath3 = "随机路由/";
-    } else if (params2["route_mode"] == "2") {
-        subpath2 = "无图划分路由/";
-        subpath3 = "哈希路由/";
-    } else {
-        subpath2 = "图划分路由/";
-        subpath3 = params2["partition_mode"] == "1" ? "静态/" : "动态/";
-        subpath4 = params["use-codesign"] == "false" ? "无codesign/" : "有codesign/";
+       // 获取路由模式参数
+    if (params2["route_mode"] == "1")
+    {
+        subpath2 = "random/";
     }
-
-    // 获取分布式参数
-    if (params2["distribution"] == "false") {
-        subpath5 = "无分布式/";
-    } else {
-        if (params2["distribution_rate"] == "10") {
-            subpath5 = "原版tpcc/";
-        } else if (params2["distribution_rate"] == "30") {
-            subpath5 = "分布式30/";
-        } else if (params2["distribution_rate"] == "50") {
-            subpath5 = "分布式50/";
-        } else {
-            subpath5 = "分布式70/";
+    else if (params2["route_mode"] == "2")
+    {
+        subpath2 = "warehouse/";
+    }
+    else
+    {
+        if (params2["partition_mode"] == "1")
+        {
+            if (params["use-codesign"] == "false")
+            {
+                subpath2 = "static/";
+            }
+            else
+            {
+                subpath2 = "static+rfs/";
+            }
         }
+        else
+        {
+            if (params["use-codesign"] == "false")
+            {
+                subpath2 = "dynamic/";
+            }
+            else
+            {
+                subpath2 = "dynamic+rfs/";
+            }
+        }
+    }
+     if (params2["distribution"] == "false")
+    {
+        subpath4 = "无分布式/";
+    }
+    else
+    {
+        subpath4 = "分布式" + params2["distribution_rate"] + "/";
     }
 
     
@@ -308,33 +240,33 @@ int main() {
 
     // 定义 SCP 命令模板
     std::vector<std::string> scp_commands;
-    scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/Logs " + path + "node2/");
-    scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
+    scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs " + path + "node2/");
+    scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.88:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/TXN_LOG " + path + "node2/");
     scp_commands.push_back("cp -r ScaleStore/Logs " + path + "node1/");
     scp_commands.push_back("cp -r ScaleStore/TXN_LOG " + path + "node1/");
 
     // 添加更多节点的 SCP 命令
     if (num_nodes >= 3) {
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/Logs " + path + "node3/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs " + path + "node3/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.90:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/TXN_LOG " + path + "node3/");
     }
     if (num_nodes >= 4) {
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/Logs " + path + "node4/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs " + path + "node4/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.91:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/TXN_LOG " + path + "node4/");
     }
     if (num_nodes >= 5) {
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/Logs " + path + "node5/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs " + path + "node5/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.92:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/TXN_LOG " + path + "node5/");
     }
     if (num_nodes == 6) {
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/Logs " + path + "node6/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs " + path + "node6/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.93:/root/home/AffinityDB_rc/AffinityDB/ScaleStore/TXN_LOG " + path + "node6/");
     }
 
     // 添加代理的 SCP 命令
     if (params["use_proxy"] == "true") {
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.89:/root/home/AffinityDB/Proxy/backend/Proxy/Logs " + path + "proxy/");
-        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.89:/root/home/AffinityDB/Proxy/backend/Proxy/TXN_LOG " + path + "proxy/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.89:/root/home/AffinityDB_rc/AffinityDB/Proxy/backend/Proxy/Logs " + path + "proxy/");
+        scp_commands.push_back("scp -v -o StrictHostKeyChecking=no -r root@10.0.0.89:/root/home/AffinityDB_rc/AffinityDB/Proxy/backend/Proxy/TXN_LOG " + path + "proxy/");
     }
 
     // 执行 SCP 命令
@@ -346,7 +278,7 @@ int main() {
             std::cerr << "Error copying file: " << command << std::endl;
         }
     }
-    handle_txn(path, num_nodes);
+    handle_tpcc_txn(path, num_nodes);
     // 删除 TXN_LOG 文件
     for (int i = 1; i <= num_nodes; ++i) {
         std::string rm_file = "rm -rf " + path + "node" + std::to_string(i) + "/TXN_LOG";
@@ -358,8 +290,19 @@ int main() {
     }
 
     // 计算事务延迟和远程数据
-    caculate_txn_lantxncy(path);
+    std::string neworder_input = path + "neworder_lantency";
+    std::string neworder_output = path + "neworder_info";
+    std::string txn_input = path + "txn_lantency";
+    std::string txn_output = path + "txn_info";
+    processtpccData(neworder_input, neworder_output);
+    processtpccData(txn_input, txn_output);
+    std::string rm_txn = "rm -rf " + neworder_input;
+    system(rm_txn.c_str());
+    rm_txn = "rm -rf " + txn_input;
+    system(rm_txn.c_str());
+    caculate_router_lantency(path);
     calculate_remote(path, num_nodes);
+
 
     return 0;
 }

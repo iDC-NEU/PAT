@@ -15,3 +15,6 @@ data_ycsb/
 data_scale/
 new_data_ycsb
 result/
+validate_data
+Proxy_ycsb/backend/Proxy/TXN_LOG/
+data_tpcc/

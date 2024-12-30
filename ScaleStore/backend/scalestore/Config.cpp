@@ -44,3 +44,5 @@ DEFINE_bool(use_codesign, true, " ");
 DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
 DEFINE_uint32(workload_type, 1, "tpcc or ycsb");
+DEFINE_bool(ycsb_hot_page, false, "enable ycsb_hot_page");
+DEFINE_int32(ycsb_hot_page_size, 1500, "enable ycsb_hot_page");

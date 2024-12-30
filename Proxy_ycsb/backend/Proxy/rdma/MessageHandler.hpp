@@ -89,6 +89,7 @@ namespace Proxy
          std::vector<std::vector<uint64_t>> cctxsmap;
          std::vector<uint64_t> routerCach;
          int count = 0;
+         int overall_time = 0;
          spdlog::logger &router_logger;
          spdlog::logger &txn_logger;
          std::shared_ptr<spdlog::logger> routertime_logger;

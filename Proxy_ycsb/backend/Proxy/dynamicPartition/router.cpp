@@ -32,8 +32,8 @@ namespace Proxy
             router_logger.info(fmt::format("router_time ={}s router_time/epochtime={}", epoch_router, epoch_router / (1.0 * std::chrono::duration_cast<std::chrono::microseconds>(epoch_end - epoch_start).count() / 1000)));
 
             epoch_router = 0;
-            epoch_start = std::chrono::high_resolution_clock::now();
             metis = true;
+            epoch_start = std::chrono::high_resolution_clock::now();
         }
 
         void Router::dyPartition()

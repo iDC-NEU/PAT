@@ -137,6 +137,12 @@ struct PID
    // -------------------------------------------------------------------------------------
 };
 
+struct PIDHash {
+    size_t operator()(const PID &pid) const {
+        return std::hash<uint64_t>{}(pid.id);
+    }
+};
+
 struct TxnNode
 {
    int64_t key;

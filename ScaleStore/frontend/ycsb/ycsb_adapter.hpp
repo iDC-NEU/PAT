@@ -14,7 +14,7 @@ struct ScaleStoreAdapter
     bool traversed = false;
     std::map<i64, i64> *partition_map;
     std::unordered_map<i64, i64> *update_map;
-    ScaleStoreAdapter(){};
+    ScaleStoreAdapter() {};
     ScaleStoreAdapter(ScaleStore &db, std::string name) : name(name)
     {
         auto &catalog = db.getCatalog();
@@ -95,7 +95,7 @@ struct ScaleStoreAdapter
         std::advance(pos, partition_size * t_i);
         size_t count = 0;
         pos++;
-        i64 offset = 50;
+        i64 offset = 1;
         auto last_pair = pos->first;
         auto last_part = pos->second;
         i64 pair = last_pair + offset;
@@ -132,6 +132,10 @@ struct ScaleStoreAdapter
                     pos++;
                     count++;
                 }
+                if (pair >= 5000 && FLAGS_ycsb_hot_page)
+                {
+                    offset = 50;
+                }
             }
         }
         else
@@ -167,6 +171,10 @@ struct ScaleStoreAdapter
                     pos++;
                     count++;
                 }
+                if (pair >= 5000 && FLAGS_ycsb_hot_page)
+                {
+                    offset = 50;
+                }
             }
         }
         std::cout << "partition_size: " << count << std::endl;
@@ -179,7 +187,14 @@ struct ScaleStoreAdapter
         BTree tree(tree_pid);
         for (const auto &pair : *update_map)
         {
-            tree.update_metis_index({pair.first}, {pair.first + 50}, pair.second);
+            if (FLAGS_ycsb_hot_page && pair.first < FLAGS_ycsb_hot_page_size)
+            {
+                tree.update_metis_index({pair.first}, {pair.first + 1}, pair.second);
+            }
+            else
+            {
+                tree.update_metis_index({pair.first}, {pair.first + 50}, pair.second);
+            }
         }
         update_map = nullptr;
     }
@@ -197,7 +212,14 @@ struct ScaleStoreAdapter
         {
             while (count < partition_size)
             {
-                tree.update_metis_index(pos->first, pos->first+50, pos->second);
+                if (FLAGS_ycsb_hot_page && pos->first < FLAGS_ycsb_hot_page_size)
+                {
+                    tree.update_metis_index(pos->first, pos->first + 1, pos->second);
+                }
+                else
+                {
+                    tree.update_metis_index(pos->first, pos->first + 50, pos->second);
+                }
                 pos++;
                 count++;
             }
@@ -207,16 +229,26 @@ struct ScaleStoreAdapter
             while (pos != partition_map->end())
             {
 
-                tree.update_metis_index(pos->first, pos->first+50, pos->second);
+                if (FLAGS_ycsb_hot_page && pos->first < FLAGS_ycsb_hot_page_size)
+                {
+                    tree.update_metis_index(pos->first, pos->first + 1, pos->second);
+                }
+                else
+                {
+                    tree.update_metis_index(pos->first, pos->first + 50, pos->second);
+                }
                 pos++;
                 count++;
             }
         }
     }
 
-    bool all_update_ready(){
-        for(auto ready : updates){
-            if(!ready){
+    bool all_update_ready()
+    {
+        for (auto ready : updates)
+        {
+            if (!ready)
+            {
                 return false;
             }
         }
@@ -282,11 +314,11 @@ struct ScaleStoreAdapter
         traversed = true;
     }
     void traverse_page()
-   {
-      std::string filename = "../../Logs/ycsb_page";
-      BTree tree(tree_pid);
-      tree.page_traversal(filename);
-      traversed = true;
-   }
-
+    {
+        std::string filename = "../Logs/ycsb_page";
+        BTree tree(tree_pid);
+        tree.page_traversal(filename);
+        traversed = true;
+        std::cout << "traverse_done!" << std::endl;
+    }
 };

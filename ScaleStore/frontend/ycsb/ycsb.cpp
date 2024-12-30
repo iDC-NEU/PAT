@@ -215,9 +215,9 @@ int main(int argc, char *argv[])
                         // }
                         threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
                      }
-                     if (scalestore.getNodeID() == 0){
+                     if (FLAGS_use_codesign && scalestore.getNodeID() == 0){
                         if(t_i == 0){
-                           if (FLAGS_use_codesign && scalestore.ycsb_map_created() && !ycsb_adapter.creates[t_i])
+                           if (scalestore.ycsb_map_created() && !ycsb_adapter.creates[t_i])
                            {
                               time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
                               auto time_start = utils::getTimePoint();
@@ -352,18 +352,19 @@ int main(int argc, char *argv[])
                // -------------------------------------------------------------------------------------
                scalestore.stopProfiler();
                // -------------------------------------------------------------------------------------
-               start_timer = false;
-               scalestore.getWorkerPool().scheduleJobAsync(0, [&]()
-                                                           {
-                     ycsb_adapter.traverse_page();
-                     storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
-                     barrier.wait();
-                     start_timer = true;
-                         });
-               while (!start_timer)
-               {
-                  _mm_pause();
-               }
+               // start_timer = false;
+               // std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
+               // scalestore.getWorkerPool().scheduleJobAsync(0, [&]()
+               //                                             {
+               //       ycsb_adapter.traverse_page();
+               //       storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
+               //       barrier.wait();
+               //       start_timer = true;
+               //           });
+               // while (!start_timer)
+               // {
+               //    _mm_pause();
+               // }
 
                // combine vector of threads into one
                std::vector<uint64_t> microsecond_latencies;

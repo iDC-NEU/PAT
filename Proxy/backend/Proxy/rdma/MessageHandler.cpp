@@ -654,7 +654,7 @@ namespace Proxy
                      destNodeId = routerCach[clientId] - 1;
                   }
                   break;
-               default:
+               case 3:
                   // 有路由
                   if (routerCach[clientId] == 0)
                   {
@@ -684,6 +684,21 @@ namespace Proxy
                   {
                      destNodeId = routerCach[clientId] - 1;
                   }
+                  break;
+               default:
+               // 按wid返回
+                if(routerCach[clientId]==0){
+                   std::vector<std::string> args = extractParameters(sql, ',');
+                   int w_id = std::stoi(args[0]);
+                   int step = FLAGS_tpcc_warehouse_count/FLAGS_nodes;
+                   destNodeId = (w_id-1)/step;
+                   // if(count <180000){
+                   //    destNodeId = rand()%FLAGS_nodes;
+                   // }
+                }else{
+                   destNodeId=routerCach[clientId]-1;
+                }
+
                   break;
                }
                auto &sqlMessagetoDispatch = *MessageFabric::createMessage<SqlMessage>(ctx.outcoming, MESSAGE_TYPE::SQL, sql.data(), clientId);
