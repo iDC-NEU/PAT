@@ -16,7 +16,7 @@ def build_graph_from_file(file_path):
     with open(file_path, 'r') as file:
         print("Processing the transactions...")
         for line_num, line in enumerate(file, 1):
-            if line_num > 10000:  # 限制读取的行数
+            if line_num > 30000:  # 限制读取的行数
                 break
             if line_num % 100 == 0:  # 每处理100行打印一次
                 print(f"Processed {line_num} lines...")
@@ -54,7 +54,7 @@ def build_graph_from_file(file_path):
 def plot_graph_heatmap(graph, page_id_mapping):
     print("Building the sparse adjacency matrix...")
     # 随机选取 100 个页面
-    selected_nodes = random.sample(page_id_mapping.keys(), 500)
+    selected_nodes = random.sample(page_id_mapping.keys(), 50)
     selected_indices = [page_id_mapping[node] for node in selected_nodes]
     
     # 构建稀疏权重矩阵
