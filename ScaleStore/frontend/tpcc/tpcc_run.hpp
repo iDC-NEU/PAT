@@ -374,7 +374,6 @@ void origin_tpcc_run(ScaleStore &db)
             get_txn_pageids(tmp_map, district);
             get_txn_pageids(tmp_map, customer);
             get_txn_pageids(tmp_map, order);
-            get_txn_pageids(tmp_map, orderline);
             get_txn_pageids(tmp_map, neworder);
             get_txn_pageids(tmp_map, item);
             get_txn_pageids(tmp_map, stock);
