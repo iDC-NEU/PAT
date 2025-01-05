@@ -11,7 +11,7 @@ namespace Proxy
             {
                 if (a.find(elem.first) != a.end())
                 {
-                    count++;
+                    count+= elem.second;
                 }
             }
             return count;
