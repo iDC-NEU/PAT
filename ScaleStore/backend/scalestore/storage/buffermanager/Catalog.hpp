@@ -34,14 +34,14 @@ struct Catalog{
 
    void init(NodeID nodeId){
          if (nodeId == CATALOG_OWNER) { // implicit dependency to BM as catalog page need to exist
-         ExclusiveBFGuard guard(CATALOG_PID, true); 
+         ExclusiveBFGuard guard(CATALOG_PID); 
          auto& catalogPage = guard.getFrame().page->getTuple<CatalogPage>(0);
          catalogPage.isInitialized = true;
          guard.getFrame().epoch = (~uint64_t(0));
       }else{
          bool isInitialized = false;
          while(!isInitialized){
-            SharedBFGuard guard(CATALOG_PID, true);
+            SharedBFGuard guard(CATALOG_PID);
             guard.getFrame().epoch = (~uint64_t(0));
             auto& catalogPage = guard.getFrame().page->getTuple<CatalogPage>(0);
             isInitialized = catalogPage.isInitialized;
@@ -52,7 +52,7 @@ struct Catalog{
    CatalogEntry& getCatalogEntry(uint64_t id)
    {
       do {
-         SharedBFGuard guard(CATALOG_PID, true);
+         SharedBFGuard guard(CATALOG_PID);
          guard.getFrame().epoch = (~uint64_t(0));
          auto& catalogPage = guard.getFrame().page->getTuple<CatalogPage>(0);
          if (catalogPage.datastructureIds >= id && catalogPage.entries[id].type != DS_TYPE::EMPTY)  // not yet initialized
@@ -63,7 +63,7 @@ struct Catalog{
    }
 
    uint64_t insertCatalogEntry(DS_TYPE type, PID pid){    
-      ExclusiveBFGuard guard(CATALOG_PID, true);
+      ExclusiveBFGuard guard(CATALOG_PID);
       guard.getFrame().epoch = (~uint64_t(0));
       auto& catalogPage = guard.getFrame().page->getTuple<CatalogPage>(0);
       catalogPage.entries[catalogPage.datastructureIds] = {.datastructureId = catalogPage.datastructureIds, .type = type, .pid=pid};

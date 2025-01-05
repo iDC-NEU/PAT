@@ -156,27 +156,27 @@ struct ScaleStoreAdapter
       std::string filename;
       if (Record::id == 2)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_info";
       }
       else if (Record::id == 0)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_info";
       }
       else if (Record::id == 1)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_info";
       }
       else if (Record::id == 5)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_info";
       }
       else if (Record::id == 6)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_info";
       }
       else if (Record::id == 10)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_info";
       }
       else
       {
@@ -239,27 +239,27 @@ struct ScaleStoreAdapter
       std::string filename;
       if (Record::id == 2)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_info";
       }
       else if (Record::id == 0)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_info";
       }
       else if (Record::id == 1)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_info";
       }
       else if (Record::id == 5)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_info";
       }
       else if (Record::id == 6)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_info";
       }
       else if (Record::id == 10)
       {
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_info";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_info";
       }
       else
       {
@@ -277,37 +277,37 @@ struct ScaleStoreAdapter
       switch (Record::id)
       {
       case 0:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/warehouse_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/warehouse_page";
          break;
       case 1:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/district_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/district_page";
          break;
       case 2:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_page";
          break;
       case 3:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/customer_wdl_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/customer_wdl_page";
          break;
       case 4:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/history_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/history_page";
          break;
       case 5:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/neworder_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/neworder_page";
          break;
       case 6:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_page";
          break;
       case 7:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/order_wdc_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/order_wdc_page";
          break;
       case 8:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/orderline_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/orderline_page";
          break;
       case 9:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/item_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/item_page";
          break;
       default:
-         filename = "/root/home/AffinityDB/ScaleStore/Logs/stock_page";
+         filename = "/home/user/project/database/demo/ScaleStore/Logs/stock_page";
          break;
       }
       BTree tree(tree_pid);
@@ -319,6 +319,13 @@ struct ScaleStoreAdapter
    {
       BTree tree(tree_pid);
       tree.insert(rec_key, record);
+   }
+   
+   // hold lock
+   void insert(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &rec_key, const Record &record)
+   {
+      BTree tree(tree_pid);
+      tree.insert(my_lock, hash_page, rec_key, record);
    }
 
    template <class Fn>
@@ -359,6 +366,15 @@ struct ScaleStoreAdapter
    }
 
    template <class Fn>
+   void update1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key, const Fn &fn)
+   {
+      BTree tree(tree_pid);
+      auto res = tree.lookupAndUpdate(my_lock, hash_page, key, [&](Record &value)
+                                      { fn(value); });
+      ensure(res);
+   }
+
+   template <class Fn>
    void lookup1(const typename Record::Key &key, const Fn &fn)
    {
       BTree tree(tree_pid);
@@ -366,10 +382,25 @@ struct ScaleStoreAdapter
       ensure(res);
    }
 
+   template <class Fn>
+   void lookup1(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key, const Fn &fn)
+   {
+      BTree tree(tree_pid);
+      const auto res = tree.lookup_opt(my_lock, hash_page, key, fn);
+      ensure(res);
+   }
+
    bool erase(const typename Record::Key &key)
    {
       BTree tree(tree_pid);
       const auto res = tree.remove(key);
+      return res;
+   }
+
+   bool erase(std::vector<scalestore::storage::ExclusiveBFGuard>& my_lock, std::unordered_map<PID, int, PIDHash>& hash_page, const typename Record::Key &key)
+   {
+      BTree tree(tree_pid);
+      const auto res = tree.remove(my_lock, hash_page, key);
       return res;
    }
 

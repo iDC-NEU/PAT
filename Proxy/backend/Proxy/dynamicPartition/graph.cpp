@@ -45,6 +45,19 @@ namespace Proxy
                 graph_[v_j][v_i] += weight;
             }
         }
+        void Graph::sub_edge(int v_i, int v_j, double weight)
+        {
+            if (graph_[v_i].find(v_j) != graph_[v_i].end())
+            {
+                graph_[v_i][v_j] -= weight;
+                graph_[v_j][v_i] -= weight;
+                if (graph_[v_i][v_j] <= 0)
+                {
+                    graph_[v_i].erase(v_j);
+                    graph_[v_j].erase(v_i);
+                }
+            }
+        }
         bool Graph::has_node(int vid)
         {
             return graph_.find(vid) == graph_.end() ? false : true;
@@ -328,6 +341,45 @@ namespace Proxy
                 {
                     stampinfo_map.erase(id);
                     G.remove_node(id);
+                }
+            }
+        }
+        void DynamicPartitioner::delete_stamps(const std::vector<TxnNode> &txn_node_list)
+        {
+            std::unordered_map<int, bool> temps;
+            int count = 0;
+            for (const auto &node : txn_node_list)
+            {
+                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                if (stampinfo_map.find(stamp_id) != stampinfo_map.end())
+                {
+                    stampinfo_map[stamp_id].sub_all_count(node.weight);
+                     if (stampinfo_map[stamp_id].all_count() <= 0)
+                     {
+                         stampinfo_map.erase(stamp_id);
+                         if(G.has_node(stamp_id)){
+                            G.remove_node(stamp_id);
+                         }
+                         continue;
+                     }
+                }
+                if (temps.find(stamp_id) == temps.end())
+                {
+                    for (auto &tmp : temps)
+                    {
+                        if (tmp.second)
+                        {
+                            if (node.is_read_only)
+                            {
+                                G.sub_edge(stamp_id, tmp.first, 1);
+                            }
+                        }
+                        else
+                        {
+                            G.sub_edge(stamp_id, tmp.first, 1);
+                        }
+                    }
+                    temps.insert({stamp_id, node.is_read_only});
                 }
             }
         }
