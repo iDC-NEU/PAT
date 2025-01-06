@@ -81,5 +81,5 @@
         "future": "cpp",
         "ranges": "cpp"
     },
-    "cmake.sourceDirectory": "/root/home/AffinityDB/Proxy"
+    "cmake.sourceDirectory": "/home/user/project/database/demo/gflags/test"
 }

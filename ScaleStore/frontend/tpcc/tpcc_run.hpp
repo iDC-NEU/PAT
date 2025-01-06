@@ -622,13 +622,11 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
-                                          {
-         db.getBuffermanager().local_timer.insert({std::this_thread::get_id(), Timer()});                           
+                                          {                         
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
-         Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -637,20 +635,12 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                std::string functionName = extractFunctionName(sql);
                std::vector<std::string> parameters;
                extractParameters(sql, ',', parameters);
-               local_timer->reset(true);
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
                if (count_ready)
                {
                   outputs[t_i] << (end - start) << " ";
-                  if (functionName == "newOrder")
-                  {
-                     neworder_times[t_i] << (end - start) << " "
-                                         << local_timer->local_elapsedMicroseconds() << " "
-                                         << local_timer->remote_elapsedMicroseconds() << " ";
-                  }
                }
-               local_timer->reset(true);
                if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
                   neworder_times[t_i] << std::endl;
@@ -997,13 +987,11 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
    {
       db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
-                                          {                                                
-         db.getBuffermanager().local_timer.insert({std::this_thread::get_id(), Timer()});                           
+                                          {                                                                       
          running_threads_counter++;
          thread_id = t_i + (db.getNodeID() * FLAGS_worker);
          storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
          barrier.wait();
-         Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
          while (keep_running) {
             char sql[sqlLength];
             uint64_t src_node;
@@ -1012,20 +1000,12 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
                std::string functionName = extractFunctionName(sql);
                std::vector<std::string> parameters;
                extractParameters(sql, ',', parameters);
-               local_timer->reset(true);
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();
                if (count_ready)
                {
                   outputs[t_i] << (end - start) << " ";
-                  if (functionName == "newOrder")
-                  {
-                     neworder_times[t_i] << (end - start) << " "
-                                         << local_timer->local_elapsedMicroseconds() << " "
-                                         << local_timer->remote_elapsedMicroseconds() << " ";
-                  }
                }
-               local_timer->reset(true);
                if(change_line[t_i] && count_ready){
                   outputs[t_i] << std::endl;
                   neworder_times[t_i] << std::endl;

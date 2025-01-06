@@ -359,16 +359,16 @@ namespace Proxy
          const int stock_key_max = order_key_max + 1'000'000 * w_count + 100000;
          int gen_warehouse_key(Integer w_id)
          {
-            return stock_key_max + w_id * 50 + 1;
+            return stock_key_max + w_id + 1;
          }
-         const int warehouse_key_min = stock_key_max + 50 + 1;
-         const int warehouse_key_max = stock_key_max + w_count * 50 + 1;
+         const int warehouse_key_min = stock_key_max + 1;
+         const int warehouse_key_max = stock_key_max + w_count + 1;
          int gen_district_key(Integer d_w_id, Integer d_id)
          {
-            return warehouse_key_max + 500 * d_w_id + d_id * 50;
+            return warehouse_key_max + 10 * d_w_id + d_id;
          }
-         const int district_key_min = warehouse_key_max + 500 * 1 + 50 * 1;
-         const int district_key_max = warehouse_key_max + w_count * 500 + 500;
+         const int district_key_min = warehouse_key_max + 10 * 1 + 1;
+         const int district_key_max = warehouse_key_max + w_count * 10 + 10;
 
          // TODO:
          int gen_neworder_key(Integer no_w_id, Integer no_d_id, Integer no_o_id)

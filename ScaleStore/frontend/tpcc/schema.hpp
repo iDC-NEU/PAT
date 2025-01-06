@@ -85,8 +85,8 @@ struct district_t
       Key(Integer w, Integer d) : d_w_id(w), d_id(d){};
       Key(int oneDimensionalInt)
       {
-         d_w_id = (oneDimensionalInt - 1) / 500;
-         d_id = ((oneDimensionalInt - 1) % 500 + 1) / 50;
+         d_w_id = (oneDimensionalInt - 1) / 10;
+         d_id = (oneDimensionalInt - 1) % 10;
       }
       bool operator==(const Key &other) { return (d_w_id == other.d_w_id) && (d_id == other.d_id); }
       bool operator>(const Key &other) const

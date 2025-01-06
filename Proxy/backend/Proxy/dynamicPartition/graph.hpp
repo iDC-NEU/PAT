@@ -283,7 +283,7 @@ namespace Proxy
                     }
                     else if (stock_key_max < key && key <= warehouse_key_max)
                     {
-                        warehouse_map.insert({(key - stock_key_max - 1) / 50, part_id});
+                        warehouse_map.insert({key - stock_key_max, part_id});
                     }
                     else if (warehouse_key_max < key && key <= district_key_max)
                     {
