@@ -292,7 +292,7 @@ namespace Proxy
             int count = 0;
             for (const auto &node : txn_node_list)
             {
-                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                int stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 epoch_vids.insert(stamp_id);               // 记录epoch需要划分的顶点集
                 if (stampinfo_map.find(stamp_id) == stampinfo_map.end())
                 {
@@ -347,10 +347,9 @@ namespace Proxy
         void DynamicPartitioner::delete_stamps(const std::vector<TxnNode> &txn_node_list)
         {
             std::unordered_map<int, bool> temps;
-            int count = 0;
             for (const auto &node : txn_node_list)
             {
-                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                int stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 if (stampinfo_map.find(stamp_id) != stampinfo_map.end())
                 {
                     stampinfo_map[stamp_id].sub_all_count(node.weight);
@@ -492,7 +491,7 @@ namespace Proxy
         {
             for (const auto &pair : partmap)
             {
-                if (pair.first * FLAGS_stamp_len <= customer_key_max)
+                if (pair.first * int(FLAGS_stamp_len) <= customer_key_max)
                 {
                     customer_map.insert({pair.first, pair.second});
                 }
