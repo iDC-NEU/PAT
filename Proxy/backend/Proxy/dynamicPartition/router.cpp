@@ -118,7 +118,7 @@ namespace Proxy
             while (count < 4)
             {
                 int id = rand() % size;
-                auto iter = part_map->find((txnnodelist[id].key - 1) / 50);
+                auto iter = part_map->find((txnnodelist[id].key - 1) / FLAGS_stamp_len);
                 if (iter != part_map->end())
                 {
                     result = iter->second;

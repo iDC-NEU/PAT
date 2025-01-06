@@ -136,7 +136,7 @@ namespace Proxy
             {
                 new_insert_keys[vid] = p;
             }
-            int key = vid * 50 + 1;
+            int key = vid * FLAGS_stamp_len + 1;
             if (key <= customer_key_max)
             {
                 customer_insert_keys.insert({key, p});
@@ -151,7 +151,7 @@ namespace Proxy
             }
             else if (stock_key_max < key && key <= warehouse_key_max)
             {
-                warehouse_insert_keys.insert({(key - stock_key_max - 1) / 50, p});
+                warehouse_insert_keys.insert({key - stock_key_max, p});
             }
             else if (warehouse_key_max < key && key <= district_key_max)
             {
@@ -492,7 +492,7 @@ namespace Proxy
         {
             for (const auto &pair : partmap)
             {
-                if (pair.first * 50 <= customer_key_max)
+                if (pair.first * FLAGS_stamp_len <= customer_key_max)
                 {
                     customer_map.insert({pair.first, pair.second});
                 }
