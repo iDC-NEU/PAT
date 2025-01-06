@@ -60,12 +60,11 @@ def build_graph_from_file(file_path):
 
     return graph, page_id_mapping, page_id_values
 
-
 def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     print("Building the sparse adjacency matrix...")
 
     # 设置固定采样 10 个 page_id_value 为 0 或 1 的页面
-    fixed_value_pages_count = 4
+    fixed_value_pages_count = 15
 
     # 筛选出值为 0 或 1 的 page_id
     fixed_value_page_ids = [page_id for page_id, value in page_id_values.items() if value == 0 or value == 1]
@@ -81,7 +80,7 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     remaining_page_ids = [page_id for page_id in page_id_values if page_id not in selected_fixed_value_pages]
 
     # 随机选取 40 个剩余页面
-    selected_remaining_pages = random.sample(remaining_page_ids, 46)
+    selected_remaining_pages = random.sample(remaining_page_ids, 40)
 
     # 最终的 50 个选中页面
     selected_page_ids = selected_fixed_value_pages + selected_remaining_pages
@@ -109,12 +108,11 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
 
     print("Finished building the adjacency matrix.")
 
-    # 将稀疏矩阵转换为密集矩阵，并且只保留选中的页面
-    adjacency_matrix = adjacency_matrix.toarray()
+    # 选择稀疏矩阵的子集来绘制热图，而不是转换为密集矩阵
     adjacency_matrix_selected = adjacency_matrix[np.ix_(selected_indices, selected_indices)]
 
-    # 对权重进行归一化或对数缩放（这里用对数缩放）
-    adjacency_matrix_selected = np.log1p(adjacency_matrix_selected)  # 使用对数缩放，避免数值过大
+    # 对权重进行归一化或对数缩放（这里用对数缩放） 
+    adjacency_matrix_selected = np.log1p(adjacency_matrix_selected.toarray())  # 使用对数缩放，避免数值过大
 
     # 绘制热图
     print("Plotting the heatmap...")
@@ -124,16 +122,22 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     plt.imshow(adjacency_matrix_selected, cmap='YlGnBu', interpolation='nearest', vmin=0)
 
     # 添加颜色条
-    plt.colorbar(label="Weight")
+    plt.colorbar(label="the number of transactions that co-access pages")
 
     # 去掉坐标轴标签
     plt.xticks([])
     plt.yticks([])
+    
+    # 只显示 0 和 50
+    plt.xticks([0, 50])  # 仅显示 0 和 50
+    plt.yticks([0, 50])  # 仅显示 0 和 50
+
+    # 设置坐标轴的最大最小值
+    plt.xlim(0, 50)
+    plt.ylim(0, 50)
 
     # 反转纵坐标顺序
-    plt.gca().invert_yaxis()
-
-    plt.title("Page Access Heatmap")
+    plt.title("Co-access Frequency")
     plt.xlabel("Page ID")
     plt.ylabel("Page ID")
 
@@ -143,6 +147,7 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     plt.savefig("heatmap.pdf", format="pdf")
     print("Heatmap saved as 'heatmap.svg'.")
     print("Heatmap saved as 'heatmap.pdf'.")
+
 
 
 # 示例：读取文件并生成图
