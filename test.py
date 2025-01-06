@@ -61,36 +61,44 @@ def build_graph_from_file(file_path):
     return graph, page_id_mapping, page_id_values
 
 def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy.sparse import dok_matrix
+    import random
+
     print("Building the sparse adjacency matrix...")
 
-    # 设置固定采样 10 个 page_id_value 为 0 或 1 的页面
+    # 设置固定采样 15 个 page_id_value 为 0 或 1 的页面
     fixed_value_pages_count = 15
 
     # 筛选出值为 0 或 1 的 page_id
     fixed_value_page_ids = [page_id for page_id, value in page_id_values.items() if value == 0 or value == 1]
 
-    # 检查是否至少有 10 个页面值为 0 或 1
+    # 检查是否至少有 15 个页面值为 0 或 1
     if len(fixed_value_page_ids) < fixed_value_pages_count:
         raise ValueError(f"Not enough pages with value 0 or 1. Only {len(fixed_value_page_ids)} available.")
 
-    # 从筛选出的页面中随机选择 10 个
+    # 从筛选出的页面中随机选择 15 个
     selected_fixed_value_pages = random.sample(fixed_value_page_ids, fixed_value_pages_count)
 
-    # 获取剩余页面（即不包括已选的 10 个）
+    # 获取剩余页面（即不包括已选的 15 个）
     remaining_page_ids = [page_id for page_id in page_id_values if page_id not in selected_fixed_value_pages]
 
-    # 随机选取 40 个剩余页面
-    selected_remaining_pages = random.sample(remaining_page_ids, 40)
+    # 随机选取 35 个剩余页面
+    selected_remaining_pages = random.sample(remaining_page_ids, 35)
 
     # 最终的 50 个选中页面
     selected_page_ids = selected_fixed_value_pages + selected_remaining_pages
 
-    # **打乱选中的页面顺序** 
+    # **打乱选中的页面顺序**
     random.shuffle(selected_page_ids)
 
     # 获取 selected_indices
     selected_indices = [page_id_mapping[page_id] for page_id in selected_page_ids]
-    
+
+    # 创建一个新的映射，将原始索引重新映射到 [0, 49]
+    index_mapping = {old_idx: new_idx for new_idx, old_idx in enumerate(selected_indices)}
+
     # 构建稀疏权重矩阵
     num_pages = len(page_id_mapping)
     adjacency_matrix = dok_matrix((num_pages, num_pages), dtype=float)
@@ -111,30 +119,32 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     # 选择稀疏矩阵的子集来绘制热图，而不是转换为密集矩阵
     adjacency_matrix_selected = adjacency_matrix[np.ix_(selected_indices, selected_indices)]
 
-    # 对权重进行归一化或对数缩放（这里用对数缩放） 
-    adjacency_matrix_selected = np.log1p(adjacency_matrix_selected.toarray())  # 使用对数缩放，避免数值过大
+    # 创建一个新的矩阵，将其映射到 0 到 49 的索引
+    adjacency_matrix_mapped = dok_matrix((50, 50), dtype=float)
+    for i, j in zip(*adjacency_matrix_selected.nonzero()):
+        new_i, new_j = index_mapping[selected_indices[i]], index_mapping[selected_indices[j]]
+        adjacency_matrix_mapped[new_i, new_j] = adjacency_matrix_selected[i, j]
+
+    # 对权重进行归一化或对数缩放（这里用对数缩放）
+    adjacency_matrix_mapped = np.log1p(adjacency_matrix_mapped.toarray())  # 使用对数缩放，避免数值过大
 
     # 绘制热图
     print("Plotting the heatmap...")
     plt.figure(figsize=(8, 6))
 
     # 使用 'YlGnBu' 色图显示热图，并设置最低值为 0 以保证区分度
-    plt.imshow(adjacency_matrix_selected, cmap='YlGnBu', interpolation='nearest', vmin=0)
+    plt.imshow(adjacency_matrix_mapped, cmap='YlGnBu', interpolation='nearest', vmin=0)
 
     # 添加颜色条
-    plt.colorbar(label="the number of transactions that co-access pages")
+    plt.colorbar(label="The number of transactions that co-access pages")
 
-    # 去掉坐标轴标签
-    plt.xticks([])
-    plt.yticks([])
-    
-    # 只显示 0 和 50
-    plt.xticks([0, 50])  # 仅显示 0 和 50
-    plt.yticks([0, 50])  # 仅显示 0 和 50
+    # 设置坐标轴标签
+    plt.xticks([0, 49], labels=["0", "49"])
+    plt.yticks([0, 49], labels=["0", "49"])
 
     # 设置坐标轴的最大最小值
-    plt.xlim(0, 50)
-    plt.ylim(0, 50)
+    plt.xlim(-0.5, 49.5)
+    plt.ylim(-0.5, 49.5)
 
     # 反转纵坐标顺序
     plt.title("Co-access Frequency")
@@ -147,6 +157,7 @@ def plot_graph_heatmap(graph, page_id_mapping, page_id_values):
     plt.savefig("heatmap.pdf", format="pdf")
     print("Heatmap saved as 'heatmap.svg'.")
     print("Heatmap saved as 'heatmap.pdf'.")
+
 
 
 
