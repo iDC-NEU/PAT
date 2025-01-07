@@ -23,7 +23,7 @@ namespace Proxy
             DyPartitioner.clear_epoch_set();
 
             int cnt = part_map.size();
-            router_logger.info(fmt::format("初始图划分后顶点数_cluster统计:,{};顶点数_number_of_nodes：{}", cnt, DyPartitioner.get_graph().number_of_nodes()));
+            router_logger.info(fmt::format("初始图划分后顶点数_cluster统计:,{};顶点数_number_of_nodes:{}", cnt, DyPartitioner.get_graph().number_of_nodes()));
             auto dy_end = std::chrono::high_resolution_clock::now();
             std::chrono::high_resolution_clock::time_point epoch_end = std::chrono::high_resolution_clock::now();
 

@@ -38,6 +38,7 @@ namespace Proxy
             {
                 graph_[v_i].insert({v_j, weight});
                 graph_[v_j].insert({v_i, weight});
+                edge_count++;
             }
             else
             {
@@ -327,7 +328,6 @@ namespace Proxy
                         {
                             G.add_edge(stamp_id, tmp.first, 1);
                         }
-                        edge_count++;
                     }
                     temps.insert({stamp_id, node.is_read_only});
                 }
@@ -347,7 +347,6 @@ namespace Proxy
         void DynamicPartitioner::delete_stamps(const std::vector<TxnNode> &txn_node_list)
         {
             std::unordered_map<int, bool> temps;
-            int count = 0;
             for (const auto &node : txn_node_list)
             {
                 int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识

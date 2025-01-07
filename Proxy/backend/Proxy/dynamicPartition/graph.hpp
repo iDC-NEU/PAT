@@ -61,7 +61,9 @@ namespace Proxy
             void remove_node(int vid) { graph_.erase(vid); }
             std::unordered_map<int, int> neighbors(int vid);
             int number_of_nodes();
+            u64 number_of_edges(){ return edge_count; };
             void clear() { graph_.clear(); }
+            u64 edge_count = 0;
 
         private:
             std::unordered_map<int, std::unordered_map<int, int>> graph_;
@@ -106,7 +108,6 @@ namespace Proxy
             std::vector<bool> new_map_use;
             std::unordered_set<int> transfer_node;
             int transfer_count = 0;
-            int edge_count = 0;
             bool change_map = false;
             bool is_update_map_running = false;
             std::atomic<bool> has_send_new_insert_keys = true;
