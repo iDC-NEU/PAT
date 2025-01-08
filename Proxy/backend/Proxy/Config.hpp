@@ -50,6 +50,7 @@ DECLARE_uint32(tpcc_warehouse_count);
 DECLARE_uint64(sqlSendThreads);
 DECLARE_bool(routertimeLog); 
 DECLARE_uint32(route_mode);
+DECLARE_uint32(stamp_len);
 DECLARE_uint32(partition_mode);
 DECLARE_bool(distribution);
 DECLARE_uint32(distribution_rate);
