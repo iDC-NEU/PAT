@@ -54,4 +54,5 @@ DECLARE_bool(distribution);
 DECLARE_uint32(distribution_rate);
 DECLARE_uint32(workload_type);
 DECLARE_bool(ycsb_hot_page);
+DECLARE_uint32(stamp_len);
 DECLARE_int32(ycsb_hot_page_size);

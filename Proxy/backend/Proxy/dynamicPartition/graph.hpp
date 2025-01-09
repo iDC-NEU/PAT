@@ -29,7 +29,6 @@ namespace Proxy
 {
     namespace router
     {
-        inline int stamp_len = 50; // 段长
         inline int frequent_limit = 1;
         inline int customer_range = 10000;
         inline int oorder_range = 10000;
@@ -197,10 +196,10 @@ namespace Proxy
             const int order_key_max = customer_key_max + 1'000'000 * w_count + 1'0000 * 10 + 3000;
             const int stock_key_min = order_key_max + 1'000'000 * 1 + 1;
             const int stock_key_max = order_key_max + 1'000'000 * w_count + 100000;
-            const int warehouse_key_min = stock_key_max + 50 + 1;
-            const int warehouse_key_max = stock_key_max + w_count * 50 + 1;
-            const int district_key_min = warehouse_key_max + 500 * 1 + 50 * 1;
-            const int district_key_max = warehouse_key_max + w_count * 500 + 500;
+            const int warehouse_key_min = stock_key_max + FLAGS_stamp_len + 1;
+            const int warehouse_key_max = stock_key_max + w_count * FLAGS_stamp_len + 1;
+            const int district_key_min = warehouse_key_max + 10 * FLAGS_stamp_len * 1 + FLAGS_stamp_len * 1;
+            const int district_key_max = warehouse_key_max + w_count * 10 * FLAGS_stamp_len + 10 * FLAGS_stamp_len;
             const int neworder_key_min = district_key_max + 1'000'000 * 1 + 1'0000 * 1 + 1;
             const int neworder_key_max = district_key_max + 1'000'000 * w_count + 1'0000 * 10 + 3000;              
             // const int orderline_key_min = neworder_key_max + 5'000'000 * 1 + 30'0000 * 1 + 10000 * 1 + 1;          
@@ -269,7 +268,7 @@ namespace Proxy
                     int stamp_id = vertix_map.at(i);
                     cluster[part_id].insert(stamp_id);
                     partmapA.insert({stamp_id, part_id});
-                    int key = stamp_id * 50 + 1;
+                    int key = stamp_id * FLAGS_stamp_len + 1;
                     if (key <= customer_key_max)
                     {
                         customer_map.insert({key, part_id});
@@ -284,7 +283,7 @@ namespace Proxy
                     }
                     else if (stock_key_max < key && key <= warehouse_key_max)
                     {
-                        warehouse_map.insert({(key - stock_key_max - 1) / 50, part_id});
+                        warehouse_map.insert({(key - stock_key_max - 1) / FLAGS_stamp_len, part_id});
                     }
                     else if (warehouse_key_max < key && key <= district_key_max)
                     {

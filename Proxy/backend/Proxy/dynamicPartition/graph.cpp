@@ -137,7 +137,7 @@ namespace Proxy
             {
                 new_insert_keys[vid] = p;
             }
-            int key = vid * 50 + 1;
+            int key = vid * FLAGS_stamp_len + 1;
             if (key <= customer_key_max)
             {
                 customer_insert_keys.insert({key, p});
@@ -152,7 +152,7 @@ namespace Proxy
             }
             else if (stock_key_max < key && key <= warehouse_key_max)
             {
-                warehouse_insert_keys.insert({(key - stock_key_max - 1) / 50, p});
+                warehouse_insert_keys.insert({(key - stock_key_max - 1) / FLAGS_stamp_len, p});
             }
             else if (warehouse_key_max < key && key <= district_key_max)
             {
@@ -293,7 +293,7 @@ namespace Proxy
             int count = 0;
             for (const auto &node : txn_node_list)
             {
-                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                int stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 epoch_vids.insert(stamp_id);               // 记录epoch需要划分的顶点集
                 if (stampinfo_map.find(stamp_id) == stampinfo_map.end())
                 {
@@ -349,7 +349,7 @@ namespace Proxy
             std::unordered_map<int, bool> temps;
             for (const auto &node : txn_node_list)
             {
-                int stamp_id = (node.key - 1) / stamp_len; // 根据关键字生成唯一的图顶点标识
+                int stamp_id = (node.key - 1) / FLAGS_stamp_len; // 根据关键字生成唯一的图顶点标识
                 if (stampinfo_map.find(stamp_id) != stampinfo_map.end())
                 {
                     stampinfo_map[stamp_id].sub_all_count(node.weight);
@@ -491,7 +491,7 @@ namespace Proxy
         {
             for (const auto &pair : partmap)
             {
-                if (pair.first * 50 <= customer_key_max)
+                if (pair.first * int(FLAGS_stamp_len) <= customer_key_max)
                 {
                     customer_map.insert({pair.first, pair.second});
                 }

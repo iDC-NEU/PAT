@@ -29,7 +29,6 @@ namespace Proxy
 {
     namespace router
     {
-        inline int stamp_len = 50; // 段长
         inline int frequent_limit = 1;
         inline int customer_range = 10000;
         inline int oorder_range = 10000;

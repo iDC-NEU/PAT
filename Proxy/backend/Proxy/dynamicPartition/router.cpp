@@ -118,7 +118,7 @@ namespace Proxy
             while (count < 4)
             {
                 int id = rand() % size;
-                auto iter = part_map->find((txnnodelist[id].key - 1) / 50);
+                auto iter = part_map->find((txnnodelist[id].key - 1) / FLAGS_stamp_len);
                 if (iter != part_map->end())
                 {
                     result = iter->second;
@@ -161,10 +161,10 @@ namespace Proxy
                     queue_guard.lock();
                     if(!txn_queue.empty()){
                         txnnodelist = txn_queue.front();
+                        txn_queue.pop();
                         queue_guard.unlock();
                         generateStamps();
                         partition_count++;
-                        txn_queue.pop();
                         if(FLAGS_partition_mode == 2 && metis && partition_count % 1000 == 0){
                             dyPartition();
                         }

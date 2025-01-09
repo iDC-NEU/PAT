@@ -41,6 +41,7 @@ DEFINE_uint64(sqlSendThreads,1," ");
 DEFINE_bool(txnkeyPostback,false," ");
 DEFINE_bool(use_proxy, false, " ");
 DEFINE_bool(use_codesign, true, " ");
+DEFINE_uint32(stamp_len, 50, "range");
 DEFINE_bool(distribution, false, " ");
 DEFINE_uint32(distribution_rate, 0, "distribution rate");
 DEFINE_uint32(workload_type, 1, "tpcc or ycsb");
