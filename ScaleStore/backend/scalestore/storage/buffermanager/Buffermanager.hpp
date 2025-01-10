@@ -149,8 +149,8 @@ namespace scalestore
          // std::unordered_map<std::thread::id, Timer> local_timer;
          // std::unordered_map<std::thread::id, Timer> remote_timer;
          int remote_count = 0;
-         int local_count = 0;
-         int local_last_count = 0;
+         u64 local_count = 0;
+         u64 local_last_count = 0;
          int index_last_count = 0;
          int last_count = 0;
          int index_remote_count = 0;
@@ -203,6 +203,8 @@ namespace scalestore
          Guard fix(PID pid, ACCESS functor);
          template <typename ACCESS>
          Guard fix(PID pid, ACCESS functor, [[maybe_unused]] int &is_in_mem);
+         template <typename ACCESS>
+         Guard fix(PID pid, ACCESS functor, bool is_leaf);
          // -------------------------------------------------------------------------------------
          BufferFrame &newPage();
          BufferFrame &newRemotePage(NodeID nodeId); // allocates page on a remote BM

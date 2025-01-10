@@ -29,6 +29,11 @@ ExclusiveBFGuard::ExclusiveBFGuard(PID pid){
    g.frame->dirty = true;
 };
 
+ExclusiveBFGuard::ExclusiveBFGuard(PID pid, bool is_leaf){
+   g = BM::global->fix(pid, Exclusive(), is_leaf);
+   g.frame->dirty = true;
+};
+
 ExclusiveBFGuard::ExclusiveBFGuard(ExclusiveBFGuard&& xGuard) {
    g = std::move(xGuard.g);
 }
@@ -133,6 +138,12 @@ SharedBFGuard::SharedBFGuard(PID pid)
    g = BM::global->fix(pid, Shared());
 };
 
+SharedBFGuard::SharedBFGuard(PID pid, bool is_leaf)
+{
+   g = BM::global->fix(pid, Shared(), is_leaf);
+};
+
+
 
 // -------------------------------------------------------------------------------------
 SharedBFGuard::SharedBFGuard(SharedBFGuard&& sGuard) {
@@ -198,6 +209,11 @@ SharedBFGuard::~SharedBFGuard(){
 OptimisticBFGuard::OptimisticBFGuard(PID pid)
 {
    g = BM::global->fix(pid, Optimistic());
+};
+
+OptimisticBFGuard::OptimisticBFGuard(PID pid, bool is_leaf)
+{
+   g = BM::global->fix(pid, Optimistic(), is_leaf);
 };
 
 OptimisticBFGuard::OptimisticBFGuard(OptimisticBFGuard&& oGuard){

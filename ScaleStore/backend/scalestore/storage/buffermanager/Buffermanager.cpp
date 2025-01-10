@@ -332,7 +332,8 @@ namespace scalestore
                std::chrono::seconds interval(10);
                leaf_logger->info(fmt::format("remote_count ={}; increase_count ={}/s",remote_count, double(remote_count-last_count)/10));
                last_count = remote_count;
-               local_logger->info(fmt::format("local_count ={}; increase_count ={}/s",local_count, double(local_count-local_last_count)/10));
+               local_logger->info(fmt::format("local_count ={}; increase_count ={}/s "
+               , local_count, double(local_count-local_last_count)/10));
                local_last_count = local_count;
                catch_logger->info(fmt::format("ssd_io_count ={}; ssd_increase_count ={}/s",ssd_io_count, double(ssd_io_count-ssd_last_count)/10));
                ssd_last_count = ssd_io_count;

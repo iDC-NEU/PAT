@@ -938,7 +938,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -985,7 +985,7 @@ namespace scalestore
             // -------------------------------------------------------------------------------------
             // Leaf
             // -------------------------------------------------------------------------------------
-            ExclusiveBFGuard xg_node(currentPID);
+            ExclusiveBFGuard xg_node(currentPID, true);
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
@@ -1045,7 +1045,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1126,7 +1126,7 @@ namespace scalestore
             }
             if (!has_locked)
             {
-               ExclusiveBFGuard xg_node(currentPID);
+               ExclusiveBFGuard xg_node(currentPID, true);
                if (xg_node.retry())
                   goto restart;
                ensure(xg_node.getFrame().latch.isLatched());
@@ -1173,7 +1173,7 @@ namespace scalestore
             using Inner = BTreeInner<Key>;
             using Leaf = BTreeLeaf<Key, Value>;
          restart:
-            OptimisticBFGuard g_parent(entryPage);
+            OptimisticBFGuard g_parent(entryPage, false);
             // -------------------------------------------------------------------------------------
             auto *entry = g_parent.asPtr<BTreeEntry>(0);
             if (g_parent.retry())
@@ -1202,7 +1202,7 @@ namespace scalestore
                   goto restart; // check inner
 
                g_parent = std::move(g_node);
-               g_node = OptimisticBFGuard(nextPid);
+               g_node = OptimisticBFGuard(nextPid, false);
                node = g_node.asPtr<NodeBase>(0);
                if (g_node.retry())
                   goto restart; // check inner
@@ -1228,7 +1228,7 @@ namespace scalestore
                {
                   // get right node
                   PID pid_right = inner.children[pos + 1];
-                  ExclusiveBFGuard xg_right(pid_right);
+                  ExclusiveBFGuard xg_right(pid_right, true);
                   if (xg_right.retry())
                      goto restart;
                   auto &right = xg_right.as<Leaf>(0);
@@ -1419,7 +1419,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1443,7 +1443,7 @@ namespace scalestore
             // -------------------------------------------------------------------------------------
             // Leaf
             // -------------------------------------------------------------------------------------
-            ExclusiveBFGuard xg_node(currentPID);
+            ExclusiveBFGuard xg_node(currentPID, true);
             if (xg_node.retry())
                goto restart;
             ensure(xg_node.getFrame().latch.isLatched());
@@ -1578,7 +1578,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1609,7 +1609,7 @@ namespace scalestore
                   goto restart;  // check inner
             SharedBFGuard sg_node(std::move(leaf_g));
             */
-            SharedBFGuard sg_node(currentPID);
+            SharedBFGuard sg_node(currentPID, true);
             if (sg_node.retry())
             {
                goto restart;
@@ -1655,7 +1655,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1680,7 +1680,7 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
          restartLeaf:
-            OptimisticBFGuard og_node(currentPID);
+            OptimisticBFGuard og_node(currentPID, true);
             // -------------------------------------------------------------------------------------
             node = og_node.asPtr<NodeBase>(0);
             // -------------------------------------------------------------------------------------
@@ -1865,7 +1865,7 @@ namespace scalestore
             while (currentLevel < height)
             {
                // get current node from PID
-               OptimisticBFGuard g_node(currentPID);
+               OptimisticBFGuard g_node(currentPID, false);
                if (g_parent.retry())
                   goto restart;
                node = g_node.asPtr<NodeBase>(0);
@@ -1890,7 +1890,7 @@ namespace scalestore
             // Leaf
             // -------------------------------------------------------------------------------------
          restartLeaf:
-            OptimisticBFGuard og_node(currentPID);
+            OptimisticBFGuard og_node(currentPID, true);
             // -------------------------------------------------------------------------------------
             node = og_node.asPtr<NodeBase>(0);
             // -------------------------------------------------------------------------------------
@@ -2069,7 +2069,7 @@ namespace scalestore
                goto restart;
             ensure(entry);
             PID rootPid = entry->root;
-            OptimisticBFGuard g_node(rootPid);
+            OptimisticBFGuard g_node(rootPid, false);
             if (g_parent.retry())
                goto restart;
             // -------------------------------------------------------------------------------------
@@ -2091,7 +2091,7 @@ namespace scalestore
                   goto restart; // check inner
 
                g_parent = std::move(g_node);
-               g_node = OptimisticBFGuard(nextPid);
+               g_node = OptimisticBFGuard(nextPid, false);
                node = g_node.asPtr<NodeBase>(0);
                if (g_node.retry())
                   goto restart; // check inner
