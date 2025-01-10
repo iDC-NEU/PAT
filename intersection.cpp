@@ -303,6 +303,7 @@ int main() {
     // system(rm_txn.c_str());
     caculate_router_lantency(path);
     calculate_remote(path, num_nodes);
+    calculate_local(path, num_nodes);
 
 
     return 0;

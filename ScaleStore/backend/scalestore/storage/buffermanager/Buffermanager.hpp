@@ -144,10 +144,13 @@ namespace scalestore
          // -------------------------------------------------------------------------------------
       public:
          std::shared_ptr<spdlog::logger> leaf_logger;
+         std::shared_ptr<spdlog::logger> local_logger;
          std::shared_ptr<spdlog::logger> catch_logger;
-         std::unordered_map<std::thread::id, Timer> local_timer;
-         std::unordered_map<std::thread::id, Timer> remote_timer;
+         // std::unordered_map<std::thread::id, Timer> local_timer;
+         // std::unordered_map<std::thread::id, Timer> remote_timer;
          int remote_count = 0;
+         int local_count = 0;
+         int local_last_count = 0;
          int index_last_count = 0;
          int last_count = 0;
          int index_remote_count = 0;

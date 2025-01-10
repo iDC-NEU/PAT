@@ -212,9 +212,9 @@ template <typename ACCESS>
 Guard Buffermanager::fix(PID pid, ACCESS functor)
 {
    using namespace rdma;
-   bool is_local = true;
-   local_timer[std::this_thread::get_id()].start();
-   remote_timer[std::this_thread::get_id()].start();
+   // bool is_local = true;
+   // local_timer[std::this_thread::get_id()].start();
+   // remote_timer[std::this_thread::get_id()].start();
 
    // -------------------------------------------------------------------------------------
 restart:
@@ -229,14 +229,15 @@ restart:
       _mm_prefetch(&guard.frame->page->data[0], _MM_HINT_T0);
       if (guard.frame->epoch < globalEpoch)
          guard.frame->epoch = globalEpoch.load();
-      if (is_local)
-      {
-         local_timer[std::this_thread::get_id()].stop(true);
-      }
-      else
-      {
-         local_timer[std::this_thread::get_id()].reset(false);
-      }
+      // if (is_local)
+      // {
+      //    local_timer[std::this_thread::get_id()].stop(true);
+      // }
+      // else
+      // {
+      //    local_timer[std::this_thread::get_id()].reset(false);
+      // }
+      local_count++;
       return guard;
    }
    // -------------------------------------------------------------------------------------
@@ -325,7 +326,7 @@ restart:
    case STATE::REMOTE:
    {
       // ------------------------------------------------------------------------------------->
-      is_local = false;
+      // is_local = false;
       remote_count++;
       ensure(guard.frame);
       ensure(guard.frame->state == BF_STATE::IO_RDMA);
@@ -451,7 +452,7 @@ restart:
          guard.frame->pVersion++;
          NodeID conflict = guard.frame->possessors.exclusive;
          auto &context_ = threads::Worker::my().cctxs[conflict];
-         is_local = false;
+         // is_local = false;
          auto &pmRequest = *MessageFabric::createMessage<PossessionMoveRequest>(context_.outgoing, pid, true, pageOffset,
                                                                                 guard.frame->pVersion); // move possesion incl page
          // -------------------------------------------------------------------------------------
@@ -473,7 +474,7 @@ restart:
          {
             // -------------------------------------------------------------------------------------
             // -------------------------------------------------------------------------------------
-            is_local = false;
+            // is_local = false;
             guard.frame->pVersion++;
             guard.frame->possessors.shared.reset(nodeId);
             auto &shared = guard.frame->possessors.shared;
@@ -487,7 +488,7 @@ restart:
          }
          else
          {
-            is_local = false;
+            // is_local = false;
             ensure(guard.frame->state == BF_STATE::EVICTED);
             auto &shared = guard.frame->possessors.shared;
             ensure(shared.any());
@@ -541,7 +542,7 @@ restart:
    // -------------------------------------------------------------------------------------
    case STATE::REMOTE_POSSESSION_CHANGE:
    {
-      is_local = false;
+      // is_local = false;
       threads::Worker::my().counters.incr(profiling::WorkerCounters::w_rpc_tried);
       ensure(FLAGS_nodes > 1);
       ensure(guard.frame != nullptr);
@@ -599,14 +600,14 @@ restart:
    {
       ensure(guard.frame != nullptr);
    }
-   if (is_local)
-   {
-      local_timer[std::this_thread::get_id()].stop(true);
-   }
-   else
-   {
-      local_timer[std::this_thread::get_id()].stop(false);
-   }
+   // if (is_local)
+   // {
+   //    local_timer[std::this_thread::get_id()].stop(true);
+   // }
+   // else
+   // {
+   //    local_timer[std::this_thread::get_id()].stop(false);
+   // }
    // -------------------------------------------------------------------------------------
    return guard;
 }
