@@ -624,8 +624,20 @@ namespace Proxy
                   // 随机路由
                   if (routerCach[clientId] == 0)
                   {
-
-                     destNodeId = urand(0, FLAGS_nodes-1);
+                     bool ishash = false;
+                     auto router_start = Proxy::utils::getTimePoint();
+                     std::vector<router::TxnNode> txnnodelist;
+                     gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
+                     bool isroute = false;
+                     destNodeId = router.router(txnnodelist, t_i, false, isroute);
+                     auto router_end = Proxy::utils::getTimePoint();
+                     outputs[t_i] << (router_end - router_start) << " ";
+                     tx_acc++;
+                     if(tx_acc > 10000){
+                        outputs[t_i] << std::endl;
+                        outputs[t_i].flush();
+                        tx_acc = 0;
+                     }
                      // if(count > 180000){
                      // std::vector<std::string> args = extractParameters(str, ',');
                      // if(std::stoi(args[0])<int(FLAGS_tpcc_warehouse_count/2+1)) destNodeId=0;

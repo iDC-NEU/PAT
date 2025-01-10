@@ -213,7 +213,7 @@ Guard Buffermanager::fix(PID pid, ACCESS functor)
 {
    using namespace rdma;
    bool is_local = true;
-   // local_timer[std::this_thread::get_id()].start();
+   local_timer[std::this_thread::get_id()].start();
    // remote_timer[std::this_thread::get_id()].start();
 
    // -------------------------------------------------------------------------------------
@@ -232,12 +232,12 @@ restart:
       if (is_local)
       {
          local_count++;
-         // local_timer[std::this_thread::get_id()].stop(true);
+         local_timer[std::this_thread::get_id()].stop(true);
       }
-      // else
-      // {
-      //    local_timer[std::this_thread::get_id()].reset(false);
-      // }
+      else
+      {
+         local_timer[std::this_thread::get_id()].reset(false);
+      }
       return guard;
    }
    // -------------------------------------------------------------------------------------
@@ -603,12 +603,12 @@ restart:
    if (is_local)
    {
       local_count++;
-      // local_timer[std::this_thread::get_id()].stop(true);
+      local_timer[std::this_thread::get_id()].stop(true);
    }
-   // else
-   // {
-   //    local_timer[std::this_thread::get_id()].stop(false);
-   // }
+   else
+   {
+      local_timer[std::this_thread::get_id()].stop(false);
+   }
    // -------------------------------------------------------------------------------------
    return guard;
 }
@@ -619,7 +619,7 @@ Guard Buffermanager::fix(PID pid, ACCESS functor, bool is_leaf)
 {
    using namespace rdma;
    bool is_local = true;
-   // local_timer[std::this_thread::get_id()].start();
+   local_timer[std::this_thread::get_id()].start();
    // remote_timer[std::this_thread::get_id()].start();
 
    // -------------------------------------------------------------------------------------
@@ -638,12 +638,12 @@ restart:
       if (is_local && is_leaf)
       {
          local_count++;
-         // local_timer[std::this_thread::get_id()].stop(true);
+         local_timer[std::this_thread::get_id()].stop(true);
       }
-      // else
-      // {
-      //    local_timer[std::this_thread::get_id()].reset(false);
-      // }
+      else
+      {
+         local_timer[std::this_thread::get_id()].reset(false);
+      }
       return guard;
    }
    // -------------------------------------------------------------------------------------
@@ -1009,12 +1009,12 @@ restart:
    if (is_local && is_leaf)
    {
       local_count++;
-      // local_timer[std::this_thread::get_id()].stop(true);
+      local_timer[std::this_thread::get_id()].stop(true);
    }
-   // else
-   // {
-   //    local_timer[std::this_thread::get_id()].stop(false);
-   // }
+   else
+   {
+      local_timer[std::this_thread::get_id()].stop(false);
+   }
    // -------------------------------------------------------------------------------------
    return guard;
 }
