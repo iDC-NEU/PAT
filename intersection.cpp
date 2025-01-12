@@ -158,7 +158,7 @@ int main() {
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "data_tpcc/local_count/";
+    std::string start = "data_tpcc/new_data/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "";
 
     // 读取INI文件并存储到字典中
