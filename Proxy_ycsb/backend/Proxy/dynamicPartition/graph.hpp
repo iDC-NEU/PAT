@@ -51,7 +51,6 @@ namespace Proxy
             void remove_node(idx_t vid) { graph_.erase(vid); }
             std::unordered_map<idx_t, idx_t> neighbors(idx_t vid);
             int number_of_nodes();
-            u
             void clear() { graph_.clear(); }
 
         private:

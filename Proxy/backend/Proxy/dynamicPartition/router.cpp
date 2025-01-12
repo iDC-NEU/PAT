@@ -44,6 +44,37 @@ namespace Proxy
             epoch_router = 0;
         }
 
+        uint64_t Router::hash_router(std::vector<TxnNode> &txnnodelist, int t_i)
+        {
+
+            DyPartitioner.old_map_use[t_i] = true;
+            DyPartitioner.new_map_use[t_i] = true;
+            DyPartitioner.update_mutex.lock();
+            if (!DyPartitioner.change_map)
+            {
+                DyPartitioner.new_map_use[t_i] = false;
+                // std::cout<<"part_mapA_size:" <<part_map->size()<<std::endl;
+            }
+            else
+            {
+                DyPartitioner.old_map_use[t_i] = false;
+                // std::cout<<"part_mapB_size:" <<part_map->size()<<std::endl;
+            }
+            DyPartitioner.update_mutex.unlock();
+            // 创建并初始化哈希计数数组
+            std::vector<int> hash_count(FLAGS_nodes, 0);
+
+            // 根据键值的哈希分布统计计数
+            for (const auto& txn_node : txnnodelist) {
+                hash_count[txn_node.key % FLAGS_nodes]++;
+            }
+
+            // 返回哈希分布中最大值对应的索引
+            return std::distance(hash_count.begin(), 
+                                std::max_element(hash_count.begin(), hash_count.end()));
+        }
+
+
         uint64_t Router::router(std::vector<TxnNode> &txnnodelist, int t_i, bool isRouter, bool &is_route)
         {
 

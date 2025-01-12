@@ -697,6 +697,61 @@ namespace Proxy
                      destNodeId = routerCach[clientId] - 1;
                   }
                   break;
+                                    case 4:
+                  // schism
+                  if (routerCach[clientId] == 0)
+                  {
+                     bool ishash = false;
+                     auto router_start = Proxy::utils::getTimePoint();
+                     std::vector<router::TxnNode> txnnodelist;
+                     gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
+                     bool isroute = false;
+                     destNodeId = router.router(txnnodelist, t_i, true, isroute);
+                     auto router_end = Proxy::utils::getTimePoint();
+                     if (router.metis)
+                     {
+                        outputs[t_i] << (router_end - router_start) << " ";
+                        tx_acc++;
+                     }
+                     if(tx_acc > 10000){
+                        outputs[t_i] << std::endl;
+                        outputs[t_i].flush();
+                        tx_acc = 0;
+                     }
+                     if (isroute)
+                        graph_number_per_thread[destNodeId]++;
+                     else
+                        random_number_per_thread[destNodeId]++;
+                  }
+                  else
+                  {
+                     destNodeId = routerCach[clientId] - 1;
+                  }
+                  break;
+                  case 5:
+                  // hash
+                  if (routerCach[clientId] == 0)
+                  {
+                     bool ishash = false;
+                     auto router_start = Proxy::utils::getTimePoint();
+                     std::vector<router::TxnNode> txnnodelist;
+                     gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
+                     destNodeId = router.hash_router(txnnodelist, t_i);
+                     auto router_end = Proxy::utils::getTimePoint();
+                     outputs[t_i] << (router_end - router_start) << " ";
+                     tx_acc++;
+                     if(tx_acc > 10000){
+                        outputs[t_i] << std::endl;
+                        outputs[t_i].flush();
+                        tx_acc = 0;
+                     }
+                  break;
+                  }
+                  else
+                  {
+                     destNodeId = routerCach[clientId] - 1;
+                  }
+                  break;
                default:
                // 按wid返回
                 if(routerCach[clientId]==0){

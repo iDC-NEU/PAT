@@ -1,0 +1,13 @@
+# Target labels
+ gflags_src
+# Source files and their labels
+/root/home/AffinityDB/build/CMakeFiles/gflags_src
+/root/home/AffinityDB/build/CMakeFiles/gflags_src.rule
+/root/home/AffinityDB/build/CMakeFiles/gflags_src-complete.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-build.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-configure.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-download.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-install.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-mkdir.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-patch.rule
+/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-update.rule

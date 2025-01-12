@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/root/home/AffinityDB/build/CMakeFiles/gflags_src"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/CMakeFiles/gflags_src.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/CMakeFiles/gflags_src-complete.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-build.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-configure.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-download.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-install.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-mkdir.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-patch.rule"
+		},
+		{
+			"file" : "/root/home/AffinityDB/build/vendor/gflags/src/gflags_src-stamp/gflags_src-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"gflags_src"
+		],
+		"name" : "gflags_src"
+	}
+}

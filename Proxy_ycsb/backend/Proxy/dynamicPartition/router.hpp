@@ -87,6 +87,7 @@ namespace Proxy
                 return num;
             }
             uint64_t router(std::vector<TxnNode> &txnnodelist, int t_i, bool isRouter, bool &is_route);
+            uint64_t hash_router(std::vector<TxnNode> &txnnodelist, int t_i);
             void writeToFile(const std::unordered_map<i64, int> *part_map, const std::string &filename)
             {
                 std::ofstream outfile(filename);

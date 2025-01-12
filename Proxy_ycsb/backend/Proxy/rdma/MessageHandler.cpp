@@ -399,6 +399,56 @@ namespace Proxy
                         //    destNodeId = rand()%FLAGS_nodes;
                         // }
                         break;
+                                          case 4:
+                        // schism
+                        if (routerCach[clientId] == 0)
+                        {
+                           auto router_start = Proxy::utils::getTimePoint();
+                           bool isroute = false;
+                           destNodeId = router.router(keylist, t_i, true, isroute);
+                           auto router_end = Proxy::utils::getTimePoint();
+                           if (router.metis)
+                           {
+                              outputs[t_i] << (router_end - router_start) << " ";
+                              tx_acc++;
+                           }
+                           if (tx_acc > 10000)
+                           {
+                              outputs[t_i] << std::endl;
+                              outputs[t_i].flush();
+                              tx_acc = 0;
+                           }
+                           if (isroute)
+                              graph_number_per_thread[destNodeId]++;
+                           else
+                              random_number_per_thread[destNodeId]++;
+                        }
+                        else
+                        {
+                           destNodeId = routerCach[clientId] - 1;
+                        }
+                        break;
+                     case 5:
+                        // hash
+                        if (routerCach[clientId] == 0)
+                        {
+                           auto router_start = Proxy::utils::getTimePoint();
+                           destNodeId = router.hash_router(keylist, t_i);
+                           auto router_end = Proxy::utils::getTimePoint();
+                           outputs[t_i] << (router_end - router_start) << " ";
+                           tx_acc++;
+                           if (tx_acc > 10000)
+                           {
+                              outputs[t_i] << std::endl;
+                              outputs[t_i].flush();
+                              tx_acc = 0;
+                           }
+                        }
+                        else
+                        {
+                           destNodeId = routerCach[clientId] - 1;
+                        }
+                        break;
                      default:
                         // 有路由
 
