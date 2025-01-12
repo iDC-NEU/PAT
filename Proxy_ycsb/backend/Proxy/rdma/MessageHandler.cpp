@@ -399,7 +399,7 @@ namespace Proxy
                         //    destNodeId = rand()%FLAGS_nodes;
                         // }
                         break;
-                                          case 4:
+                     case 4:
                         // schism
                         if (routerCach[clientId] == 0)
                         {
@@ -485,7 +485,7 @@ namespace Proxy
                   if(FLAGS_ycsb_hot_page){
                      ycsb.key_transfer_back(keylist);
                   }
-                  if (FLAGS_route_mode == 3)
+                  if (FLAGS_route_mode == 3 || FLAGS_route_mode == 4)
                   {
                      router.pushToQueue(keylist);
                   }

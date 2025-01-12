@@ -90,89 +90,7 @@ void handle_page(const string &path, int numNodes)
     output << "Ratio: " << float(a) / b * 100 << "%" << endl;
 }
 
-void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)
-{
-    // 打开所有输入文件
-    std::vector<std::ifstream> inputFiles;
-    for (const auto &filename : filenames)
-    {
-        std::ifstream inputFile(filename);
-        if (!inputFile.is_open())
-        {
-            std::cerr << "Failed to open input file: " << filename << std::endl;
-            return;
-        }
-        inputFiles.push_back(std::move(inputFile));
-    }
 
-    std::ofstream outputFile(outputFilename);
-    if (!outputFile.is_open())
-    {
-        std::cerr << "Failed to open output file." << std::endl;
-        return;
-    }
-
-    bool allFilesHaveData = true;
-
-    while (allFilesHaveData)
-    {
-        allFilesHaveData = false;
-        std::string mergedLine;
-
-        for (auto &inputFile : inputFiles)
-        {
-            std::string line;
-            if (std::getline(inputFile, line))
-            {
-                if (!mergedLine.empty())
-                {
-                    mergedLine += " "; // 可以根据需要更改分隔符
-                }
-                mergedLine += line;
-                allFilesHaveData = true;
-            }
-        }
-
-        if (allFilesHaveData)
-        {
-            outputFile << mergedLine << std::endl;
-        }
-    }
-
-    for (auto &inputFile : inputFiles)
-    {
-        inputFile.close();
-    }
-
-    outputFile.close();
-}
-
-void handle_txn(std::string &path, int num_nodes)
-{
-    // std::vector<std::string> filenames;
-    std::vector<std::string> proxy_file;
-
-    // Add worker files for each node
-    // for (int i = 0; i < num_nodes; i++)
-    // {
-    //     for (int j = 0; j < 4; j++)
-    //     {
-    //         filenames.push_back(path + "node" + std::to_string(i + 1) + "/TXN_LOG/worker_" + std::to_string(j));
-    //     }
-    // }
-
-    // Add proxy worker files
-    for (int i = 0; i < num_nodes * 4; i++)
-    {
-        proxy_file.push_back(path + "proxy/TXN_LOG/worker_" + std::to_string(i));
-    }
-
-    // std::string outputFilename = path + "txn_lantency";
-    // mergeFiles(filenames, outputFilename);
-
-    std::string outputproxy = path + "route_lantency";
-    mergeFiles(proxy_file, outputproxy);
-}
 
 std::unordered_map<std::string, std::string> readINIFile(const std::string &filename)
 {
@@ -240,6 +158,14 @@ int main()
     else if (params2["route_mode"] == "2")
     {
         subpath2 = "warehouse/";
+    }
+    else if (params2["route_mode"] == "4")
+    {
+        subpath2 = "schism/";
+    }
+        else if (params2["route_mode"] == "5")
+    {
+        subpath2 = "hash/";
     }
     else
     {

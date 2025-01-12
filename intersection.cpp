@@ -179,6 +179,14 @@ int main() {
     {
         subpath2 = "warehouse/";
     }
+    else if (params2["route_mode"] == "4")
+    {
+        subpath2 = "schism/";
+    }
+        else if (params2["route_mode"] == "5")
+    {
+        subpath2 = "hash/";
+    }
     else
     {
         if (params2["partition_mode"] == "1")
@@ -213,15 +221,15 @@ int main() {
         subpath4 = "分布式" + params2["distribution_rate"] + "/";
     }
 
-    subpath5 = std::to_string(key_range) + "range/";
+    // subpath5 = std::to_string(key_range) + "range/";
     // 获取文件数量参数
-    // if (params2["file_num"] == "1") {
-    //     subpath6 = "1/";
-    // } else if (params2["file_num"] == "2") {
-    //     subpath6 = "2/";
-    // } else {
-    //     subpath6 = "3/";
-    // }
+    if (params2["file_num"] == "1") {
+        subpath6 = "1/";
+    } else if (params2["file_num"] == "2") {
+        subpath6 = "2/";
+    } else {
+        subpath6 = "3/";
+    }
 
     if(start == "result/new_read_write/"){
         subpath6 = params2["write_weight"] + "/";
@@ -291,16 +299,16 @@ int main() {
     }
 
     // 计算事务延迟和远程数据
-    // std::string neworder_input = path + "neworder_lantency";
-    // std::string neworder_output = path + "neworder_info";
-    // std::string txn_input = path + "txn_lantency";
-    // std::string txn_output = path + "txn_info";
-    // processtpccData(neworder_input, neworder_output);
-    // processtpccData(txn_input, txn_output);
-    // std::string rm_txn = "rm -rf " + neworder_input;
-    // system(rm_txn.c_str());
-    // rm_txn = "rm -rf " + txn_input;
-    // system(rm_txn.c_str());
+    std::string neworder_input = path + "neworder_lantency";
+    std::string neworder_output = path + "neworder_info";
+    std::string txn_input = path + "txn_lantency";
+    std::string txn_output = path + "txn_info";
+    processtpccData(neworder_input, neworder_output);
+    processtpccData(txn_input, txn_output);
+    std::string rm_txn = "rm -rf " + neworder_input;
+    system(rm_txn.c_str());
+    rm_txn = "rm -rf " + txn_input;
+    system(rm_txn.c_str());
     caculate_router_lantency(path);
     calculate_remote(path, num_nodes);
     calculate_local(path, num_nodes);
