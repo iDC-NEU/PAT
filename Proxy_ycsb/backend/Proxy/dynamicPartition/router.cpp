@@ -1,11 +1,11 @@
 #include "router.hpp"
 #include <thread>
 #include <unistd.h>
+#include "../utils/FNVHash.hpp"
 namespace Proxy
 {
     namespace router
     {
-
         void Router::generateStamps()
         {
             DyPartitioner.generate_stamps(txnnodelist);
@@ -66,7 +66,8 @@ namespace Proxy
 
             // 根据键值的哈希分布统计计数
             for (const auto& txn_node : txnnodelist) {
-                hash_count[txn_node.key % FLAGS_nodes]++;
+                auto hash_key = scalestore::utils::FNV::hash(txn_node.key);
+                hash_count[hash_key % FLAGS_nodes]++;
             }
 
             // 返回哈希分布中最大值对应的索引

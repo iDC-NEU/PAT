@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
                               auto time_start = utils::getTimePoint();
                               ycsb_adapter.partition_map = scalestore.get_ycsb_map();
                               ycsb_adapter.start_part = true;
-                              ycsb_adapter.create_partitioner(t_i);
+                              ycsb_adapter.create_partitioner();
                               auto time_end = utils::getTimePoint();
                               time_logger->info(fmt::format("ycsb partitioner created thread t{}", t_i));
                               time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
@@ -241,17 +241,17 @@ int main(int argc, char *argv[])
                               time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
                            }
                         }
-                        else{
-                           if (ycsb_adapter.start_part && !ycsb_adapter.creates[t_i])
-                           {
-                              time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
-                              auto time_start = utils::getTimePoint();
-                              ycsb_adapter.create_partitioner(t_i);
-                              auto time_end = utils::getTimePoint();
-                              time_logger->info(fmt::format("ycsb partitioner created thread t{}", t_i));
-                              time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
-                           }
-                        }
+                        // else{
+                        //    if (ycsb_adapter.start_part && !ycsb_adapter.creates[t_i])
+                        //    {
+                        //       time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
+                        //       auto time_start = utils::getTimePoint();
+                        //       ycsb_adapter.create_partitioner(t_i);
+                        //       auto time_end = utils::getTimePoint();
+                        //       time_logger->info(fmt::format("ycsb partitioner created thread t{}", t_i));
+                        //       time_logger->info(fmt::format("ycsb partition t{} cost {}ms", t_i, float(time_end - time_start) / 1000));
+                        //    }
+                        // }
                      }
                   }
                   running_threads_counter--; });
