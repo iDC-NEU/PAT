@@ -139,7 +139,7 @@ int main()
     std::string filename1 = "./ycsb_config.ini";
     std::string filename2 = "./proxy_ycsb_config.ini";
     std::string path;
-    std::string start = "result/ycsb/reorganize/";
+    std::string start = "result/ycsb/hot_page_size/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "", subpath7 = "";
 
     // 读取INI文件并存储到字典中
@@ -215,9 +215,9 @@ int main()
     {
         subpath7 = "3/";
     }
-    if (start == "result/ycsb/read_write/")
+    if (start == "result/ycsb/hot_page_size/")
     {
-        subpath7 = params2["write_weight"] + "/";
+        subpath7 = params2["ycsb_hot_page_size"] + "/";
     }
 
     // 构建完整路径
