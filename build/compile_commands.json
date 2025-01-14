@@ -1,0 +1,42 @@
+[
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/Config.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/Config.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/Config.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/Proxy.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/Proxy.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/Proxy.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/dynamicPartition/graph.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/graph.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/graph.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/dynamicPartition/router.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/router.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/dynamicPartition/router.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/rdma/MessageHandler.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/rdma/MessageHandler.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/rdma/MessageHandler.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/utils/RandomGenerator.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/utils/RandomGenerator.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/utils/RandomGenerator.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/backend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/Proxy.dir/Proxy/utils/Time.cpp.o -c /root/home/AffinityDB/Proxy/backend/Proxy/utils/Time.cpp",
+  "file": "/root/home/AffinityDB/Proxy/backend/Proxy/utils/Time.cpp"
+},
+{
+  "directory": "/root/home/AffinityDB/build/frontend",
+  "command": "/usr/bin/c++  -I/root/home/AffinityDB/Proxy/shared-headers -I/root/home/AffinityDB/Proxy/backend -isystem /root/home/AffinityDB/build/vendor/gflags/include  -pthread -g -Wall -Wextra -Werror -mavx2 -mcx16 -m64 -std=gnu++17 -o CMakeFiles/tpcc.dir/tpcc/tpcc.cpp.o -c /root/home/AffinityDB/Proxy/frontend/tpcc/tpcc.cpp",
+  "file": "/root/home/AffinityDB/Proxy/frontend/tpcc/tpcc.cpp"
+}
+]

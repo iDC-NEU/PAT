@@ -1,0 +1,9 @@
+/root/home/AffinityDB/build/CMakeFiles/gflags_src.dir
+/root/home/AffinityDB/build/CMakeFiles/edit_cache.dir
+/root/home/AffinityDB/build/CMakeFiles/rebuild_cache.dir
+/root/home/AffinityDB/build/backend/CMakeFiles/Proxy.dir
+/root/home/AffinityDB/build/backend/CMakeFiles/edit_cache.dir
+/root/home/AffinityDB/build/backend/CMakeFiles/rebuild_cache.dir
+/root/home/AffinityDB/build/frontend/CMakeFiles/tpcc.dir
+/root/home/AffinityDB/build/frontend/CMakeFiles/edit_cache.dir
+/root/home/AffinityDB/build/frontend/CMakeFiles/rebuild_cache.dir
