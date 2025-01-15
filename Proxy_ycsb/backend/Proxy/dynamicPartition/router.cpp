@@ -192,10 +192,10 @@ namespace Proxy
                     queue_guard.lock();
                     if(!txn_queue.empty()){
                         txnnodelist = txn_queue.front();
+                        txn_queue.pop();
                         queue_guard.unlock();
                         generateStamps();
                         partition_count++;
-                        txn_queue.pop();
                         if(FLAGS_partition_mode == 2 && metis && partition_count % 1000 == 0){
                             dyPartition();
                         }

@@ -449,6 +449,50 @@ namespace Proxy
                            destNodeId = routerCach[clientId] - 1;
                         }
                         break;
+                                       case 6:
+                  // ideal rapo
+                  if (routerCach[clientId] == 0)
+                  {
+                     auto router_start = Proxy::utils::getTimePoint();
+                     destNodeId = partition_id;
+                     auto router_end = Proxy::utils::getTimePoint();
+                     outputs[t_i] << (router_end - router_start) << " ";
+                     tx_acc++;
+                     if (tx_acc <= 100000)
+                     {
+                        for (const auto &txn_node : keylist)
+                        {
+                           router.DyPartitioner.partmap.insert({txn_node.key, destNodeId});
+                           i64 key = txn_node.key;
+                           if (FLAGS_ycsb_hot_page)
+                           {
+                              if (txn_node.key < FLAGS_ycsb_hot_page_size * FLAGS_stamp_len)
+                              {
+                                 key = key / FLAGS_stamp_len;
+                              }
+                              else
+                              {
+                                 key = key - (FLAGS_ycsb_hot_page_size * FLAGS_stamp_len);
+                              }
+                           }
+                           router.DyPartitioner.ycsb_map.insert({key, destNodeId});
+                        }
+                     }
+                     else if(!router.metis){
+                        router.metis = true;
+                     }
+                     if(tx_acc > 10000){
+                        outputs[t_i] << std::endl;
+                        outputs[t_i].flush();
+                        tx_acc = 0;
+                     }
+                  break;
+                  }
+                  else
+                  {
+                     destNodeId = routerCach[clientId] - 1;
+                  }
+                  break;
                      default:
                         // 有路由
 
