@@ -636,7 +636,7 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
                auto start = utils::getTimePoint();
                std::string functionName = extractFunctionName(sql);
                std::vector<std::string> parameters;
-               // extractParameters(sql, ',', parameters);
+               extractParameters(sql, ',', parameters);
                // local_timer->reset(true);
                excuteFunctionCall(functionName, parameters);
                auto end = utils::getTimePoint();

@@ -48,7 +48,7 @@ struct ScaleStoreAdapter
         std::cout << "ycsb_partmap_size: " << partition_map->size() << std::endl;
         auto pos = partition_map->begin();
         pos++;
-        i64 offset = 50;
+        i64 offset = FLAGS_stamp_len;
         auto last_pair = partition_map->begin()->first;
         auto last_part = partition_map->begin()->second;
         i64 pair = last_pair + offset;
@@ -96,6 +96,7 @@ struct ScaleStoreAdapter
         size_t count = 0;
         pos++;
         i64 offset = 1;
+        int board = FLAGS_ycsb_hot_page_size;
         auto last_pair = pos->first;
         auto last_part = pos->second;
         i64 pair = last_pair + offset;
@@ -132,9 +133,9 @@ struct ScaleStoreAdapter
                     pos++;
                     count++;
                 }
-                if (pair >= 5000 && FLAGS_ycsb_hot_page)
+                if (pair >= board && FLAGS_ycsb_hot_page)
                 {
-                    offset = 50;
+                    offset = FLAGS_stamp_len;
                 }
             }
         }
@@ -171,9 +172,9 @@ struct ScaleStoreAdapter
                     pos++;
                     count++;
                 }
-                if (pair >= 5000 && FLAGS_ycsb_hot_page)
+                if (pair >= board && FLAGS_ycsb_hot_page)
                 {
-                    offset = 50;
+                    offset = FLAGS_stamp_len;
                 }
             }
         }
@@ -193,7 +194,7 @@ struct ScaleStoreAdapter
             }
             else
             {
-                tree.update_metis_index({pair.first}, {pair.first + 50}, pair.second);
+                tree.update_metis_index({pair.first}, {pair.first + FLAGS_stamp_len}, pair.second);
             }
         }
         update_map = nullptr;
@@ -218,7 +219,7 @@ struct ScaleStoreAdapter
                 }
                 else
                 {
-                    tree.update_metis_index(pos->first, pos->first + 50, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second);
                 }
                 pos++;
                 count++;
@@ -235,7 +236,7 @@ struct ScaleStoreAdapter
                 }
                 else
                 {
-                    tree.update_metis_index(pos->first, pos->first + 50, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second);
                 }
                 pos++;
                 count++;

@@ -467,22 +467,27 @@ namespace Proxy
                      tx_acc++;
                      if (t_i == 0)
                      {
-                        part_count ++;
-                        if (part_count <= 100000)
+                        part_count++;
+                        if (part_count <= 50000)
                         {
                            for (const auto &txn_node : keylist)
                            {
-                              i64 key = txn_node.key;
+                              i64 key = txn_node.key / FLAGS_stamp_len;
+                              int stamp_id = key * FLAGS_stamp_len;
                               if (FLAGS_ycsb_hot_page)
                               {
-                                 if (txn_node.key < FLAGS_ycsb_hot_page_size * FLAGS_stamp_len)
+                                 if (stamp_id < FLAGS_ycsb_hot_page_size)
                                  {
-                                    key = key / FLAGS_stamp_len;
+                                    key = stamp_id;
                                  }
                                  else
                                  {
-                                    key = key - (FLAGS_ycsb_hot_page_size * FLAGS_stamp_len);
+                                    key = (stamp_id - FLAGS_ycsb_hot_page_size) * FLAGS_stamp_len;
                                  }
+                              }
+                              else
+                              {
+                                 key = stamp_id * FLAGS_stamp_len;
                               }
                               router.DyPartitioner.ycsb_map.insert({key, destNodeId});
                            }
