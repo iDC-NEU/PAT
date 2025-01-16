@@ -770,34 +770,36 @@ namespace Proxy
                      if (t_i == 0)
                      {
                         part_count++;
-                        if (part_count <= 100000)
+                        if (part_count <= 10000)
                         {
                            for (const auto &txn_node : txnnodelist)
                            {
-                              router.DyPartitioner.partmap.insert({txn_node.key, destNodeId});
-                              if (txn_node.key <= customer_key_max)
+                              int key = txn_node.key / FLAGS_stamp_len;
+                              key = key * FLAGS_stamp_len + 1;
+                              router.DyPartitioner.partmap.insert({key, destNodeId});
+                              if (key <= customer_key_max)
                               {
-                                 router.DyPartitioner.customer_map.insert({txn_node.key, destNodeId});
+                                 router.DyPartitioner.customer_map.insert({key, destNodeId});
                               }
-                              else if (customer_key_max < txn_node.key && txn_node.key <= order_key_max)
+                              else if (customer_key_max < key && key <= order_key_max)
                               {
-                                 router.DyPartitioner.order_map.insert({txn_node.key - customer_key_max, destNodeId});
+                                 router.DyPartitioner.order_map.insert({key - customer_key_max, destNodeId});
                               }
-                              else if (order_key_max < txn_node.key && txn_node.key <= stock_key_max)
+                              else if (order_key_max < key && key <= stock_key_max)
                               {
-                                 router.DyPartitioner.stock_map.insert({txn_node.key - order_key_max, destNodeId});
+                                 router.DyPartitioner.stock_map.insert({key - order_key_max, destNodeId});
                               }
-                              else if (stock_key_max < txn_node.key && txn_node.key <= warehouse_key_max)
+                              else if (stock_key_max < key && key <= warehouse_key_max)
                               {
-                                 router.DyPartitioner.warehouse_map.insert({(txn_node.key - stock_key_max) / FLAGS_stamp_len, destNodeId});
+                                 router.DyPartitioner.warehouse_map.insert({(key - stock_key_max) / FLAGS_stamp_len -1, destNodeId});
                               }
-                              else if (warehouse_key_max < txn_node.key && txn_node.key <= district_key_max)
+                              else if (warehouse_key_max < key && key <= district_key_max)
                               {
-                                 router.DyPartitioner.district_map.insert({txn_node.key - warehouse_key_max, destNodeId});
+                                 router.DyPartitioner.district_map.insert({key - warehouse_key_max, destNodeId});
                               }
                               else
                               {
-                                 router.DyPartitioner.neworder_map.insert({txn_node.key - district_key_max, destNodeId});
+                                 router.DyPartitioner.neworder_map.insert({key - district_key_max, destNodeId});
                               }
                            }
                         }

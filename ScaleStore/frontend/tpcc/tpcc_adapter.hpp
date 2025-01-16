@@ -101,7 +101,7 @@ struct ScaleStoreAdapter
       std::cout << "tpcc_partmap_size: " << partition_map->size() << std::endl;
       auto pos = partition_map->begin();
       pos++;
-      Integer offset = 50;
+      Integer offset = FLAGS_stamp_len;
       if (Record::id == 0)
       {
          offset = 1;
