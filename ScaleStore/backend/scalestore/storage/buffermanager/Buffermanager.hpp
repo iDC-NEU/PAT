@@ -146,7 +146,7 @@ namespace scalestore
          std::shared_ptr<spdlog::logger> leaf_logger;
          std::shared_ptr<spdlog::logger> local_logger;
          std::shared_ptr<spdlog::logger> catch_logger;
-         std::unordered_map<std::thread::id, Timer> local_timer;
+         // std::unordered_map<std::thread::id, Timer> local_timer;
          // std::unordered_map<std::thread::id, Timer> remote_timer;
          int remote_count = 0;
          u64 local_count = 0;

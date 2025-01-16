@@ -770,7 +770,7 @@ namespace Proxy
                      if (t_i == 0)
                      {
                         part_count++;
-                        if (part_count <= 100000)
+                        if (part_count <= 2000)
                         {
                            for (const auto &txn_node : txnnodelist)
                            {
