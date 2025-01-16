@@ -542,6 +542,7 @@ namespace Proxy
          {
             std::thread t([&, t_i]()
                           {
+                           u64 part_count = 0;
                            volatile u64 tx_acc = 0;
          // -------------------------------------------------------------------------------------
          // ------------------------------------------------------------------------------------- 
@@ -761,47 +762,53 @@ namespace Proxy
                      std::vector<router::TxnNode> txnnodelist;
                      gen_txn_key_list_with_weight(txnnodelist, sql, destNodeId, int(FLAGS_nodes), ishash);
                      destNodeId = router.hash_router(txnnodelist, t_i);
+                     int w_id = std::stoi(args[0]);
+                     destNodeId = w_id % FLAGS_nodes;
                      auto router_end = Proxy::utils::getTimePoint();
                      outputs[t_i] << (router_end - router_start) << " ";
                      tx_acc++;
-                     if (tx_acc <= 100000)
+                     if (t_i == 0)
                      {
-                        for (const auto &txn_node : txnnodelist)
+                        part_count++;
+                        if (part_count <= 100000)
                         {
-                           router.DyPartitioner.partmap.insert({txn_node.key, destNodeId});
-                           if (txn_node.key <= customer_key_max)
+                           for (const auto &txn_node : txnnodelist)
                            {
-                              router.DyPartitioner.customer_map.insert({txn_node.key, destNodeId});
-                           }
-                           else if (customer_key_max < txn_node.key && txn_node.key <= order_key_max)
-                           {
-                              router.DyPartitioner.order_map.insert({txn_node.key - customer_key_max, destNodeId});
-                           }
-                           else if (order_key_max < txn_node.key && txn_node.key <= stock_key_max)
-                           {
-                              router.DyPartitioner.stock_map.insert({txn_node.key - order_key_max, destNodeId});
-                           }
-                           else if (stock_key_max < txn_node.key && txn_node.key <= warehouse_key_max)
-                           {
-                              router.DyPartitioner.warehouse_map.insert({(txn_node.key - stock_key_max) / FLAGS_stamp_len, destNodeId});
-                           }
-                           else if (warehouse_key_max < txn_node.key && txn_node.key <= district_key_max)
-                           {
-                              router.DyPartitioner.district_map.insert({txn_node.key - warehouse_key_max, destNodeId});
-                           }
-                           else
-                           {
-                              router.DyPartitioner.neworder_map.insert({txn_node.key - district_key_max, destNodeId});
+                              router.DyPartitioner.partmap.insert({txn_node.key, destNodeId});
+                              if (txn_node.key <= customer_key_max)
+                              {
+                                 router.DyPartitioner.customer_map.insert({txn_node.key, destNodeId});
+                              }
+                              else if (customer_key_max < txn_node.key && txn_node.key <= order_key_max)
+                              {
+                                 router.DyPartitioner.order_map.insert({txn_node.key - customer_key_max, destNodeId});
+                              }
+                              else if (order_key_max < txn_node.key && txn_node.key <= stock_key_max)
+                              {
+                                 router.DyPartitioner.stock_map.insert({txn_node.key - order_key_max, destNodeId});
+                              }
+                              else if (stock_key_max < txn_node.key && txn_node.key <= warehouse_key_max)
+                              {
+                                 router.DyPartitioner.warehouse_map.insert({(txn_node.key - stock_key_max) / FLAGS_stamp_len, destNodeId});
+                              }
+                              else if (warehouse_key_max < txn_node.key && txn_node.key <= district_key_max)
+                              {
+                                 router.DyPartitioner.district_map.insert({txn_node.key - warehouse_key_max, destNodeId});
+                              }
+                              else
+                              {
+                                 router.DyPartitioner.neworder_map.insert({txn_node.key - district_key_max, destNodeId});
+                              }
                            }
                         }
+                        else if (!router.metis)
+                        {
+                           router.metis = true;
+                        }
                      }
-                     else if(!router.metis){
-                        router.metis = true;
-                     }
-                     if(tx_acc > 10000){
+                     if(tx_acc % 10000 == 0){
                         outputs[t_i] << std::endl;
                         outputs[t_i].flush();
-                        tx_acc = 0;
                      }
                   break;
                   }

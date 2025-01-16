@@ -298,6 +298,7 @@ namespace Proxy
             std::thread t([&, t_i]()
                           {
                volatile u64 tx_acc = 0;
+               u64 part_count = 0;
                // -------------------------------------------------------------------------------------
                // -------------------------------------------------------------------------------------
                threadCount++;
@@ -319,7 +320,13 @@ namespace Proxy
                uint64_t mailboxIdx = 0;
                ycsb_workload ycsb;
                int partition_id = 0;
-               std::vector<TxnNode> keylist = ycsb.ycsb_keys_create(partition_id);
+               std::vector<TxnNode> keylist;
+               if(FLAGS_ycsb_hot_page){
+                  keylist =  ycsb.ycsb_hot_page(partition_id);
+               }
+               else{
+                   keylist =  ycsb.ycsb_keys_create(partition_id);
+               }
 
                // uint64_t destNodeId=0;
                while (threadsRunning || connectedClients.load())
@@ -458,35 +465,40 @@ namespace Proxy
                      auto router_end = Proxy::utils::getTimePoint();
                      outputs[t_i] << (router_end - router_start) << " ";
                      tx_acc++;
-                     if (tx_acc <= 100000)
+                     if (t_i == 0)
                      {
-                        for (const auto &txn_node : keylist)
+                        part_count ++;
+                        if (part_count <= 100000)
                         {
-                           router.DyPartitioner.partmap.insert({txn_node.key, destNodeId});
-                           i64 key = txn_node.key;
-                           if (FLAGS_ycsb_hot_page)
+                           for (const auto &txn_node : keylist)
                            {
-                              if (txn_node.key < FLAGS_ycsb_hot_page_size * FLAGS_stamp_len)
+                              i64 key = txn_node.key;
+                              if (FLAGS_ycsb_hot_page)
                               {
-                                 key = key / FLAGS_stamp_len;
+                                 if (txn_node.key < FLAGS_ycsb_hot_page_size * FLAGS_stamp_len)
+                                 {
+                                    key = key / FLAGS_stamp_len;
+                                 }
+                                 else
+                                 {
+                                    key = key - (FLAGS_ycsb_hot_page_size * FLAGS_stamp_len);
+                                 }
                               }
-                              else
-                              {
-                                 key = key - (FLAGS_ycsb_hot_page_size * FLAGS_stamp_len);
-                              }
+                              router.DyPartitioner.ycsb_map.insert({key, destNodeId});
                            }
-                           router.DyPartitioner.ycsb_map.insert({key, destNodeId});
+                        }
+                        else if (!router.metis)
+                        {
+                           router.metis = true;
                         }
                      }
-                     else if(!router.metis){
-                        router.metis = true;
-                     }
-                     if(tx_acc > 10000){
+                     if (tx_acc > 10000)
+                     {
                         outputs[t_i] << std::endl;
                         outputs[t_i].flush();
                         tx_acc = 0;
                      }
-                  break;
+                     break;
                   }
                   else
                   {

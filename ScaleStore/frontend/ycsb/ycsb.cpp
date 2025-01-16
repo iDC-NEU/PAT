@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
                      }
                      if (FLAGS_use_codesign && scalestore.getNodeID() == 0){
                         if(t_i == 0){
-                           if (scalestore.ycsb_map_created() && !ycsb_adapter.creates[t_i])
+                           if (scalestore.ycsb_map_created() && !ycsb_adapter.created)
                            {
                               time_logger->info(fmt::format("start create ycsb partitioner thread t{}", t_i));
                               auto time_start = utils::getTimePoint();

@@ -139,7 +139,7 @@ int main()
     std::string filename1 = "./ycsb_config.ini";
     std::string filename2 = "./proxy_ycsb_config.ini";
     std::string path;
-    std::string start = "result/ycsb/schism/";
+    std::string start = "result/new_ycsb/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "", subpath7 = "";
 
     // 读取INI文件并存储到字典中
@@ -163,9 +163,13 @@ int main()
     {
         subpath2 = "schism/";
     }
-        else if (params2["route_mode"] == "5")
+    else if (params2["route_mode"] == "5")
     {
         subpath2 = "hash/";
+    }
+    else if (params2["route_mode"] == "6")
+    {
+        subpath2 = "ideal_rapo/";
     }
     else
     {

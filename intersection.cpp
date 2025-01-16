@@ -158,7 +158,7 @@ int main() {
     std::string filename1 = "./tpcc_config.ini";
     std::string filename2 = "./proxy_config.ini";
     std::string path;
-    std::string start = "data_tpcc/schism_100w/";
+    std::string start = "data_tpcc/new_tpcc/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "";
 
     // 读取INI文件并存储到字典中
@@ -186,6 +186,10 @@ int main() {
         else if (params2["route_mode"] == "5")
     {
         subpath2 = "hash/";
+    }
+    else if (params2["route_mode"] == "6")
+    {
+        subpath2 = "ideal_rapo/";
     }
     else
     {
