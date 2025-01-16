@@ -9,6 +9,7 @@ struct ScaleStoreAdapter
     bool created = false;
     std::vector<bool> creates;
     std::vector<bool> updates;
+    int page_ro_count = 0;
     bool start_part = false;
     bool start_update = false;
     bool traversed = false;
@@ -64,7 +65,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index(last_pair, pair, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                     pos++;
                     last_pair = pair;
                     last_part = partition_map->at(pair);
@@ -74,14 +75,14 @@ struct ScaleStoreAdapter
             else
             {
                 // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                tree.update_metis_index(last_pair, pair, last_part);
+                tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                 last_pair = pos->first;
                 last_part = pos->second;
                 pair = last_pair + offset;
                 pos++;
             }
         }
-        tree.update_metis_index(last_pair, pair, last_part);
+        tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
         created = true;
     }
 
@@ -115,7 +116,7 @@ struct ScaleStoreAdapter
                     else
                     {
                         // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                        tree.update_metis_index(last_pair, pair, last_part);
+                        tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                         pos++;
                         count++;
                         last_pair = pair;
@@ -126,7 +127,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index(last_pair, pair, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                     last_pair = pos->first;
                     last_part = pos->second;
                     pair = last_pair + offset;
@@ -154,7 +155,7 @@ struct ScaleStoreAdapter
                     else
                     {
                         // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                        tree.update_metis_index(last_pair, pair, last_part);
+                        tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                         pos++;
                         count++;
                         last_pair = pair;
@@ -165,7 +166,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index(last_pair, pair, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                     last_pair = pos->first;
                     last_part = pos->second;
                     pair = last_pair + offset;
@@ -179,7 +180,7 @@ struct ScaleStoreAdapter
             }
         }
         std::cout << "partition_size: " << count << std::endl;
-        tree.update_metis_index(last_pair, pair, last_part);
+        tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
         creates[t_i] = true;
     }
 
@@ -190,11 +191,11 @@ struct ScaleStoreAdapter
         {
             if (FLAGS_ycsb_hot_page && pair.first < FLAGS_ycsb_hot_page_size)
             {
-                tree.update_metis_index({pair.first}, {pair.first + 1}, pair.second);
+                tree.update_metis_index({pair.first}, {pair.first + 1}, pair.second, page_ro_count);
             }
             else
             {
-                tree.update_metis_index({pair.first}, {pair.first + FLAGS_stamp_len}, pair.second);
+                tree.update_metis_index({pair.first}, {pair.first + FLAGS_stamp_len}, pair.second, page_ro_count);
             }
         }
         update_map = nullptr;
@@ -215,11 +216,11 @@ struct ScaleStoreAdapter
             {
                 if (FLAGS_ycsb_hot_page && pos->first < FLAGS_ycsb_hot_page_size)
                 {
-                    tree.update_metis_index(pos->first, pos->first + 1, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + 1, pos->second, page_ro_count);
                 }
                 else
                 {
-                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second, page_ro_count);
                 }
                 pos++;
                 count++;
@@ -232,11 +233,11 @@ struct ScaleStoreAdapter
 
                 if (FLAGS_ycsb_hot_page && pos->first < FLAGS_ycsb_hot_page_size)
                 {
-                    tree.update_metis_index(pos->first, pos->first + 1, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + 1, pos->second, page_ro_count);
                 }
                 else
                 {
-                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second);
+                    tree.update_metis_index(pos->first, pos->first + FLAGS_stamp_len, pos->second, page_ro_count);
                 }
                 pos++;
                 count++;
@@ -283,7 +284,7 @@ struct ScaleStoreAdapter
                 else
                 {
                     // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                    tree.update_metis_index(last_pair, pair, last_part);
+                    tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                     pos++;
                     last_pair = pair;
                     last_part = partition_map->at(pair);
@@ -293,14 +294,14 @@ struct ScaleStoreAdapter
             else
             {
                 // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-                tree.update_metis_index(last_pair, pair, last_part);
+                tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
                 last_pair = pos->first;
                 last_part = pos->second;
                 pair = last_pair + offset;
                 pos++;
             }
         }
-        tree.update_metis_index(last_pair, pair, last_part);
+        tree.update_metis_index(last_pair, pair, last_part, page_ro_count);
         created = true;
         std::cout << "increase_count: " << tree.increase_count << std::endl;
         output << "increase_count: " << tree.increase_count << std::endl;

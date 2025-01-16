@@ -80,6 +80,7 @@ struct ScaleStoreAdapter
    using BTree = storage::BTree<typename Record::Key, Record>;
    std::string name;
    PID tree_pid;
+   int page_ro_count=0;
    bool created = false;
    bool traversed = false;
    std::map<Integer, Integer> *partition_map;
@@ -94,6 +95,11 @@ struct ScaleStoreAdapter
       }
       tree_pid = catalog.getCatalogEntry(Record::id).pid;
    };
+
+   int page_size(){
+      BTree tree(tree_pid);
+      return tree.page_count();
+   }
 
    void create_partitioner()
    {
@@ -121,7 +127,7 @@ struct ScaleStoreAdapter
             else
             {
                // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-               tree.update_metis_index({last_pair}, {pair}, last_part);
+               tree.update_metis_index({last_pair}, {pair}, last_part, page_ro_count);
                pos++;
                last_pair = pair;
                last_part = partition_map->at(pair);
@@ -131,14 +137,14 @@ struct ScaleStoreAdapter
          else
          {
             // std::cout <<"pair " << pair << "last_pair " << last_pair <<std::endl;
-            tree.update_metis_index({last_pair}, {pair}, last_part);
+            tree.update_metis_index({last_pair}, {pair}, last_part, page_ro_count);
             last_pair = pos->first;
             last_part = pos->second;
             pair = last_pair + offset;
             pos++;
          }
       }
-      tree.update_metis_index({last_pair}, {pair}, last_part);
+      tree.update_metis_index({last_pair}, {pair}, last_part, page_ro_count);
       created = true;
    }
 
@@ -147,7 +153,7 @@ struct ScaleStoreAdapter
       BTree tree(tree_pid);
       for (const auto &pair : *update_map)
       {
-         tree.update_metis_index({pair.first}, {pair.first + 50}, pair.second);
+         tree.update_metis_index({pair.first}, {pair.first + int(FLAGS_stamp_len)}, pair.second, page_ro_count);
       }
       update_map = nullptr;
    }

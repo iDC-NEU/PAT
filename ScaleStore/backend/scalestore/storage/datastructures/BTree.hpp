@@ -706,7 +706,7 @@ namespace scalestore
             }
          }
 
-         void update_metis_index(Key start_k, Key end_k, int partition_id)
+         void update_metis_index(Key start_k, Key end_k, int partition_id, int &count)
          {
             // -------------------------------------------------------------------------------------
             threads::Worker::my().counters.incr(profiling::WorkerCounters::btree_traversals);
@@ -824,6 +824,7 @@ namespace scalestore
                {
                   Key sep;
                   PID newLeaf = leaf.split(sep, l_pos, partition_id);
+                  count++;
                   increase_count++;
                   if (xg_parent.getFrame().pid == entryPage)
                   {
@@ -877,6 +878,7 @@ namespace scalestore
                   {
                      Key sep;
                      PID newLeaf = leaf.split(sep, r_pos, partition_id, -1);
+                     count++;
                      increase_count++;
                      if (xg_parent.getFrame().pid == entryPage)
                      {

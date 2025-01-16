@@ -874,6 +874,8 @@ void router_tpcc_run_with_codesign(ScaleStore &db)
          running_threads_counter--; });
    }
 
+   
+
    // uint64_t n_i;
    // for (n_i = 0; n_i < FLAGS_sqlSendThreads; n_i++)
    // {
@@ -1174,5 +1176,417 @@ void router_tpcc_run_without_codesign(ScaleStore &db)
    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
    std::cout << "Starting hash table report "
              << "\n";
+   db.getBuffermanager().reportHashTableStats();
+}
+
+void test_rapo(ScaleStore &db)
+{
+   std::atomic<bool> keep_running = true;
+   auto &catalog = db.getCatalog();
+   // bool keep_getting_sql = true;
+   std::atomic<u64> running_threads_counter = 0;
+   std::string configuration;
+   bool change_line[FLAGS_worker];
+   bool count_ready = false;
+   int total_page_size;
+   for (int i = 0; i < int(FLAGS_worker); i++)
+   {
+      change_line[i] = false;
+   }
+   if (FLAGS_tpcc_warehouse_affinity)
+   {
+      configuration = "warehouse_affinity";
+   }
+   else if (FLAGS_tpcc_warehouse_locality)
+   {
+      configuration = "warehouse_locality";
+   }
+   else
+   {
+      configuration = "warehouse_no_locality";
+   }
+   TPCC_workloadInfo experimentInfo{"TPCC", (uint64_t)warehouseCount, configuration};
+   std::string currentFile = __FILE__;
+   std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
+   std::string logFilePath = abstract_filename + "../../Logs/reorganize_time_log." + std::to_string(db.getNodeID()) + "txt";
+   std::shared_ptr<spdlog::logger> time_logger = spdlog::basic_logger_mt("router_logger", logFilePath);
+   time_logger->set_level(spdlog::level::info);
+   time_logger->flush_on(spdlog::level::info);
+   time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+   std::vector<std::ofstream> outputs;
+   std::vector<std::ofstream> neworder_times;
+   for (uint64_t t_i = 0; t_i < FLAGS_worker; t_i++)
+   {
+      outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
+      neworder_times.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/neworder_worker_" + std::to_string(t_i)));
+   }
+   for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i)
+   {
+      db.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]()
+                                          {
+         // db.getBuffermanager().local_timer.insert({std::this_thread::get_id(), Timer()});                           
+         running_threads_counter++;
+         thread_id = t_i + (db.getNodeID() * FLAGS_worker);
+         storage::DistributedBarrier barrier(catalog.getCatalogEntry(barrier_id).pid);
+         barrier.wait();
+         // Timer *local_timer =  &db.getBuffermanager().local_timer[std::this_thread::get_id()];
+         while (keep_running) {
+            char sql[sqlLength];
+            uint64_t src_node;
+            if(db.getSql(sql,&src_node)){
+               auto start = utils::getTimePoint();
+               std::string functionName = extractFunctionName(sql);
+               std::vector<std::string> parameters;
+               extractParameters(sql, ',', parameters);
+               // local_timer->reset(true);
+               excuteFunctionCall(functionName, parameters);
+               auto end = utils::getTimePoint();
+               if (count_ready)
+               {
+                  outputs[t_i] << (end - start) << " ";
+                  // if (functionName == "newOrder")
+                  // {
+                  //    neworder_times[t_i] << (end - start) << " "
+                  //                        << local_timer->local_elapsedMicroseconds() << " "
+                  //                        << local_timer->remote_elapsedMicroseconds() << " ";
+                  // }
+               }
+               // local_timer->reset(true);
+               if(change_line[t_i] && count_ready){
+                  outputs[t_i] << std::endl;
+                  // neworder_times[t_i] << std::endl;
+                  change_line[t_i] = false;
+               }
+               if (db.getNodeID() == 0)
+               {
+                  if (t_i == 0)
+                  {
+                     if (!warehouse.created)
+                     {
+                        total_page_size = warehouse.page_size() + history.page_size() + district.page_size() + customer.page_size() + order.page_size() + orderline.page_size() + stock.page_size() + item.page_size() + neworder.page_size();
+                        time_logger->info(fmt::format("total_page_size {}", total_page_size));
+                     }
+                     if (!warehouse.created && db.warehouse_created())
+                     {
+                        time_logger->info(fmt::format("start create warehouse partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        warehouse.partition_map = db.get_warehouse_map();
+                        warehouse.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("warehouse partitioner created"));
+                        time_logger->info(fmt::format("warehouse partition cost {}ms", float(time_end - time_start)/1000));
+                     }
+                     if (db.warehouse_update_ready())
+                     {
+                        warehouse.update_map = db.get_warehouse_update_map();
+                        warehouse.update_partitioner();
+                        db.set_warehouse_update_ready(false);
+                        db.warehouse_clear();
+                        time_logger->info(fmt::format("warehouse update ro_page {}", warehouse.page_ro_count));
+                        warehouse.page_ro_count = 0;
+                     }
+                     // if(customer.created && !customer.traversed){
+                     //    std::cout << "start traverse customer tree" << std::endl;
+                     //    customer.traverse_tree();
+                     //    std::cout << "customer tree traversed" << std::endl;
+                     // }
+                  }
+                  if (t_i == 1)
+                  {
+                     if (!customer.created && db.customer_created())
+                     {
+                        time_logger->info(fmt::format("start create customer partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        customer.partition_map = db.get_customer_map();
+                        customer.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("customer partitioner created"));
+                        time_logger->info(fmt::format("customer partition cost {}ms", float(time_end - time_start)/1000));
+                        time_logger->info(fmt::format("customer init ro_page {}", customer.page_ro_count));
+                        customer.page_ro_count = 0;
+                     }
+                     if(db.customer_update_ready()){
+                        customer.update_map = db.get_customer_update_map();
+                        customer.update_partitioner();
+                        time_logger->info(fmt::format("customer update ro_page {}", customer.page_ro_count));
+                        customer.page_ro_count = 0;
+                        db.set_customer_update_ready(false);
+                        db.customer_clear();
+                     }
+
+                     if (!order.created && db.order_created())
+                     {
+                        time_logger->info(fmt::format("start create order partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        order.partition_map = db.get_order_map();
+                        order.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("order partitioner created"));
+                        time_logger->info(fmt::format("order partition cost {}ms", float(time_end - time_start)/1000));
+                        time_logger->info(fmt::format("order init ro_page {}", order.page_ro_count));
+                        order.page_ro_count = 0;
+                     }
+                     if(db.order_update_ready()){
+                        order.update_map = db.get_order_update_map();
+                        order.update_partitioner();
+                        time_logger->info(fmt::format("order update ro_page {}", order.page_ro_count));
+                        order.page_ro_count = 0;
+                        db.set_order_update_ready(false);
+                        db.order_clear();
+                     }
+                     // if(order.created && !order.traversed){
+                     //    std::cout << "start traverse order tree" << std::endl;
+                     //    order.traverse_tree();
+                     //    std::cout << "order tree traversed" << std::endl;
+                     // }
+                  }
+                  if (t_i == 2)
+                  {
+                     if (!stock.created && db.stock_created())
+                     {
+                        time_logger->info(fmt::format("start create stock partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        stock.partition_map = db.get_stock_map();
+                        stock.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("stock partitioner created"));
+                        time_logger->info(fmt::format("stock partition cost {}ms", float(time_end - time_start)/1000));
+                        time_logger->info(fmt::format("stock init ro_page {}", stock.page_ro_count));
+                        stock.page_ro_count = 0;
+                     }
+                     if (db.stock_update_ready())
+                     {
+                        stock.update_map = db.get_stock_update_map();
+                        stock.update_partitioner();
+                        time_logger->info(fmt::format("stock update ro_page {}", stock.page_ro_count));
+                        stock.page_ro_count = 0;
+                        db.set_stock_update_ready(false);
+                        db.stock_clear();
+                     }
+                     // if(stock.created && !stock.traversed){
+                     //    std::cout << "start traverse stock tree" << std::endl;
+                     //    stock.traverse_tree();
+                     //    std::cout << "stock tree traversed" << std::endl;
+                     // }
+                  }
+                  if (t_i == 3)
+                  {
+                     if (!district.created && db.district_created())
+                     {
+                        time_logger->info(fmt::format("start create district partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        district.partition_map = db.get_district_map();
+                        district.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("district partitioner created"));
+                        time_logger->info(fmt::format("district partition cost {}ms", float(time_end - time_start)/1000));
+                        time_logger->info(fmt::format("district init ro_page {}", district.page_ro_count));
+                        district.page_ro_count = 0;
+                     }
+                     if (db.district_update_ready())
+                     {
+                        district.update_map = db.get_district_update_map();
+                        district.update_partitioner();
+                        time_logger->info(fmt::format("district update ro_page {}", district.page_ro_count));
+                        district.page_ro_count = 0;
+                        db.set_district_update_ready(false);
+                        db.district_clear();
+                     }
+                     if (!neworder.created && db.neworder_created())
+                     {
+                        time_logger->info(fmt::format("start create neworder partitioner"));
+                        auto time_start = utils::getTimePoint();
+                        neworder.partition_map = db.get_neworder_map();
+                        neworder.create_partitioner();
+                        auto time_end = utils::getTimePoint();
+                        time_logger->info(fmt::format("neworder partitioner created"));
+                        time_logger->info(fmt::format("neworder partition cost {}ms", float(time_end - time_start) / 1000));
+                        time_logger->info(fmt::format("neworder init ro_page {}", neworder.page_ro_count));
+                        neworder.page_ro_count = 0;
+                     }
+                     if (db.neworder_update_ready())
+                     {
+                        neworder.update_map = db.get_neworder_update_map();
+                        neworder.update_partitioner();
+                        time_logger->info(fmt::format("district update ro_page {}", neworder.page_ro_count));
+                        neworder.page_ro_count = 0;
+                        db.set_neworder_update_ready(false);
+                        db.neworder_clear();
+                     }
+                  }
+                  // if (t_i == 6)
+                  // {
+                  //    if (!orderline.created && db.orderline_created())
+                  //    {
+                  //       std::cout << "start create orderline partitioner" << std::endl;
+                  //       orderline.partition_map = db.get_orderline_map();
+                  //       orderline.create_partitioner();
+                  //       std::cout << " orderline partitioner created" << std::endl;
+                  //    }
+                  //    // if(stock.created && !stock.traversed){
+                  //    //    std::cout << "start traverse stock tree" << std::endl;
+                  //    //    stock.traverse_tree();
+                  //    //    std::cout << "stock tree traversed" << std::endl;
+                  //    // }
+                  // }
+               }
+
+            //    };
+
+            /*
+            if (FLAGS_tpcc_abort_pct && urand(0, 100) <= FLAGS_tpcc_abort_pct) {
+               // abort
+            } else {
+               // commit
+            }
+            */
+               threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
+
+            }
+         }
+                  if(FLAGS_nodes < 2){
+         sleep(5 * int(db.getNodeID() + 1));
+         switch (t_i)
+         {
+         case 0:
+            if(!warehouse.traversed){
+               warehouse.traverse_page();
+               std::cout << "warehouse page traversed" << std::endl;
+            }
+            if(!district.traversed){
+               district.traverse_page();
+               std::cout << "district page traversed" << std::endl;
+            }
+            if(!history.traversed){
+               history.traverse_page();
+               std::cout << "history page traversed" << std::endl;
+            }
+            if(!item.traversed){
+               item.traverse_page();
+               std::cout << "item page traversed" << std::endl;
+            }
+            break;
+         case 1:
+            if(!customer.traversed){
+               customer.traverse_page();
+               std::cout << "customer page traversed" << std::endl;
+            }
+            if(!customerwdl.traversed){
+               customerwdl.traverse_page();
+               std::cout << "customerwdl page traversed" << std::endl;
+            }
+            if(!stock.traversed){
+               stock.traverse_page();
+               std::cout << "stock page traversed" << std::endl;
+            }
+            break;
+            break;
+         case 2:
+            if(!neworder.traversed){
+               neworder.traverse_page();
+               std::cout << "neworder page traversed" << std::endl;
+            }
+
+            break;
+         case 3:
+            if(!order.traversed){
+               order.traverse_page();
+               std::cout << "order page traversed" << std::endl;
+            }
+            if(!order_wdc.traversed){
+               order_wdc.traverse_page();
+               std::cout << "orderwdc page traversed" << std::endl;
+            }
+            break;
+         }
+         }
+         running_threads_counter--; });
+   }
+
+   
+
+   // uint64_t n_i;
+   // for (n_i = 0; n_i < FLAGS_sqlSendThreads; n_i++)
+   // {
+   //    printf("creat sender\n");
+   //    std::thread sender([&, n_i]()
+   //                       {
+   //    uint32_t w_id;
+
+   //    uint64_t senderId=n_i;
+   //    while(keep_running){
+   //       if (FLAGS_tpcc_warehouse_affinity) {
+   //          w_id = senderId + 1 + warehouse_range_node.begin;
+   //       } else if (FLAGS_tpcc_warehouse_locality) {
+   //          w_id = urand(warehouse_range_node.begin + 1, warehouse_range_node.end);
+   //       } else {
+   //          w_id = urand(1, FLAGS_tpcc_warehouse_count);
+   //          if (w_id <= (uint32_t)warehouse_range_node.begin || (w_id > (uint32_t)warehouse_range_node.end)) remote_node_new_order++;
+   //       }
+
+   //       std::string sql_content = txCreate(w_id);
+
+   //       char sql[sqlLength];
+   //       strcpy(sql, sql_content.c_str());
+   //       while(!db.sendSqltoProxy(sql,senderId)){
+   //             _mm_pause();
+   //       }
+   //    } });
+   //    sender.detach();
+   // }
+
+   // -------------------------------------------------------------------------------------
+   // Join Threads
+   // -------------------------------------------------------------------------------------
+   // report data size
+   // std::thread data_consume([&]()
+   // {
+   //    while(keep_running){
+   //    sleep(30);
+   //    double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
+   //    std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
+   //                         }
+   // });
+   // data_consume.detach();
+   std::thread start_txn_count([&]()
+                               {
+      int time_count = 0;
+      while(keep_running){
+         sleep(10);
+         for(int i = 0; i< int(FLAGS_worker); i++){
+            if (time_count != 200)
+            {
+               change_line[i] = true;
+            }
+         }
+         time_count += 10;
+         if (time_count == 200)
+         {
+            count_ready = true;
+         }
+         else
+         {
+            count_ready = false;
+         }
+      } });
+   start_txn_count.detach();
+   sleep(FLAGS_TPCC_run_for_seconds);
+   std::cout << "tpcc run over" << std::endl;
+   keep_running = false;
+   // keep_getting_sql = false;
+   while (running_threads_counter)
+   {
+      _mm_pause();
+   }
+   sleep(5);
+   db.getWorkerPool().joinAll();
+   // -------------------------------------------------------------------------------------
+   // db.stopProfiler();
+   std::cout << "\n";
+   double gib = (db.getBuffermanager().getConsumedPages() * storage::EFFECTIVE_PAGE_SIZE / 1024.0 / 1024.0 / 1024.0);
+   std::cout << "data loaded - consumed space in GiB = " << gib << std::endl;
+   std::cout << "Starting hash table report "
+             << "\n";
+
    db.getBuffermanager().reportHashTableStats();
 }
