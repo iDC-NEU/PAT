@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
       origin_tpcc_run(db);
    }
    else if(FLAGS_use_codesign){
-      router_tpcc_run_with_codesign(db);
+      test_rapo(db);
    }
    else{
       router_tpcc_run_without_codesign(db);
