@@ -139,7 +139,7 @@ int main()
     std::string filename1 = "./ycsb_config.ini";
     std::string filename2 = "./proxy_ycsb_config.ini";
     std::string path;
-    std::string start = "result/new_ycsb_workload_change/";
+    std::string start = "result/hot_tmp/";
     std::string subpath1 = "", subpath2 = "", subpath3 = "", subpath4 = "", subpath5 = "", subpath6 = "", subpath7 = "";
 
     // 读取INI文件并存储到字典中
@@ -290,6 +290,7 @@ int main()
     // 计算事务延迟和远程数据
     caculate_txn_lantxncy(path);
     calculate_remote(path, num_nodes);
+    calculate_owner(path, num_nodes);
     // 删除 TXN_LOG 文件
     for (int i = 1; i <= num_nodes; ++i)
     {

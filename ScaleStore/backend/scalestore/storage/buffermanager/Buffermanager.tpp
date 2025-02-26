@@ -742,6 +742,8 @@ restart:
       ensure(FLAGS_nodes > 1);
       ensure(guard.frame->latch.isLatched());
       ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
+      if(functor.type == LATCH_STATE::EXCLUSIVE)
+      page_owner_count++;
       // -------------------------------------------------------------------------------------
       // -------------------------------------------------------------------------------------
       guard.frame->state = BF_STATE::IO_RDMA;
@@ -951,6 +953,7 @@ restart:
    // -------------------------------------------------------------------------------------
    case STATE::REMOTE_POSSESSION_CHANGE:
    {
+      page_owner_count++;
       // is_local = false;
       threads::Worker::my().counters.incr(profiling::WorkerCounters::w_rpc_tried);
       ensure(FLAGS_nodes > 1);

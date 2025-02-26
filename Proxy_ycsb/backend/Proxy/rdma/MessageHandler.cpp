@@ -552,7 +552,12 @@ namespace Proxy
                   }
                   router_number_per_thread[destNodeId] += 1;
                   if(FLAGS_ycsb_workload_change && overall_time > 50){
+                     if(FLAGS_ycsb_hot_page){
+                        keylist = ycsb.ycsb_hot_workload_change(partition_id);
+                     }
+                     else{
                         keylist = ycsb.ycsb_workload_change(partition_id);
+                     }
                   }
                   else
                   {

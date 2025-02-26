@@ -35,11 +35,14 @@ namespace scalestore
          std::string leaf_logFilePath = abstract_filename + "../../../../Logs/remote_node" + std::to_string(nodeId) + ".txt";
          std::string catch_logFilePath = abstract_filename + "../../../../Logs/catch_node" + std::to_string(nodeId) + ".txt";
          std::string local_logFilePath = abstract_filename + "../../../../Logs/local_node" + std::to_string(nodeId) + ".txt";
+         std::string owner_logFilePath = abstract_filename + "../../../../Logs/owner_node" + std::to_string(nodeId) + ".txt";
          std::ofstream leaf_logFile(leaf_logFilePath);
          std::ofstream catch_logFile(catch_logFilePath);
          std::ofstream local_logFile(local_logFilePath);
+         std::ofstream owner_logFile(owner_logFilePath);
          leaf_logFile.close();
          local_logFile.close();
+         owner_logFile.close();
          // index_logFile.close();
          leaf_logger = spdlog::basic_logger_mt("leaf_logger", leaf_logFilePath);
          leaf_logger->set_level(spdlog::level::info);
@@ -56,6 +59,11 @@ namespace scalestore
          catch_logger->flush_on(spdlog::level::info);
          catch_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
          catch_logger->info("build buffer");
+         owner_logger = spdlog::basic_logger_mt("owner_logger", owner_logFilePath);
+         owner_logger->set_level(spdlog::level::info);
+         owner_logger->flush_on(spdlog::level::info);
+         owner_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+         owner_logger->info("build buffer");
 
          // shift page allocation by 512 bytes
          const uint64_t page_per_partition = dramPoolNumberPages / FLAGS_page_pool_partitions;
@@ -337,6 +345,8 @@ namespace scalestore
                local_last_count = local_count;
                catch_logger->info(fmt::format("ssd_io_count ={}; ssd_increase_count ={}/s",ssd_io_count, double(ssd_io_count-ssd_last_count)/10));
                ssd_last_count = ssd_io_count;
+               owner_logger->info(fmt::format("owner_count ={}; increase_count ={}/s",page_owner_count, double(page_owner_count-page_owner_last_count)/10));
+               page_owner_last_count = page_owner_count;
                std::this_thread::sleep_for(interval);
             } });
          logThread.detach();

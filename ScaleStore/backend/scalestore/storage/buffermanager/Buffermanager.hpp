@@ -146,6 +146,7 @@ namespace scalestore
          std::shared_ptr<spdlog::logger> leaf_logger;
          std::shared_ptr<spdlog::logger> local_logger;
          std::shared_ptr<spdlog::logger> catch_logger;
+         std::shared_ptr<spdlog::logger> owner_logger;
          // std::unordered_map<std::thread::id, Timer> local_timer;
          // std::unordered_map<std::thread::id, Timer> remote_timer;
          int remote_count = 0;
@@ -156,6 +157,8 @@ namespace scalestore
          int index_remote_count = 0;
          int ssd_io_count = 0;
          int ssd_last_count = 0;
+         int page_owner_count = 0;
+         int page_owner_last_count = 0;
          std::thread logThread;
          bool running;
          void start_log_thread();

@@ -348,6 +348,75 @@ void calculate_local(std::string path, int nodes)
     std::cout << "统计结果已成功保存到 " << output_filename << std::endl;
 }
 
+void calculate_owner(std::string path, int nodes)
+{
+    // 打开输出文件
+    std::string output_filename = path + "owner_result";
+    std::ofstream output_file(output_filename);
+    if (!output_file)
+    {
+        std::cerr << "无法打开输出文件!" << std::endl;
+        return;
+    }
+    std::vector<std::string> filenames;
+    for(int i = 0; i< nodes; i++){
+        filenames.push_back(path + "node" + std::to_string(i+1) + "/Logs/owner_node" + std::to_string(i) + ".txt");
+    }
+
+    // 用于存储每行的总和
+    std::vector<long long> total_remote_counts;
+    std::vector<double> total_increase_counts;
+    // 遍历所有文件
+    for (const auto &filename : filenames)
+    {
+        std::ifstream input_file(filename);
+        if (!input_file)
+        {
+            std::cerr << "无法打开输入文件: " << filename << std::endl;
+            continue;
+        }
+
+        std::string line;
+        size_t line_index = 0;
+        while (std::getline(input_file, line))
+        {
+            // 使用正则表达式提取 remote_count 和 increase_count 的值
+            std::regex regex(R"(\[.*?\] owner_count\s*=\s*(\d+); increase_count\s*=\s*([\d.]+)/s)");
+            std::smatch match;
+            if (std::regex_match(line, match, regex))
+            {
+                long long remote_count = std::stoll(match[1].str());
+                double increase_count = std::stod(match[2].str());
+
+                // 如果这是第一次读取这一行，初始化总和
+                if (total_remote_counts.size() <= line_index)
+                {
+                    total_remote_counts.push_back(0);
+                    total_increase_counts.push_back(0.0);
+                }
+
+                // 累加每行的值
+                total_remote_counts[line_index] += remote_count;
+                total_increase_counts[line_index] += increase_count;
+
+                // 进入下一行
+                line_index++;
+            }
+        }
+
+        input_file.close();
+    }
+
+    // 将累加结果写入输出文件
+    for (size_t i = 0; i < total_remote_counts.size(); ++i)
+    {
+        output_file << total_increase_counts[i] << std::endl;
+    }
+
+    output_file.close();
+    std::cout << "统计结果已成功保存到 " << output_filename << std::endl;
+}
+
 void mergeFiles(const std::vector<std::string> &filenames, const std::string &outputFilename)
 {
     // 打开所有输入文件
