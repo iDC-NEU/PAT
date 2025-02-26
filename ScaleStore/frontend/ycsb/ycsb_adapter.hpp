@@ -12,6 +12,7 @@ struct ScaleStoreAdapter
     bool start_part = false;
     bool start_update = false;
     bool traversed = false;
+    std::unordered_map<u64, int> page_map;
     std::map<i64, i64> *partition_map;
     std::unordered_map<i64, i64> *update_map;
     ScaleStoreAdapter() {};
@@ -33,13 +34,32 @@ struct ScaleStoreAdapter
     void insert(K key, V payload)
     {
         BTree tree(tree_pid);
-        tree.insert(key, payload);
+        tree.insert(key, payload);                   
+        for(const auto &tmp_pair : tree.page_ids){
+            if(key < int(FLAGS_ycsb_hot_page_size)){
+                page_map.insert({tmp_pair, 0});
+            }
+            else{
+                page_map.insert({tmp_pair, 1});
+            }
+        }
+        tree.page_ids.clear();
     }
 
     bool lookup_opt(K key, V &payload)
     {
         BTree tree(tree_pid);
-        return tree.lookup_opt(key, payload);
+        bool tmp = tree.lookup_opt(key, payload);
+        for(const auto &tmp_pair : tree.page_ids){
+            if(key < int(FLAGS_ycsb_hot_page_size)){
+                page_map.insert({tmp_pair, 0});
+            }
+            else{
+                page_map.insert({tmp_pair, 1});
+            }
+        }
+        tree.page_ids.clear();
+        return tmp;
     }
 
     void create_partitioner()
@@ -322,3 +342,85 @@ struct ScaleStoreAdapter
         std::cout << "traverse_done!" << std::endl;
     }
 };
+
+void get_txn_pageids(std::unordered_map<u64, int> &tmp_map, ScaleStoreAdapter &adapter){
+   for(const auto& page_ids : adapter.page_map){
+      tmp_map.insert({page_ids.first, page_ids.second});
+   }
+   adapter.page_map.clear();
+}
+
+Integer rnd(Integer n)
+{
+   return utils::RandomGenerator::getRand(0, n);
+}
+
+Integer urand(Integer low, Integer high)
+{
+   return rnd(high - low + 1) + low;
+}
+
+Integer urandexcept(Integer low, Integer high, Integer v)
+{
+   if (high <= low)
+      return low;
+   Integer r = rnd(high - low) + low;
+   if (r >= v)
+      return r + 1;
+   else
+      return r;
+}
+
+
+class ycsb_workload
+{
+private:
+public:
+   ycsb_workload()
+   {
+      for (int i = 0; i < 5; i++)
+      {
+         partitions.push_back(partition(i, 5, YCSB_tuple_count));
+         zipf_randoms.push_back(std::make_unique<utils::ScrambledZipfGenerator>(partitions[i].begin, partitions[i].end - 1, FLAGS_YCSB_zipf_factor));
+      }
+      offset = YCSB_tuple_count / 5;
+      tail_range = offset / 5 * 4;
+      outfile.open("/root/home/AffinityDB_rc/AffinityDB/ScaleStore/Logs/ycsb_key");
+   };
+   ~ycsb_workload();
+   std::vector<TxnNode> ycsb_keys_create(int &partition_id);
+   std::vector<TxnNode> ycsb_workload_change(int &partition_id);
+   void key_transfer(std::vector<TxnNode> &keylist);
+   void key_transfer_back(std::vector<TxnNode> &keylist);
+   std::ofstream outfile;
+   std::vector<std::unique_ptr<utils::ScrambledZipfGenerator>> zipf_randoms;
+   std::vector<Partition> partitions;
+   int64_t zipf_offset = 0;
+   i64 offset = 0;
+   i64 tail_range = 0;
+   i64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
+};
+
+ycsb_workload::~ycsb_workload()
+{
+}
+std::vector<TxnNode> ycsb_workload::ycsb_keys_create(int &partition_id)
+{
+   std::vector<TxnNode> keylist;
+   partition_id = utils::RandomGenerator::getRandU64(0, 5);
+   for (int i = 0; i <10; i++)
+   {
+      K key = zipf_randoms[partition_id]->rand(zipf_offset);
+      outfile << key << " ";
+      if (FLAGS_YCSB_read_ratio == 100 || utils::RandomGenerator::getRandU64(0, 100) < FLAGS_YCSB_read_ratio)
+      {
+         keylist.emplace_back(TxnNode(key, true, 1));
+      }
+      else
+      {
+         keylist.emplace_back(TxnNode(key, false, 2));
+      }
+   }
+   outfile << std::endl;
+   return keylist;
+}

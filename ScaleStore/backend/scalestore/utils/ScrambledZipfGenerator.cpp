@@ -11,7 +11,7 @@ namespace utils
 int64_t ScrambledZipfGenerator::rand()
 {
    int64_t zipf_value = zipf_generator(gen);
-   return min + (scalestore::utils::FNV::hash(zipf_value) % n);
+   return zipf_value;
 }
 // -------------------------------------------------------------------------------------
 int64_t ScrambledZipfGenerator::rand(int64_t offset)

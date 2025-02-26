@@ -1,5 +1,5 @@
 #pragma once 
-#include "Defs.hpp"
+#include "../../ScaleStore/shared-headers/Defs.hpp"
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
@@ -11,11 +11,11 @@ namespace utils
 class FNV
 {
   private:
-  static constexpr int64_t FNV_OFFSET_BASIS_64 = 0xCBF29CE484222325LL;
-  static constexpr int64_t FNV_PRIME_64 = 1099511628211LL;
+  static constexpr uint64_t FNV_OFFSET_BASIS_64 = 0xCBF29CE484222325LL;
+  static constexpr uint64_t FNV_PRIME_64 = 1099511628211LL;
 
   public:
-   static i64 hash(i64 val);
+   static u64 hash(u64 val);
 };
 // -------------------------------------------------------------------------------------
 }  // namespace utils

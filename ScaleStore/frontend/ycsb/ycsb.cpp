@@ -13,6 +13,8 @@
 
 // -------------------------------------------------------------------------------------
 using namespace scalestore;
+
+
 int main(int argc, char *argv[])
 {
 
@@ -96,6 +98,8 @@ int main(int argc, char *argv[])
    std::string abstract_filename = currentFile.substr(0, currentFile.find_last_of("/\\") + 1);
    std::string logFilePath = abstract_filename + "../../Logs/reorganize_time_log" + std::to_string(scalestore.getNodeID()) + ".txt";
    std::shared_ptr<spdlog::logger> time_logger = spdlog::basic_logger_mt("router_logger", logFilePath);
+   std::string pageFilePath = abstract_filename + "../../Logs/page_Log.txt";
+   std::ofstream page_output(pageFilePath);
    time_logger->set_level(spdlog::level::info);
    time_logger->flush_on(spdlog::level::info);
    time_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
@@ -152,7 +156,7 @@ int main(int argc, char *argv[])
 
       // -------------------------------------------------------------------------------------
       // zipf creation can take some time due to floating point loop therefore wait with barrier
-      barrier_wait();
+      ycsb_workload ycsb;
       // -------------------------------------------------------------------------------------
       // std::vector<std::ofstream> outputs;
       // bool change_line[FLAGS_worker];
@@ -164,6 +168,7 @@ int main(int argc, char *argv[])
       // {
       //    outputs.push_back(std::ofstream(abstract_filename + "../../TXN_LOG/worker_" + std::to_string(t_i)));
       // }
+      ycsb_adapter.page_map.clear();
       for (auto READ_RATIO : workloads)
       {
          for (auto TYPE : workload_type)
@@ -186,10 +191,9 @@ int main(int argc, char *argv[])
                   storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
                   barrier.wait();
                   while (keep_running) {
-                     uint64_t src_node;
                      std::vector<TxnNode> keylist;
-                     if (scalestore.getKey(keylist, &src_node))
-                     {
+                     int part_id = 0;
+                     keylist = ycsb.ycsb_keys_create(part_id);
                         // auto start = utils::getTimePoint();
                         for (const auto keynode : keylist)
                         {
@@ -206,6 +210,13 @@ int main(int argc, char *argv[])
                               ycsb_adapter.insert(keynode.key, payload);
                            }
                         }
+                        std::unordered_map<u64, int> tmp_map;
+                        get_txn_pageids(tmp_map, ycsb_adapter);
+                        for (const auto tmp_pair : tmp_map)
+                        {
+                           page_output << tmp_pair.first << " " << tmp_pair.second << " ";
+                        }
+                        page_output << std::endl;
                         // auto end = utils::getTimePoint();
                         // outputs[t_i] << (end - start) << " ";
                         // if (change_line[t_i])
@@ -214,7 +225,6 @@ int main(int argc, char *argv[])
                         //    change_line[t_i] = false;
                         // }
                         threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
-                     }
                      if (FLAGS_use_codesign && scalestore.getNodeID() == 0){
                         if(t_i == 0){
                            if (scalestore.ycsb_map_created() && !ycsb_adapter.creates[t_i])

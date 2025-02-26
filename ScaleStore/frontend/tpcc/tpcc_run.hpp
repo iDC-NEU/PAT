@@ -320,6 +320,7 @@ void origin_tpcc_run(ScaleStore &db)
    stock.page_map.clear();
    item.page_map.clear();
    orderline.page_map.clear();
+   history.page_map.clear();
    if (FLAGS_tpcc_warehouse_affinity)
    {
       configuration = "warehouse_affinity";
@@ -374,11 +375,12 @@ void origin_tpcc_run(ScaleStore &db)
             get_txn_pageids(tmp_map, district);
             get_txn_pageids(tmp_map, customer);
             get_txn_pageids(tmp_map, order);
-            get_txn_pageids(tmp_map, neworder);
+            get_txn_pageids(tmp_map, orderline);
             get_txn_pageids(tmp_map, item);
+            get_txn_pageids(tmp_map, neworder);
             get_txn_pageids(tmp_map, stock);
             for(const auto tmp_pair : tmp_map){
-               page_output<< tmp_pair.first << " " << tmp_pair.second << " ";
+               page_output<< tmp_pair.first << " " << tmp_pair.second << " " << db.getNodeID() << " ";
             }
             page_output<< std::endl;
             page_graph.push_back(tmp_map);
