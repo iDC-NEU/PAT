@@ -36,3 +36,19 @@ cmake -D CMAKE_C_COMPILER=gcc-10 -D CMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE
 ```
 make -j && numactl --membind=0 --cpunodebind=0  ./ycsb -ownIp=172.18.94.80 -nodes=1 -YCSB_all_workloads -worker=20 -YCSB_tuple_count=1000000000 -dramGB=150 -csvFile=singlenode_oom_scalestore_ycsb_zipf.csv  -YCSB_run_for_seconds=60 -ssd_path=/dev/md0 --ssd_gib=400 -pageProviderThreads=4 -YCSB_all_zipf
 ```
+### Configuration
+To configure the servers and their ips the following configuration needs to be adapted:
+```
+const std::vector<std::vector<std::string>> NODES{
+    {""},                                                                                              // 0 to allow direct offset
+    {"172.18.94.80"},                                                                                  // 1
+    {"172.18.94.80", "172.18.94.70"},                                                                  // 2
+    {"172.18.94.80", "172.18.94.70", "172.18.94.10"},                                                  // 3
+    {"172.18.94.80", "172.18.94.70", "172.18.94.10", "172.18.94.20"},                                  // 4
+    {"172.18.94.80", "172.18.94.70", "172.18.94.10", "172.18.94.20", "172.18.94.40"},                  // 5
+    {"172.18.94.80", "172.18.94.70", "172.18.94.10", "172.18.94.20", "172.18.94.40", "172.18.94.30"},  // 6
+};
+```
+The last column indicates the ip of router, and the other columns indicates the ips of servers.
+
+The main configuration file for our experiments can be found in \*.ini, and the execution scripts can be found in run\*.sh
