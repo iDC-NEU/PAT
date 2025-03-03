@@ -1,8 +1,6 @@
 ## PAT
 **PAT** is a page affinity-based transaction routing scheme based on shared-cache architecture.
 
-**PAT** employs the new features:
-
 ## Abstract
 Cloud-native databases decouple compute from storage to achieve scalability, elasticity, and high availability. Most such databases use a shared-cache architecture, where compute nodes jointly maintain a shared cache to buffer pages from shared storage. During transaction execution, local cache misses incur significant page transfer overhead, while exclusive access to pages for row writes causes expensive inter-node transaction blocking. Both increase transaction latency. Existing shared-cache databases overlook the distribution of cached pages maintained by each compute node and route transactions to nodes based on the access patterns of the workload, increasing these overheads.
 
