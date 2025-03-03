@@ -16,9 +16,13 @@ We propose **PAT**, a novel transaction routing mechanism that uses page affinit
 - rdma cm
 - cmake
 - spdlog
-### CMake build
+### Huge pages
+We are using huge pages for the memory buffers:
 ```
-echo N | sudo tee /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages    
+echo N | sudo tee /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages 
+```
+### CMake build
+```   
 mkdir build
 cd build
 ````
