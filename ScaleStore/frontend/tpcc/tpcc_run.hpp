@@ -1187,9 +1187,9 @@ void test_rapo(ScaleStore &db)
    std::atomic<u64> running_threads_counter = 0;
    std::string configuration;
    bool change_line[FLAGS_worker];
-   bool first = false;
+   // bool first = false;
    bool count_ready = false;
-   int total_page_size;
+   // int total_page_size;
    for (int i = 0; i < int(FLAGS_worker); i++)
    {
       change_line[i] = false;
@@ -1262,12 +1262,12 @@ void test_rapo(ScaleStore &db)
                {
                   if (t_i == 0)
                   {
-                     if (!first && db.warehouse_created())
-                     {
-                        total_page_size = warehouse.page_size() + history.page_size() + district.page_size() + customer.page_size() + order.page_size() + orderline.page_size() + stock.page_size() + item.page_size() + neworder.page_size();
-                        time_logger->info(fmt::format("total_page_size {}", total_page_size));
-                        first = true;
-                     }
+                     // if (!first && db.warehouse_created())
+                     // {
+                     //    total_page_size = warehouse.page_size() + history.page_size() + district.page_size() + customer.page_size() + order.page_size() + orderline.page_size() + stock.page_size() + item.page_size() + neworder.page_size();
+                     //    time_logger->info(fmt::format("total_page_size {}", total_page_size));
+                     //    first = true;
+                     // }
                      if (!warehouse.created && db.warehouse_created())
                      {
                         time_logger->info(fmt::format("start create warehouse partitioner"));

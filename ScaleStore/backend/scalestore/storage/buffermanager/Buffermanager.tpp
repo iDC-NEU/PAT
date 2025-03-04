@@ -647,6 +647,7 @@ restart:
       // {
       //    local_timer[std::this_thread::get_id()].reset(false);
       // }
+      local_count++;
       return guard;
    }
    // -------------------------------------------------------------------------------------
@@ -1022,5 +1023,6 @@ restart:
    //    local_timer[std::this_thread::get_id()].stop(false);
    // }
    // -------------------------------------------------------------------------------------
+   local_count++;
    return guard;
 }

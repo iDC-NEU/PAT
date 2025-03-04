@@ -59,3 +59,4 @@ DECLARE_int32(write_weight);
 DECLARE_bool(ycsb_workload_change);
 DECLARE_bool(ycsb_hot_page);
 DECLARE_int32(ycsb_hot_page_size);
+DECLARE_int32(edge_weight);

@@ -323,10 +323,19 @@ namespace Proxy
                             {
                                 G.add_edge(stamp_id, tmp.first, 1);
                             }
+                            else{
+                                G.add_edge(stamp_id, tmp.first, FLAGS_edge_weight);
+                            }
                         }
                         else
                         {
-                            G.add_edge(stamp_id, tmp.first, 1);
+                            if (node.is_read_only)
+                            {
+                                G.add_edge(stamp_id, tmp.first, FLAGS_edge_weight);
+                            }
+                            else{
+                                G.add_edge(stamp_id, tmp.first, FLAGS_edge_weight * 2);
+                            }
                         }
                     }
                     temps.insert({stamp_id, node.is_read_only});

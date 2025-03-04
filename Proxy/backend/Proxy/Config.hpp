@@ -57,3 +57,4 @@ DECLARE_uint32(distribution_rate);
 DECLARE_int32(TPCC_run_for_seconds);
 DECLARE_int32(file_num);
 DECLARE_int32(write_weight);
+DECLARE_int32(edge_weight);

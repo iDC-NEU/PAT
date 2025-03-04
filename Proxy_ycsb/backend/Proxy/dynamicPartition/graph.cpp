@@ -293,7 +293,7 @@ namespace Proxy
                 }
                 if (temps.find(stamp_id) == temps.end())
                 {
-                    for (auto &tmp : temps)
+                for (auto &tmp : temps)
                     {
                         if (tmp.second)
                         {
@@ -301,12 +301,20 @@ namespace Proxy
                             {
                                 G.add_edge(stamp_id, tmp.first, 1);
                             }
+                            else{
+                                G.add_edge(stamp_id, tmp.first, FLAGS_edge_weight);
+                            }
                         }
                         else
                         {
-                            G.add_edge(stamp_id, tmp.first, FLAGS_write_weight);
+                            if (node.is_read_only)
+                            {
+                                G.add_edge(stamp_id, tmp.first, 1);
+                            }
+                            else{
+                                G.add_edge(stamp_id, tmp.first, FLAGS_edge_weight);
+                            }
                         }
-                        edge_count++;
                     }
                     temps.insert({stamp_id, node.is_read_only});
                 }
